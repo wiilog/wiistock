@@ -55,10 +55,12 @@
                         </div>
                     </div>
 
-                    <div class="form-group needed col-md-6 col-12">
-                        <label class="wii-field-name" for="subject">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet') }}*</label>
-                        <input class="form-control data needed" name="subject">
-                    </div>
+                    {% set objectField = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+                    {% if fieldsParam|isFieldRequired(objectField.name, 'displayedCreate') %}
+                        <div class="form-group needed col-md-6 col-12">
+                            {{ form.input(objectField.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), fieldsParam|isFieldRequired(objectField.name, 'requiredCreate'), null) }}
+                        </div>
+                    {% endif %}
 
                     <div class="form-group d-flex flex-column col-md-6 col-12">
                         <label class="wii-field-name">{{ trans('Demande', 'Général', 'Demandeur') }}</label>

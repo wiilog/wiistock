@@ -154,6 +154,10 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_LOADING_ZONE = 'chargement';
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
+
+    const FIELD_CODE_OBJECT = 'object';
+    const FIELD_LABEL_OBJECT  = 'objet';
+
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
     const ENTITY_CODE_ARTICLE = 'articles';

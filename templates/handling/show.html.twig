@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', null, 'Service') }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block titleLink path('handling_index') %}
@@ -61,14 +62,18 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col-6 d-flex flex-column">
-                        <div class="box-item my-2">
-                            <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet') }}</span>
-                            <span class="wii-field-text">
-                                {{ handling.subject }}
-                            </span>
+
+                    {% set objectCode = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+                    {% if fieldsParam|isFieldRequired(objectCode.name, 'displayedEdit') %}
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet') }}</span>
+                                <span class="wii-field-text">
+                                    {{ handling.subject == "" ? "-" : handling.subject }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">

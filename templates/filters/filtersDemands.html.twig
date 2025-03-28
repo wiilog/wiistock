@@ -41,7 +41,11 @@
     {% endif %}
 
     {% if page == 'PAGE_HAND' %}
-        {% include 'filters/filter_item/filterSubject.html.twig' %}
+        {% set objectField = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+        {% if fieldsParam|isFieldRequired(objectField.name, 'displayedFilters') %}
+            {% include 'filters/filter_item/filterSubject.html.twig' %}
+        {% endif %}
+
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterUser.html.twig' with {

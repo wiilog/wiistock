@@ -72,7 +72,8 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, 'label' => FixedFieldStandard::FIELD_LABEL_UNLOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
                 ['code' => FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER]
+                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
+                ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true]
             ],
 
             FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
