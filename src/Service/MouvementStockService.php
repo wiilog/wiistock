@@ -230,7 +230,7 @@ class MouvementStockService
             $this->updateMovementDates($newMouvement, $date);
         }
 
-        if(in_array($newMouvement->getType(), [MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE], true)) {
+        if(in_array($newMouvement->getType(), Article::LAST_MOVEMENT_TYPES, true)) {
             $article->setLastMovement($newMouvement);
         }
 

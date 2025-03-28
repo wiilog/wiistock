@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateLineReferenceRepository::class)]
 class RequestTemplateLineReference extends RequestTemplateLine {
-    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'requestTemplateLines')]
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $reference = null;
 

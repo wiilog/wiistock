@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
@@ -22,12 +23,14 @@ use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLineArticle;
 use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Repository\StatutRepository;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use WiiCommon\Helper\Stream;
 
 class RequestTemplateService {
     public function __construct(
@@ -37,7 +40,8 @@ class RequestTemplateService {
         private NotificationService    $notificationService,
         private UniqueNumberService    $uniqueNumberService,
         private StatusHistoryService   $statusHistoryService,
-        private DeliveryRequestService $deliveryRequestService
+        private DeliveryRequestService $deliveryRequestService,
+        private CacheService           $cacheService,
     ) {}
 
     public function getType(string $type): ?Type {
@@ -108,27 +112,20 @@ class RequestTemplateService {
     public function treatRequestTemplateTriggerType(RequestTemplate        $requestTemplate,
                                                     EntityManagerInterface $entityManager,
                                                     ?SensorWrapper         $wrapper = null): void {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-
         if ($requestTemplate instanceof DeliveryRequestTemplateInterface) {
-            $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $requestTemplate, $wrapper);
+            $request = $this->createDeliveryRequestFromTemplate($entityManager, $requestTemplate, $wrapper);
 
-            $valid = true;
-            foreach ($request->getReferenceLines() as $ligneArticle) {
-                $article = $ligneArticle->getReference();
-                if ($article->getQuantiteDisponible() < $ligneArticle->getQuantityToPick()) {
-                    $valid = false;
-                    break;
-                }
-            }
+            $valid = !Stream::from($request->getReferenceLines())
+                ->some(function (DeliveryRequestReferenceLine $referenceLine): bool {
+                    $reference = $referenceLine->getReference();
+                    return $reference->getQuantiteDisponible() < $referenceLine->getQuantityToPick();
+                });
 
-            foreach ($request->getArticleLines() as $ligneArticle) {
-                $article = $ligneArticle->getArticle();
-                if ($article->getQuantite() < $ligneArticle->getQuantityToPick()) {
-                    $valid = false;
-                    break;
-                }
-            }
+            $valid = $valid && !Stream::from($request->getArticleLines())
+                ->some(function (DeliveryRequestArticleLine $articleLine): bool {
+                    $article = $articleLine->getArticle();
+                    return $article->getQuantite() < $articleLine->getQuantityToPick();
+                });
 
             if ($valid) {
                 $this->deliveryRequestService->validateDLAfterCheck($entityManager, $request, false, true, false);
@@ -146,11 +143,11 @@ class RequestTemplateService {
                 }
             );
         } else if ($requestTemplate instanceof CollectRequestTemplate) {
-            $request = $this->cleanCreateCollectRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
+            $request = $this->createCollectRequestFromTemplate($entityManager, $wrapper, $requestTemplate);
             $entityManager->persist($request);
             $entityManager->flush();
         } else if ($requestTemplate instanceof HandlingRequestTemplate) {
-            $request = $this->cleanCreateHandlingRequest($wrapper, $requestTemplate, $entityManager);
+            $request = $this->createHandlingFromTemplate($wrapper, $requestTemplate, $entityManager);
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
@@ -173,12 +170,10 @@ class RequestTemplateService {
         }
     }
 
-    private function cleanCreateDeliveryRequest(StatutRepository                 $statutRepository,
-                                                EntityManagerInterface           $entityManager,
-                                                DeliveryRequestTemplateInterface $requestTemplate,
-                                                ?SensorWrapper                   $wrapper = null): Demande {
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-
+    private function createDeliveryRequestFromTemplate(EntityManagerInterface           $entityManager,
+                                                       DeliveryRequestTemplateInterface $requestTemplate,
+                                                       ?SensorWrapper                   $wrapper = null): Demande {
+        $statut = $this->cacheService->getEntity($entityManager, Statut::class, Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $date = new DateTime('now');
 
         $request = new Demande();
@@ -210,13 +205,12 @@ class RequestTemplateService {
         return $request;
     }
 
-    private function cleanCreateCollectRequest(StatutRepository $statutRepository,
-                                               EntityManagerInterface $entityManager,
-                                               SensorWrapper $wrapper,
-                                               CollectRequestTemplate $requestTemplate): Collecte {
+    private function createCollectRequestFromTemplate(EntityManagerInterface $entityManager,
+                                                      SensorWrapper          $wrapper,
+                                                      CollectRequestTemplate $requestTemplate): Collecte {
         $date = new DateTime('now');
         $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);
-        $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
+        $status = $this->cacheService->getEntity($entityManager, Statut::class, Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
 
         $request = new Collecte();
         $request
@@ -242,7 +236,7 @@ class RequestTemplateService {
             $entityManager->persist($ligneArticle);
             $request->addCollecteReference($ligneArticle);
         }
-        $ordreCollecte = $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
+        $ordreCollecte = $this->createOrderRequestFromTemplate($request, $entityManager);
         $entityManager->flush();
 
         if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
@@ -252,16 +246,15 @@ class RequestTemplateService {
     }
 
 
-    private function cleanCreateCollectOrder(StatutRepository $statutRepository, Collecte $demandeCollecte, EntityManagerInterface $entityManager): OrdreCollecte {
+    private function createOrderRequestFromTemplate(Collecte $demandeCollecte, EntityManagerInterface $entityManager): OrdreCollecte {
+        $status = $this->cacheService->getEntity($entityManager, Statut::class, Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
 
-        $statut = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
         $date = new DateTime('now');
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
-            ->setStatut($statut)
+            ->setStatut($status)
             ->setDemandeCollecte($demandeCollecte);
         foreach ($demandeCollecte->getArticles() as $article) {
             $ordreCollecte->addArticle($article);
@@ -280,16 +273,15 @@ class RequestTemplateService {
 
 
         // on modifie statut + date validation de la demande
+        $status = $this->cacheService->getEntity($entityManager, Statut::class, Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
         $demandeCollecte
-            ->setStatut(
-                $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
-            )
+            ->setStatut($status)
             ->setValidationDate($date);
 
         return $ordreCollecte;
     }
 
-    private function cleanCreateHandlingRequest(SensorWrapper           $sensorWrapper,
+    private function createHandlingFromTemplate(SensorWrapper           $sensorWrapper,
                                                 HandlingRequestTemplate $requestTemplate,
                                                 EntityManagerInterface  $entityManager): Handling {
         $handling = new Handling();
