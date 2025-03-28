@@ -11,7 +11,7 @@ use Doctrine\Migrations\AbstractMigration;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-//TODO: renommer le fichier en "MigrationCleaner"
+//TODO WIIS-12585: renommer le fichier en "MigrationCleaner"
 //      la prochaine fois que cette migration est
 //      exécutée pour qu'on puisse la différentier
 //      des autres
