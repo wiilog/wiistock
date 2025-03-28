@@ -66,15 +66,18 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex flex-column">
-                            <div class="box-item mt-2">
-                                {{ form.input('subject', trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), true, handling.subject, {
-                                    attributes: {
-                                        'data-short-label': 'Objet',
-                                    },
-                                }) }}
+
+
+                        {% set objectCode = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+                        {% if fieldsParam|isFieldRequired(objectCode.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(objectCode.name, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item mt-2">
+                                    {{ form.input(objectCode.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, null) }}
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
+
                         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}

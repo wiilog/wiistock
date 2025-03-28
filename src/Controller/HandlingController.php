@@ -8,6 +8,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
@@ -200,8 +201,7 @@ class HandlingController extends AbstractController {
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
                         SettingsService $settingsService,
-                        StatusHistoryService $statusHistoryService): Response
-    {
+                        StatusHistoryService $statusHistoryService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -237,7 +237,7 @@ class HandlingController extends AbstractController {
             ->setCreationDate($date)
             ->setType($type)
             ->setRequester($currentUser)
-            ->setSubject(substr($post->get('subject'), 0, 64))
+            ->setSubject(substr($post->get(FixedFieldEnum::object->name), 0, 64))
             ->setSource($post->get('source') ?? '')
             ->setDestination($post->get('destination') ?? '')
             ->setStatus($status)
@@ -343,7 +343,7 @@ class HandlingController extends AbstractController {
 
         $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
-            ->setSubject(substr($post->get('subject'), 0, 64))
+            ->setSubject(substr($post->get(FixedFieldEnum::object->name), 0, 64))
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
