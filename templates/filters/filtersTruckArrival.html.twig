@@ -23,6 +23,8 @@
             name: 'unloadingLocation',
             placeholder: "Emplacement de déchargement",
             multiple: true,
+            isPreFilled: locationsFilter is defined and locationsFilter is not empty,
+            locationsFilter,
         } %}
     {% endif %}
 
@@ -49,6 +51,6 @@
     {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
         label: 'N° de tracking transporteur non attribué(s) ?',
         name: 'carrierTrackingNumberNotAssigned',
-        checked: app.request.get('unassociated')
+        checked: carrierTrackingNumberNotAssigned,
     } %}
 {% endblock %}
