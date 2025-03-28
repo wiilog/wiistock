@@ -50,6 +50,7 @@ abstract class FixedField {
         FixedFieldStandard::ENTITY_CODE_HANDLING => [
             FixedFieldStandard::FIELD_CODE_EMERGENCY,
             FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING,
+            FixedFieldEnum::object->name
         ],
         FixedFieldStandard::ENTITY_CODE_DISPATCH => [
             FixedFieldStandard::FIELD_CODE_EMERGENCY,
