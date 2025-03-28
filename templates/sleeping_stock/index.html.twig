@@ -1,0 +1,36 @@
+{% extends 'layout.html.twig' %}
+{% set external = true %}
+
+{% block title %}Stock | Articles |Gérez vos articles{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block page_content %}
+<div class="sleeping-stock-form">
+    <div class="m-4 wii-page-card">
+        <div class="row">
+            <div class="col-12">
+                <table id="tableSleepingStockForm" class="table w-100" data-initial-data="{{ datatableInitialData }}">
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-5 d-flex justify-content-end">
+        <button type="button" class="btn btn-outline-secondary mx-1" data-dismiss="modal">
+            <span>Annuler</span>
+        </button>
+        <button type="submit" class="btn btn-success mx-1">
+            <span>Enregistrer</span>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('sleeping-stock-index') }}
+{% endblock %}

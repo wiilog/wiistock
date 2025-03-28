@@ -16,6 +16,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
@@ -25,10 +26,10 @@ use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FormatService;
 use App\Service\FieldModesService;
-use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -77,8 +78,6 @@ class ReferenceArticleRepository extends EntityRepository {
         "libelle" => 5,
         // add more columns here with their respective weighting (higher = more relevant)
     ];
-
-    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
 
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
@@ -1513,62 +1512,5 @@ class ReferenceArticleRepository extends EntityRepository {
         $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
-    }
-
-
-
-    /**
-     * @return array{
-     *   "countTotal": int,
-     *   "referenceArticles": array<
-     *     array{
-     *       "id": int,
-     *       "reference": string,
-     *       "label": string,
-     *       "quantityStock": int,
-     *       "lastMovementDate": string,
-     *     }
-     *   >
-     * }
-     */
-    public function findSleepingReferenceArticlesByTypeAndManager(Utilisateur $utilisateur,
-                                                                  DateTime $dateLimit,
-                                                                  Type $type): array {
-        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
-        $queryBuilder = $this->createQueryBuilder("reference_article")
-            ->select("reference_article.id AS id")
-            ->addSelect("reference_article.reference AS reference")
-            ->addSelect("reference_article.libelle AS label")
-            ->addSelect("reference_article.quantiteStock AS quantityStock")
-            ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
-            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) AS lastMovementDate")
-            ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
-            ->andWhere("reference_article.type = :type")
-            ->distinct()
-            ->setMaxResults(self::MAX_REFERENCE_ARTICLES_IN_ALERT)
-            ->setParameter("type", $type)
-            ->setParameter("manager", $utilisateur->getId());
-
-        $queryBuilder = $this->filterBySleepingReference($queryBuilder, $dateLimit, "reference_article");
-
-        $queryResult = $queryBuilder
-            ->getQuery()
-            ->getResult();
-
-        $countTotal = $queryResult[0]["__query_count"] ?? 0;
-
-        return [
-            "countTotal" => $countTotal,
-            "referenceArticles" => $queryResult
-        ];
-    }
-
-    public function filterBySleepingReference(QueryBuilder $queryBuilder, DateTime $dateLimit, string $referenceArticleAlias): QueryBuilder {
-        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
-        return $queryBuilder
-            ->andWhere("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery($referenceArticleAlias)}) < :dateLimit")
-            ->andWhere("$referenceArticleAlias.quantiteStock > 0")
-            ->andWhere("$referenceArticleAlias.quantiteDisponible > 0")
-            ->setParameter("dateLimit", $dateLimit);
     }
 }

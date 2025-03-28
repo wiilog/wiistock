@@ -2,20 +2,25 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\FieldModesService;
+use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Generator;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -25,8 +30,7 @@ use WiiCommon\Helper\Stream;
  * @method MouvementStock[]    findAll()
  * @method MouvementStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementStockRepository extends EntityRepository
-{
+class MouvementStockRepository extends EntityRepository {
     private const DtToDbLabels = [
         'date' => 'date',
         'refArticle' => 'refArticle',
@@ -475,5 +479,105 @@ class MouvementStockRepository extends EntityRepository
             ->select("MAX($movementAlias.date)")
             ->where("$movementAlias.refArticle = $referenceArticleAlias")
             ->getDQL();
+    }
+
+
+    /**
+     * @return array{
+     *   "countTotal": int,
+     *   "referenceArticles": array<
+     *     array{
+     *       "entity": string,
+     *       "id": int,
+     *       "reference": string,
+     *       "label": string,
+     *       "quantityStock": int,
+     *       "lastMovementDate": DateTime,
+     *       "maxStorageTime": int,
+     *       "maxStorageDate": DateTime
+     *     }
+     *   >
+     * }
+     */
+    public function findForSleepingStock(Utilisateur              $user,
+                                         int                      $maxResults,
+                                         SleepingStockPlanService $sleepingStockPlanService,
+                                         ?Type                    $type = null): array {
+        $queryBuilder = $this->createQueryBuilder('movement');
+        $queryBuilder->distinct()
+            ->select("movement.id AS id")
+            ->addSelect("reference_article.id AS referenceArticleId")
+            ->addSelect("article.id AS articleId")
+            ->addSelect("COUNT_OVER(movement.id) AS __query_count")
+            ->addSelect("reference_article.reference AS referenceReference")
+            ->addSelect("article.reference AS articleReference")
+            ->addSelect("reference_article.libelle AS referenceLabel")
+            ->addSelect("article.label AS articleLabel")
+            ->addSelect("reference_article.quantiteStock AS referenceQuantityStock")
+            ->addSelect("article.quantite AS articleQuantityStock")
+            ->addSelect("movement.date AS lastMovementDate")
+            ->addSelect("sleeping_stock_plan.maxStorageTime AS maxStorageTime")
+            ->addSelect("DATE_ADD(movement.date, sleeping_stock_plan.maxStorageTime, 'second') AS maxStorageDate")
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->andX(
+                        "reference_article.quantiteStock > 0",
+                        "reference_article.quantiteDisponible > 0"
+                    ),
+                    "article.quantite > 0"
+                )
+            )
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    "reference_article_managers.id = :user",
+                    "article_reference_article_managers.id = :user"
+                )
+            )
+            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
+            ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
+            ->leftJoin("article.articleFournisseur", "articles_fournisseur")
+            ->leftJoin("reference_article.managers", "reference_article_managers")
+            ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
+            ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
+            ->setParameter("user", $user->getId());
+
+        $sleepingStockPlanService->findSleepingStock(
+            $queryBuilder,
+            "sleeping_stock_plan",
+            "type",
+            "movement",
+            $type
+        );
+
+        $queryResult = $queryBuilder
+            ->setMaxResults($maxResults)
+            ->getQuery()
+            ->getResult();
+
+        $countTotal = $queryResult[0]["__query_count"] ?? 0;
+
+        $data = Stream::from($queryResult)
+            ->map(function ($item) {
+                return [
+                    "entity" => match (true) {
+                        isset($item["referenceArticleId"]) => ReferenceArticle::class,
+                        isset($item["articleId"]) => Article::class,
+                        default => throw new RuntimeException("Unknown entity, invalid id"),
+                    },
+                    "id" => $item["referenceArticleId"] ?? $item["articleId"],
+                    "reference" => $item["referenceReference"] ?? $item["articleReference"],
+                    "label" => $item["referenceLabel"] ?? $item["articleLabel"],
+                    "quantityStock" => $item["referenceQuantityStock"] ?? $item["articleQuantityStock"],
+                    "lastMovementDate" => $item["lastMovementDate"],
+                    "maxStorageTime" => $item["maxStorageTime"],
+                    "maxStorageDate" => $item["maxStorageDate"],
+                ];
+            })
+            ->toArray();
+
+        return [
+            "countTotal" => $countTotal,
+            "referenceArticles" => $data,
+        ];
     }
 }

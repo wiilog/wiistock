@@ -14,6 +14,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Traits\LastMovementTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\ReferenceArticleRepository;
 use DateTime;
@@ -31,6 +32,7 @@ class ReferenceArticle implements AttachmentContainer {
     use AttachmentTrait;
     use CleanedCommentTrait;
     use LitePropertiesSetterTrait;
+    use LastMovementTrait;
 
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';

@@ -4,11 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use DateTime;
+use App\Service\SleepingStockPlanService;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
@@ -282,15 +283,25 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     /**
      * @return array<int, Utilisateur>
      */
-    public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit): array {
-        $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
-        $referenceArticleAlias = 'reference_article';
+    public function findWithSleepingReferenceArticlesByType(Type                     $type,
+                                                            SleepingStockPlanService $sleepingStockPlanService): array{
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
-            ->innerJoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', "$referenceArticleAlias.type = :type AND user MEMBER OF $referenceArticleAlias.managers")
+            ->innerJoin(ReferenceArticle::class, "reference_article", 'WITH', "reference_article.type = :type AND user MEMBER OF reference_article.managers")
+            ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
+            ->leftJoin("articles_fournisseur.articles", "article")
+            ->innerJoin(MouvementStock::class, 'movement', 'WITH', 'movement = reference_article.lastMovement OR movement = article.lastMovement')
             ->setParameter('type', $type);
 
-        return $referenceArticleRepository->filterBySleepingReference($queryBuilder , $dateLimit, $referenceArticleAlias)
+        $sleepingStockPlanService->findSleepingStock(
+            $queryBuilder,
+            "sleeping_stock_plan",
+            "type",
+            "movement",
+            $type
+        );
+
+        return $queryBuilder
             ->getQuery()
             ->getResult();
     }

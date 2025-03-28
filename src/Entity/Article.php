@@ -11,6 +11,7 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Traits\LastMovementTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
 use DateTimeInterface;
@@ -26,6 +27,7 @@ class Article implements PairedEntity {
 
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
+    use LastMovementTrait;
 
     const CATEGORIE = 'article';
     const STATUT_ACTIF = 'disponible';

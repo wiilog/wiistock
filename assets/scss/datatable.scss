@@ -47,7 +47,10 @@ table.wii-table {
     }
 
     td, td > *, th, th > * {
-        max-width: 20vw;
+        &:not(.full-width) {
+            max-width: 20vw;
+        }
+
         white-space: nowrap;
 
         &:not(.select2-container):not(select) {

@@ -2,20 +2,25 @@
 
 namespace App\Service;
 
-use App\Entity\ReferenceArticle;
+use App\Entity\MouvementStock;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Security\Authenticator\SleepingStockAuthenticator;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
-use WiiCommon\Helper\Stream;
 
 
 class SleepingStockPlanService {
+
+    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
 
     public function __construct(
         private MailerService      $mailerService,
@@ -29,24 +34,20 @@ class SleepingStockPlanService {
     public function triggerSleepingStockPlan(EntityManagerInterface $entityManager,
                                              SleepingStockPlan      $sleepingStockPlan,
                                              DateTime               $taskExecution): void {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $movementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-
-        $maxStorageTime = new DateInterval("PT{$sleepingStockPlan->getMaxStorageTime()}S");
-
-        $limitDate = $taskExecution->sub($maxStorageTime);
         $type = $sleepingStockPlan->getType();
 
         $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType(
             $type,
-            $limitDate
+            $this,
         );
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
-
-            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByTypeAndManager(
+            $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(
                 $manager,
-                $limitDate,
+                self::MAX_REFERENCE_ARTICLES_IN_ALERT,
+                $this,
                 $type,
             );
 
@@ -61,41 +62,36 @@ class SleepingStockPlanService {
             $accessToken = $this->accessTokenService->persistAccessToken($entityManager, $tokenType, $manager);
             $entityManager->flush();
 
-            $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
-                ->map(fn(array $referenceArticle) => $this->addMaxStorageDate($referenceArticle, $maxStorageTime))
-                ->toArray();
-
             $this->mailerService->sendMail(
+                $entityManager,
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
                 $this->templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
                     "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken->getPlainToken()]),
                     "countTotal" => $sleepingReferenceArticlesData["countTotal"],
                     "buttonText" => $this->translationService->translate("Stock", "Références", "Email stock dormant", "Cliquez ici pour gérer vos articles", false),
-                    "references" => $referenceArticles,
+                    "references" => $sleepingReferenceArticlesData["referenceArticles"],
                 ]),
                 $manager,
             );
         }
     }
 
-    /**
-     * @return array{
-     *   "id": int,
-     *   "reference": string,
-     *   "label":  string,
-     *   "quantityStock":  int,
-     *   "lastMovementDate": string,
-     *   "maxStorageDate": string,
-     * }
-     */
-    private function addMaxStorageDate(array $referenceArticle, DateInterval $maxStorageTime): array {
-        $lastMovementDate = new DateTime($referenceArticle["lastMovementDate"]);
-        $maxStorageDate = $lastMovementDate->add($maxStorageTime);
-        $this->formatService->dateTime($maxStorageDate);
-        return [
-            ...$referenceArticle,
-            "maxStorageDate" => $this->formatService->dateTime($maxStorageDate),
-        ];
+    public function findSleepingStock(QueryBuilder $queryBuilder,
+                                      string       $sleepingStockPlanAlias,
+                                      string       $typeAlias,
+                                      string       $movementAlias,
+                                      ?Type        $type = null): void {
+        // TODO WIIS-12522 : and where active = true
+        $queryBuilder
+            ->andWhere("DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()")
+            ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = reference_article.type OR $typeAlias = article.type")
+            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias");
+
+        if ($type) {
+            $queryBuilder
+                ->andWhere("$typeAlias = :type")
+                ->setParameter("type", $type);
+        }
     }
 }
 

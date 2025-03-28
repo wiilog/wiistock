@@ -222,6 +222,10 @@ class MouvementStockService
             $newMouvement->setRefArticle($article);
         }
 
+        if (!$article->getLastMovement() || $article->getLastMovement()->getDate() < $newMouvement->getDate()) {
+            $article->setLastMovement($newMouvement);
+        }
+
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
         $comment = $options['comment'] ?? null;
