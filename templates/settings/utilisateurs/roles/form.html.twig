@@ -71,6 +71,15 @@
                             {{ form.checkbox('isMailSendAccountCreation', 'Réception email création nouveau compte', false, role.isMailSendAccountCreation, {
                                 labelClass: 'wii-field-text'
                             }) }}
+                            {{ form.checkbox('showNotification', 'Afficher les notifications', false, role.isShowNotification, {
+                                labelClass: 'wii-field-text'
+                            }) }}
+                            {{ form.checkbox('showBasket', 'Afficher le panier', false, role.isShowBasket, {
+                                labelClass: 'wii-field-text'
+                            }) }}
+                            {{ form.checkbox('showFlag', 'Afficher les langues', false, role.isShowFlag, {
+                                labelClass: 'wii-field-text'
+                            }) }}
                         </div>
                     </div>
                 </div>
