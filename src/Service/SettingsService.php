@@ -1396,6 +1396,8 @@ class SettingsService {
         }
 
         if (isset($tables["sleepingStockRequestInformations"])) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class);
+
             $sleepingStockRequestInformationRepository = $entityManager->getRepository(SleepingStockRequestInformation::class);
 
             $sleepingStockRequestInformations = Stream::from($sleepingStockRequestInformationRepository->findAll())

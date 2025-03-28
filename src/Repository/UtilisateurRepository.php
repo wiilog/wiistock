@@ -290,7 +290,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->innerJoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', "$referenceArticleAlias.type = :type AND user MEMBER OF $referenceArticleAlias.managers")
             ->setParameter('type', $type);
 
-        return $referenceArticleRepository->filterBySleepingReference($queryBuilder , $dateLimit, $referenceArticleAlias)
+        return $referenceArticleRepository->filterBySleepingReferenceArticles($queryBuilder , $referenceArticleAlias, $type)
             ->getQuery()
             ->getResult();
     }

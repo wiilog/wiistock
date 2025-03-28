@@ -17,6 +17,8 @@ use WiiCommon\Helper\Stream;
 
 class SleepingStockPlanService {
 
+    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
+
     public function __construct(
         private MailerService      $mailerService,
         private Environment        $templating,
@@ -44,9 +46,9 @@ class SleepingStockPlanService {
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
 
-            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByTypeAndManager(
+            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
                 $manager,
-                $limitDate,
+                self::MAX_REFERENCE_ARTICLES_IN_ALERT,
                 $type,
             );
 
@@ -66,6 +68,7 @@ class SleepingStockPlanService {
                 ->toArray();
 
             $this->mailerService->sendMail(
+                $entityManager,
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
                 $this->templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
                     "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken->getPlainToken()]),
