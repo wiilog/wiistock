@@ -180,7 +180,7 @@ function initTableArrival(dispatchMode = false) {
 
 function listPacks(elem) {
     let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_packs_api', true);
+    let path = Routing.generate('arrivage_list_packs_api');
     let modal = $('#modalListPacks');
     let params = {id: arrivageId};
 
