@@ -56,7 +56,7 @@ describe('create a production request', () => {
             yesNo: 'Oui',
             date: date.substring(0,10),
             numeric: 50,
-            selectMultiple: ['dfjdjdjdj', 'select multiple'],
+            selectMultiple: ['choixmultiple1', 'choixmultiple2'],
             selectSimple: 'select',
         };
 

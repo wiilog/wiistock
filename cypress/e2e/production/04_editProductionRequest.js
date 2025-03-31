@@ -124,7 +124,7 @@ describe('edit a production request', () => {
             // Utilisation d'un string et non d'un booleen car la valeur peut avoir plus de deux valeurs possible.
             yesNo: 'Oui',
             numeric: 200,
-            selectMultiple: ['dfjdjdjdj', 'select multiple'],
+            selectMultiple: ['choixmultiple1', 'choixmultiple2'],
             selectSimple: 'select',
         };
 
