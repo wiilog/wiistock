@@ -84,7 +84,7 @@ class IndexController extends AbstractController {
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
                 $switchesItems = array_merge(
                     !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
-                    $actionButtonsItems["withTemplate"] ?? [],
+                    $actionButtonsItems["withTemplate"],
                 );
                 if (!empty($switchesItems)) {
                     $switchesItems[0]["checked"] = true;
