@@ -287,10 +287,12 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                                                             SleepingStockPlanService $sleepingStockPlanService): array{
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
-            ->innerJoin(ReferenceArticle::class, "reference_article", 'WITH', "reference_article.type = :type AND user MEMBER OF reference_article.managers")
+            ->innerJoin(ReferenceArticle::class, "reference_article", Join::WITH, "reference_article.type = :type AND user MEMBER OF reference_article.managers")
             ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
             ->leftJoin("articles_fournisseur.articles", "article")
-            ->innerJoin(MouvementStock::class, 'movement', 'WITH', 'movement = reference_article.lastMovement OR movement = article.lastMovement')
+
+            // only managed articles or ref articles with a last movement NOT NULL
+            ->innerJoin(MouvementStock::class, 'movement', Join::WITH, 'movement = reference_article.lastMovement OR movement = article.lastMovement')
             ->setParameter('type', $type);
 
         $sleepingStockPlanService->findSleepingStock(

@@ -294,7 +294,6 @@ class ReferenceArticle implements AttachmentContainer {
         $this->alerts = new ArrayCollection();
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
-        $this->requestTemplateLines = new ArrayCollection();
         $this->storageRules = new ArrayCollection();
 
         $this->quantiteStock = 0;
