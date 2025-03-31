@@ -77,6 +77,9 @@ class IndexController extends AbstractController {
             }
         );
 
+        $actionButtonsItems["withTemplate"] ??= [];
+        $actionButtonsItems["withoutTemplate"] ??= [];
+
         $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
                 $switchesItems = array_merge(
