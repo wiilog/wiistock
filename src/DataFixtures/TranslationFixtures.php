@@ -2640,7 +2640,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Code barre",
-                            "en" => "Bar code",
+                            "en" => "Barcode",
                             "tooltip" => "PDF bon de surconsommation",
                         ],
                         [
@@ -3074,7 +3074,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Code barre",
-                            "en" => "Bar code"
+                            "en" => "Barcode"
                         ]
                     ],
                 ],
