@@ -2,19 +2,12 @@
 
 namespace App\Service;
 
-use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
-use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Security\Authenticator\SleepingStockAuthenticator;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 
@@ -27,7 +20,6 @@ class SleepingStockPlanService {
         private MailerService      $mailerService,
         private Environment        $templating,
         private TranslationService $translationService,
-        private FormatService      $formatService,
         private AccessTokenService $accessTokenService,
         private RouterInterface    $router,
     ) {}
@@ -38,10 +30,7 @@ class SleepingStockPlanService {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $type = $sleepingStockPlan->getType();
 
-        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType(
-            $type,
-            $this,
-        );
+        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType($type);
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
             $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(

@@ -502,9 +502,9 @@ class MouvementStockRepository extends EntityRepository {
      *   >
      * }
      */
-    public function findForSleepingStock(Utilisateur              $user,
-                                         int                      $maxResults,
-                                         ?Type                    $type = null): array {
+    public function findForSleepingStock(Utilisateur $user,
+                                         int         $maxResults,
+                                         ?Type       $type = null): array {
         $queryBuilder = $this->createQueryBuilder('movement');
 
         $expr = $queryBuilder->expr();
@@ -537,7 +537,7 @@ class MouvementStockRepository extends EntityRepository {
             ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
             ->setParameter("user", $user);
 
-        $this->filterSleepingStock(
+        self::filterSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
             "type",
@@ -545,7 +545,7 @@ class MouvementStockRepository extends EntityRepository {
             "reference_article",
             "article",
             $type
-        );;
+        );
 
         $queryResult = $queryBuilder
             ->setMaxResults($maxResults)
@@ -584,24 +584,27 @@ class MouvementStockRepository extends EntityRepository {
     }
 
 
-    public function filterSleepingStock(QueryBuilder $queryBuilder,
-                                        string       $sleepingStockPlanAlias,
-                                        string       $typeAlias,
-                                        string       $movementAlias,
-                                        string       $referenceArticleAlias,
-                                        string       $articleAlias,
-                                        ?Type        $type = null): void {
+    public static function filterSleepingStock(QueryBuilder $queryBuilder,
+                                               string       $sleepingStockPlanAlias,
+                                               string       $typeAlias,
+                                               string       $movementAlias,
+                                               string       $referenceArticleAlias,
+                                               string       $articleAlias,
+                                               ?Type        $type = null): void {
+
+        $exprBuilder = $queryBuilder->expr();
+
         $queryBuilder
             // filter all reference and article by quantity
             ->andWhere(
                 // we keep only reference or article with quantity > 0
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->andX(
+                $exprBuilder->orX(
+                    $exprBuilder->andX(
                         "$referenceArticleAlias.quantiteStock > 0",
                         "$referenceArticleAlias.quantiteDisponible > 0",
                         "$referenceArticleAlias IS NOT NULL",
                     ),
-                    $queryBuilder->expr()->andX(
+                    $exprBuilder->andX(
                         "$articleAlias.quantite > 0",
                         "$articleAlias IS NOT NULL",
                     )
@@ -610,20 +613,20 @@ class MouvementStockRepository extends EntityRepository {
             // filter all reference article by statut
             ->andWhere(
                 // we keep only reference or article with statut actif
-                $queryBuilder->expr()->orX(
+                $exprBuilder->orX(
                     "statut.code = :articleStatutActif",
                     "statut.code = :referenceStatutActif",
                 )
             )
             // filter all reference article by sleeping stock plan settings
             ->andWhere(
-                $queryBuilder->expr()->orX(
+                $exprBuilder->orX(
                     // we keep only reference article with lastMovementDate > maxStorageDate
                     "DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()",
 
                     // we get the most recent date between lastMovementDate and maxStorageDate
                     // we keep only reference with lastDate > maxStationaryDate
-                    $queryBuilder->expr()->andX(
+                    $exprBuilder->andX(
                         "$referenceArticleAlias.id IS NOT NULL",
                         "DATE_ADD(
                             IF(
@@ -639,7 +642,7 @@ class MouvementStockRepository extends EntityRepository {
 
                     // we get the most recent date between lastMovementDate and maxStorageDate
                     // we keep only article with lastDate > maxStationaryDate
-                    $queryBuilder->expr()->andX(
+                    $exprBuilder->andX(
                         "$articleAlias.id IS NOT NULL",
                         "DATE_ADD(
                             IF(
@@ -654,16 +657,16 @@ class MouvementStockRepository extends EntityRepository {
                     ),
                 )
             )
-            ->innerJoin(Type::class, $typeAlias, Join::WITH, $queryBuilder->expr()->orX(
+            ->innerJoin(Type::class, $typeAlias, Join::WITH, $exprBuilder->orX(
                 "$typeAlias = $referenceArticleAlias.type",
                 "$typeAlias = $articleAlias.type",
             ))
-            ->innerJoin(Statut::class , "statut", Join::WITH, $queryBuilder->expr()->orX(
+            ->innerJoin(Statut::class , "statut", Join::WITH, $exprBuilder->orX(
                 "statut = reference_article.statut",
                 "statut = article.statut",
             ))
             ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH,
-                $queryBuilder->expr()->andX(
+                $exprBuilder->andX(
                     "$sleepingStockPlanAlias.type = $typeAlias",
                     "$sleepingStockPlanAlias.enabled = true"
                 )

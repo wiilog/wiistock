@@ -282,9 +282,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     /**
      * @return array<int, Utilisateur>
      */
-    public function findWithSleepingReferenceArticlesByType(Type                     $type,
-                                                            SleepingStockPlanService $sleepingStockPlanService): array {
-        $StockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
+    public function findWithSleepingReferenceArticlesByType(Type $type): array {
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
             ->innerJoin(ReferenceArticle::class, "reference_article", Join::WITH, "user MEMBER OF reference_article.managers")
@@ -294,7 +292,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             // only managed articles or ref articles with a last movement NOT NULL
             ->innerJoin(MouvementStock::class, 'last_movement', Join::WITH, 'last_movement = reference_article.lastMovement OR last_movement = article.lastMovement');
 
-        $StockMovementRepository->filterSleepingStock(
+        MouvementStockRepository::filterSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
             "type",
