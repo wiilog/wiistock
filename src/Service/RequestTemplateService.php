@@ -121,7 +121,7 @@ class RequestTemplateService {
                     ->some(static fn(DeliveryRequestReferenceLine $referenceLine) => (
                         $referenceLine->getReference()->getQuantiteDisponible() < $referenceLine->getQuantityToPick()
                     ))
-                && !Stream::from($request->getArticleLines())
+                || !Stream::from($request->getArticleLines())
                     ->some(static fn (DeliveryRequestArticleLine $articleLine) => (
                         $articleLine->getArticle()->getQuantite() < $articleLine->getQuantityToPick()
                     ))
