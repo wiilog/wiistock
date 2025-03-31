@@ -208,14 +208,14 @@ export function createFreeFieldsPage($container, canEdit, mode) {
         },
         tableFreeFields: {
             name: `freeFields`,
-            route: (category) => Routing.generate('settings_free_field_api', {category}, true),
+            route: (category) => Routing.generate('settings_free_field_api', {category}),
             deleteRoute: `settings_free_field_delete`,
             columns: generateFreeFieldColumns(canEdit, mode === MODE_ARTICLE),
             form: generateFreeFieldForm(),
         },
         tableManagement: {
             name: `freeFieldManagementRules`,
-            route: (type) => Routing.generate('settings_free_field_management_rule_api', {type}, true),
+            route: (type) => Routing.generate('settings_free_field_management_rule_api', {type}),
             deleteRoute: `settings_free_field_management_rule_delete`,
             columns: generateFreeFieldManagementRulesColumns(canEdit),
             form: generateFreeFieldManagementRuleForm(category),
