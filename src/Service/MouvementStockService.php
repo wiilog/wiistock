@@ -25,22 +25,20 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
-class MouvementStockService
-{
-    #[Required]
-    public Twig_Environment $templating;
+class MouvementStockService {
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
+    public const LAST_MOVEMENT_TYPES = [
+        MouvementStock::TYPE_ENTREE,
+        MouvementStock::TYPE_SORTIE,
+    ];
 
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
+    public function __construct(
+        private Twig_Environment       $templating,
+        private EntityManagerInterface $entityManager,
+        private TranslationService     $translation,
+        private FormatService          $formatService,
+        private FieldModesService      $fieldModesService,
+    ) {}
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -230,7 +228,7 @@ class MouvementStockService
             $this->updateMovementDates($newMouvement, $date);
         }
 
-        if(in_array($newMouvement->getType(), Article::LAST_MOVEMENT_TYPES, true)) {
+        if(in_array($newMouvement->getType(), $this::LAST_MOVEMENT_TYPES, true)) {
             $article->setLastMovement($newMouvement);
         }
 

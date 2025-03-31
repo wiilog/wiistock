@@ -5,7 +5,6 @@ import Form from "@app/form";
 $(function() {
 
     const url = new URL(window.location.href);
-    const ACCESS_TOKEN = url.searchParams.get("access-token");
     url.searchParams.delete("access-token");
     window.history.replaceState({}, document.title, url);
 

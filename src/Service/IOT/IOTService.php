@@ -283,7 +283,7 @@ class IOTService {
             if ($triggerAction->getRequestTemplate()) {
                 $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->requestTemplateService->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage);
+                $this->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage);
                 $triggerAction->setLastTrigger(new DateTime('now'));
             }
         }

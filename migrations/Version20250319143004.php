@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\Article;
 use App\Entity\MouvementStock;
+use App\Entity\Traits\LastMovementTrait;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -24,7 +26,7 @@ final class Version20250319143004 extends AbstractMigration {
                 SET last_movement_id = (
                     SELECT id
                     FROM mouvement_stock
-                    WHERE article.id = mouvement_stock.article_id AND  mouvement_stock.type IN (:movementTypeEntree, :movementTypeSortie)
+                    WHERE article.id = mouvement_stock.article_id AND  mouvement_stock.type IN (:movementTypes)
                     ORDER BY mouvement_stock.date DESC LIMIT 1
                 )
             ',
