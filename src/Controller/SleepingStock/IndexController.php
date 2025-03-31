@@ -49,7 +49,7 @@ class IndexController extends AbstractController {
 
 
         /**
-         * @var array{
+         * @var $actionButtonsItems array{
          *     "withTemplate": array<string, string>,
          *     "withoutTemplate": array<string, string>,
          * }
@@ -59,25 +59,27 @@ class IndexController extends AbstractController {
             SleepingStockRequestInformation::class,
             static function () use ($sleepingStockRequestInformationRepository): array {
                 return Stream::from($sleepingStockRequestInformationRepository->findAll())
-                    ->reduce(function(array $accumulator,SleepingStockRequestInformation $sleepingStockRequestInformation): array {
-                        $deliveryRequestTemplateId = $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getId();
-                        $arrayKey = $deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate";
-                        $accumulator[$arrayKey][] = [
-                            "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
-                            "value" => $deliveryRequestTemplateId ?: -1,
-                            "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
-                        ];
-                        return $accumulator;
-                    }, [
-                        "withTemplate"=>[],
-                        "withoutTemplate" => []
-                    ]);
+                    ->reduce(
+                        function (SleepingStockRequestInformation $sleepingStockRequestInformation): array {
+                            $deliveryRequestTemplateId = $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getId();
+                            $arrayKey = $deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate";
+                            return [
+                                $arrayKey,
+                                [
+                                    "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
+                                    "value" => $deliveryRequestTemplateId ?: -1,
+                                    "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
+                                ]
+                            ];
+                        },
+                        true
+                    );
             }
         );
 
         $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
-                $switchesItems =  array_merge(
+                $switchesItems = array_merge(
                     !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
                     $actionButtonsItems["withTemplate"]
                 );
@@ -125,19 +127,21 @@ class IndexController extends AbstractController {
                            RequestTemplateLineService $requestTemplateLineService): JsonResponse {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
         $now = new DateTime();
-        $actions =  Stream::from(json_decode($request->request->get("actions"), true))
-            ->reduce(
-                function (array $carry, array $action) use ($requestTemplateLineService, $now, $entityManager): array {
+        $actions = Stream::from(json_decode($request->request->get("actions"), true))
+            ->keyMap(
+                function (array $action) use ($requestTemplateLineService, $now, $entityManager): array {
                     $id = $action["id"];
                     $requestTemplateLine = match ($action["entity"]) {
                         ReferenceArticle::class => $requestTemplateLineService->createRequestTemplateLineReference($entityManager, $id, $now),
                         Article::class => $requestTemplateLineService->createRequestTemplateLineArticle($entityManager, $id, $now),
                         default => throw new Exception("Unknown entity type " . $action["entity"]),
                     };
-                    $carry[$action["templateId"]][] = $requestTemplateLine;
-                    return $carry;
+                    return [
+                        $action["templateId"],
+                        $requestTemplateLine
+                    ];
                 },
-                []
+                true
             );
 
         foreach ($actions as $templateId => $lines) {

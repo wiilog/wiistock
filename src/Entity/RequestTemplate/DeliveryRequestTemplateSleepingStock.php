@@ -4,6 +4,7 @@ namespace App\Entity\RequestTemplate;
 
 use App\Entity\Attachment;
 use App\Repository\RequestTemplate\DeliveryRequestTemplateSleepingStockRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,10 +26,11 @@ class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements De
 
     public function __construct() {
         parent::__construct();
+        $this->lines = new ArrayCollection();
     }
 
     /**
-     * @return Collection<RequestTemplateLineReference>
+     * @return Collection<int, RequestTemplateLineReference>
      */
     public function getLines(): Collection {
         return $this->lines;

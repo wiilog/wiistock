@@ -25,7 +25,7 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements De
     }
 
     /**
-     * @return Collection<RequestTemplateLineReference>
+     * @return Collection<int, RequestTemplateLineReference>
      */
     public function getLines(): Collection {
         return $this->lines;
