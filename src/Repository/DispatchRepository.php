@@ -41,7 +41,7 @@ class DispatchRepository extends EntityRepository
 
         if(!empty($user->getDispatchTypeIds())){
             $qb
-                ->join('dispatch.type', '')
+                ->join('dispatch.type', 'join_user_type')
                 ->andWhere('join_user_type.id IN (:userDispatchTypeIds)')
                 ->setParameter('userDispatchTypeIds', $user->getDispatchTypeIds());
         }
