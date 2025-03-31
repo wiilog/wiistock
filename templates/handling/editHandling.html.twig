@@ -73,7 +73,7 @@
                             {% set required = fieldsParam|isFieldRequired(objectCode.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item mt-2">
-                                    {{ form.input(objectCode.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, null) }}
+                                    {{ form.input(objectCode.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, handling.subject()) }}
                                 </div>
                             </div>
                         {% endif %}
