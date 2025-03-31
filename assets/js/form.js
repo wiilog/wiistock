@@ -128,7 +128,7 @@ export default class Form {
                             }
 
                             if(options.success) {
-                                options.success(response);
+                                options.success(response, form);
                             }
 
                             if (options.clearFields) {

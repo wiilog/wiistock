@@ -7,17 +7,19 @@ use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\SleepingStockPlan;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\FieldModesService;
-use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Exception;
 use Generator;
 use RuntimeException;
@@ -502,7 +504,6 @@ class MouvementStockRepository extends EntityRepository {
      */
     public function findForSleepingStock(Utilisateur              $user,
                                          int                      $maxResults,
-                                         SleepingStockPlanService $sleepingStockPlanService,
                                          ?Type                    $type = null): array {
         $queryBuilder = $this->createQueryBuilder('movement');
 
@@ -534,11 +535,9 @@ class MouvementStockRepository extends EntityRepository {
             ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur", "articles_fournisseur")
             ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
-            ->setParameter("user", $user)
-            ->setParameter("quantityTypeReference", ReferenceArticle::QUANTITY_TYPE_REFERENCE)
-        ;
+            ->setParameter("user", $user);
 
-        $sleepingStockPlanService->findSleepingStock(
+        $this->filterSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
             "type",
@@ -582,5 +581,101 @@ class MouvementStockRepository extends EntityRepository {
             "countTotal" => $countTotal,
             "referenceArticles" => $data,
         ];
+    }
+
+
+    public function filterSleepingStock(QueryBuilder $queryBuilder,
+                                        string       $sleepingStockPlanAlias,
+                                        string       $typeAlias,
+                                        string       $movementAlias,
+                                        string       $referenceArticleAlias,
+                                        string       $articleAlias,
+                                        ?Type        $type = null): void {
+        $queryBuilder
+            // filter all reference and article by quantity
+            ->andWhere(
+                // we keep only reference or article with quantity > 0
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->andX(
+                        "$referenceArticleAlias.quantiteStock > 0",
+                        "$referenceArticleAlias.quantiteDisponible > 0",
+                        "$referenceArticleAlias IS NOT NULL",
+                    ),
+                    $queryBuilder->expr()->andX(
+                        "$articleAlias.quantite > 0",
+                        "$articleAlias IS NOT NULL",
+                    )
+                )
+            )
+            // filter all reference article by statut
+            ->andWhere(
+                // we keep only reference or article with statut actif
+                $queryBuilder->expr()->orX(
+                    "statut.code = :articleStatutActif",
+                    "statut.code = :referenceStatutActif",
+                )
+            )
+            // filter all reference article by sleeping stock plan settings
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    // we keep only reference article with lastMovementDate > maxStorageDate
+                    "DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()",
+
+                    // we get the most recent date between lastMovementDate and maxStorageDate
+                    // we keep only reference with lastDate > maxStationaryDate
+                    $queryBuilder->expr()->andX(
+                        "$referenceArticleAlias.id IS NOT NULL",
+                        "DATE_ADD(
+                            IF(
+                                $referenceArticleAlias.lastSleepingStockAlertAnswer IS NULL
+                                OR $movementAlias.date > $referenceArticleAlias.lastSleepingStockAlertAnswer,
+                                $movementAlias.date,
+                                $referenceArticleAlias.lastSleepingStockAlertAnswer
+                            ),
+                            $sleepingStockPlanAlias.maxStationaryTime,
+                             'second'
+                        ) < CURRENT_DATE()",
+                    ),
+
+                    // we get the most recent date between lastMovementDate and maxStorageDate
+                    // we keep only article with lastDate > maxStationaryDate
+                    $queryBuilder->expr()->andX(
+                        "$articleAlias.id IS NOT NULL",
+                        "DATE_ADD(
+                            IF(
+                                $articleAlias.lastSleepingStockAlertAnswer IS NULL
+                                OR $movementAlias.date > $articleAlias.lastSleepingStockAlertAnswer,
+                                $movementAlias.date,
+                                $articleAlias.lastSleepingStockAlertAnswer
+                            ),
+                            $sleepingStockPlanAlias.maxStationaryTime,
+                             'second'
+                        ) < CURRENT_DATE()",
+                    ),
+                )
+            )
+            ->innerJoin(Type::class, $typeAlias, Join::WITH, $queryBuilder->expr()->orX(
+                "$typeAlias = $referenceArticleAlias.type",
+                "$typeAlias = $articleAlias.type",
+            ))
+            ->innerJoin(Statut::class , "statut", Join::WITH, $queryBuilder->expr()->orX(
+                "statut = reference_article.statut",
+                "statut = article.statut",
+            ))
+            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH,
+                $queryBuilder->expr()->andX(
+                    "$sleepingStockPlanAlias.type = $typeAlias",
+                    "$sleepingStockPlanAlias.enabled = true"
+                )
+            )
+            ->setParameter("articleStatutActif", Article::STATUT_ACTIF)
+            ->setParameter("referenceStatutActif", ReferenceArticle::STATUT_ACTIF)
+        ;
+
+        if ($type) {
+            $queryBuilder
+                ->andWhere("$typeAlias = :type")
+                ->setParameter("type", $type);
+        }
     }
 }
