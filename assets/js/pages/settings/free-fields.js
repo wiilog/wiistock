@@ -198,7 +198,7 @@ export function createFreeFieldsPage($container, canEdit, mode) {
         newTitle: 'Ajouter un type et des champs libres',
         category: category,
         header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}),
             delete: {
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',

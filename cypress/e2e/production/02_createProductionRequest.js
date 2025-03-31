@@ -56,8 +56,8 @@ describe('create a production request', () => {
             yesNo: 'Oui',
             date: date.substring(0,10),
             numeric: 50,
-            selectMultiple: ['dfjdjdjdj', 'select multiple'],
-            selectSimple: 'select',
+            selectMultiple: ['choixmultiple1', 'choixmultiple2'],
+            selectSimple: 'choix1',
         };
 
         cy.get(`#${selectorModal}`).should('be.visible', { timeout: 8000 }).then(() => {
