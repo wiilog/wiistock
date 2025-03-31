@@ -13,7 +13,7 @@ interface DeliveryRequestTemplateInterface {
     public function getUsage(): DeliveryRequestTemplateUsageEnum;
 
     /**
-     * @return Collection<RequestTemplateLine>
+     * @return Collection<int, RequestTemplateLine>
      */
     public function getLines(): Collection;
 
