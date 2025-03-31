@@ -505,6 +505,9 @@ class MouvementStockRepository extends EntityRepository {
                                          SleepingStockPlanService $sleepingStockPlanService,
                                          ?Type                    $type = null): array {
         $queryBuilder = $this->createQueryBuilder('movement');
+
+        $expr = $queryBuilder->expr();
+
         $queryBuilder->distinct()
             ->select("movement.id AS id")
             ->addSelect("reference_article.id AS referenceArticleId")
@@ -522,23 +525,16 @@ class MouvementStockRepository extends EntityRepository {
             ->addSelect("sleeping_stock_plan.maxStorageTime AS maxStorageTime")
             ->addSelect("DATE_ADD(movement.date, sleeping_stock_plan.maxStorageTime, 'second') AS maxStorageDate")
             ->andWhere(
-                $queryBuilder->expr()->orX(
-                    "reference_article_managers.id = :user",
-                    "article_reference_article_managers.id = :user"
+                $expr->orX(
+                    $expr->isMemberOf(":user", "reference_article.managers"),
+                    $expr->isMemberOf(":user", "article_reference_article.managers"),
                 )
             )
-            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH,
-                $queryBuilder->expr()->andX(
-                    'reference_article.lastMovement = movement',
-                    'reference_article.typeQuantite = :quantityTypeReference',
-                )
-            )
+            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur", "articles_fournisseur")
-            ->leftJoin("reference_article.managers", "reference_article_managers")
             ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
-            ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
-            ->setParameter("user", $user->getId())
+            ->setParameter("user", $user)
             ->setParameter("quantityTypeReference", ReferenceArticle::QUANTITY_TYPE_REFERENCE)
         ;
 

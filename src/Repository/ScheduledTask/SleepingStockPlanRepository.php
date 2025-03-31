@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class SleepingStockPlanRepository extends EntityRepository {
     /**
-     * @return array<int, SleepingStockPlan>
+     * @return array<SleepingStockPlan>
      */
     public function findScheduled(): array {
         return $this->createQueryBuilder("sleeping_stock_plan")
