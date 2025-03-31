@@ -13,7 +13,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\UniqueNumberService;
-use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\FieldModesService;
 use DateTime;
@@ -42,8 +41,8 @@ class DispatchRepository extends EntityRepository
 
         if(!empty($user->getDispatchTypeIds())){
             $qb
-                ->join('dispatch.type', 'join_type')
-                ->andWhere('join_type.id IN (:userDispatchTypeIds)')
+                ->join('dispatch.type', 'join_type_user')
+                ->andWhere('join_type_user.id IN (:userDispatchTypeIds)')
                 ->setParameter('userDispatchTypeIds', $user->getDispatchTypeIds());
         }
 
