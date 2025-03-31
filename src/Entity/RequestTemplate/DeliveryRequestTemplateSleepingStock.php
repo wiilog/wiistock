@@ -2,6 +2,7 @@
 
 namespace App\Entity\RequestTemplate;
 
+use App\Controller\SleepingStock\IndexController;
 use App\Entity\Attachment;
 use App\Repository\RequestTemplate\DeliveryRequestTemplateSleepingStockRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -16,7 +17,7 @@ class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements De
     /**
      * Not managed by the ORM, because we dont know the lines in advance
      * the line corresponding to the choice of the user in the sleeping stock form
-     * @see \IndexController::submit
+     * @see IndexController::submit()
      * @var Collection<int, RequestTemplateLine>
      */
     private Collection $lines;
