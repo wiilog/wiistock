@@ -1,5 +1,6 @@
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
+import Form from "@app/form";
 
 $(function() {
 
@@ -55,6 +56,5 @@ $(function() {
                     }, 5000);
                 },
             }
-        )
-
+        );
 });

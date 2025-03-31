@@ -109,24 +109,26 @@ class RequestTemplateService {
             ->setQuantityToTake($data["quantityToTake"]);
     }
 
-    public function treatRequestTemplateTriggerType(RequestTemplate        $requestTemplate,
-                                                    EntityManagerInterface $entityManager,
+    public function treatRequestTemplateTriggerType(EntityManagerInterface $entityManager,
+                                                    RequestTemplate        $requestTemplate,
                                                     ?SensorWrapper         $wrapper = null): void {
         if ($requestTemplate instanceof DeliveryRequestTemplateInterface) {
             $request = $this->createDeliveryRequestFromTemplate($entityManager, $requestTemplate, $wrapper);
 
-            $valid = !Stream::from($request->getReferenceLines())
-                ->some(function (DeliveryRequestReferenceLine $referenceLine): bool {
-                    $reference = $referenceLine->getReference();
-                    return $reference->getQuantiteDisponible() < $referenceLine->getQuantityToPick();
-                });
+            // check if all reference article and article have enough stock quantity
+            $valid = (
+                !Stream::from($request->getReferenceLines())
+                    ->some(static fn(DeliveryRequestReferenceLine $referenceLine) => (
+                        $referenceLine->getReference()->getQuantiteDisponible() < $referenceLine->getQuantityToPick()
+                    ))
+                && !Stream::from($request->getArticleLines())
+                    ->some(static fn (DeliveryRequestArticleLine $articleLine) => (
+                        $articleLine->getArticle()->getQuantite() < $articleLine->getQuantityToPick()
+                    ))
+            );
 
-            $valid = $valid && !Stream::from($request->getArticleLines())
-                ->some(function (DeliveryRequestArticleLine $articleLine): bool {
-                    $article = $articleLine->getArticle();
-                    return $article->getQuantite() < $articleLine->getQuantityToPick();
-                });
-
+            // if all quantities are present then we validate delivery request
+            // else it's in draft status
             if ($valid) {
                 $this->deliveryRequestService->validateDLAfterCheck($entityManager, $request, false, true, false);
             }

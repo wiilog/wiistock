@@ -228,7 +228,7 @@ class IOTService {
         $triggerAction->setLastTrigger(new DateTime('now'));
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
-                $this->requestTemplateService->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+                $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
                 $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
@@ -255,7 +255,7 @@ class IOTService {
         if ($needsTrigger) {
             $triggerAction->setLastTrigger(new DateTime('now'));
             if ($triggerAction->getRequestTemplate()) {
-                $this->requestTemplateService->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+                $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
                 $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             } else if (isset($config['dropOnLocation'])) {
@@ -281,16 +281,17 @@ class IOTService {
 
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
-                $this->requestTemplateService->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+                $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->requestTemplateService->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+                $this->requestTemplateService->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage);
                 $triggerAction->setLastTrigger(new DateTime('now'));
             }
         }
     }
 
-    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager): void
-    {
+    private function treatAlertTemplateTriggerType(EntityManagerInterface $entityManager,
+                                                   AlertTemplate          $template,
+                                                   SensorMessage          $message): void {
         $this->alertService->trigger($template, $message, $entityManager);
     }
 

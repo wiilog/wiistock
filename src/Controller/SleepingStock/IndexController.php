@@ -123,7 +123,6 @@ class IndexController extends AbstractController {
     #[Route("/", name: "_submit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function submit(EntityManagerInterface     $entityManager,
                            Request                    $request,
-                           UserService                $userService,
                            RequestTemplateService     $requestTemplateService,
                            RequestTemplateLineService $requestTemplateLineService): JsonResponse {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
@@ -151,11 +150,7 @@ class IndexController extends AbstractController {
                 $lines = new ArrayCollection($lines);
                 $deliveryRequestTemplateSleepingStock = $deliveryRequestTemplateSleepingStockRepository->find($templateId);
                 $deliveryRequestTemplateSleepingStock->setLines($lines);
-                $requestTemplateService
-                    ->treatRequestTemplateTriggerType(
-                        $deliveryRequestTemplateSleepingStock,
-                        $entityManager
-                    );
+                $requestTemplateService->treatRequestTemplateTriggerType($entityManager, $deliveryRequestTemplateSleepingStock);
             }
         }
 

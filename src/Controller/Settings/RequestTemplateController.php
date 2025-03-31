@@ -495,10 +495,11 @@ class RequestTemplateController extends AbstractController {
 
     #[Route("/modele-demande/ligne/supprimer/{entity}", name: "settings_request_template_line_delete", options: ["expose" => true])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
-    public function deleteRequestTemplateLine(EntityManagerInterface $manager, RequestTemplateLineReference $entity): JsonResponse {
+    public function deleteRequestTemplateLine(EntityManagerInterface       $entityManager,
+                                              RequestTemplateLineReference $entity): JsonResponse {
         $entity->setRequestTemplate(null);
-        $manager->remove($entity);
-        $manager->flush();
+        $entityManager->remove($entity);
+        $entityManager->flush();
 
         return $this->json([
             "success" => true,
