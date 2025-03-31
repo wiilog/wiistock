@@ -48,8 +48,9 @@ $(function() {
             POST,
             'sleeping_stock_submit',
             {
-                success: (data) => {
-                    // wait 500ms before reloading
+                success: (data, form) => {
+                    // wait 5s before reloading
+                    form.element.find("button[type=submit]").prop("disabled", true);
                     setTimeout(() => {
                         window.location.reload();
                     }, 5000);

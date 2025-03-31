@@ -44,7 +44,6 @@ class IndexController extends AbstractController {
         $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(
             $user,
             self::MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM,
-            $sleepingStockPlanService
         );
 
 
@@ -82,7 +81,7 @@ class IndexController extends AbstractController {
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
                 $switchesItems = array_merge(
                     !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
-                    $actionButtonsItems["withTemplate"]
+                    $actionButtonsItems["withTemplate"] ?? [],
                 );
                 if (!empty($switchesItems)) {
                     $switchesItems[0]["checked"] = true;

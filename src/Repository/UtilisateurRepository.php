@@ -23,8 +23,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * @method Utilisateur[]    findAll()
  * @method Utilisateur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
-{
+class UtilisateurRepository extends EntityRepository implements UserLoaderInterface {
 
     public function findOneByEmail(string $email) {
         return $this->createQueryBuilder("user")
@@ -284,22 +283,22 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      * @return array<int, Utilisateur>
      */
     public function findWithSleepingReferenceArticlesByType(Type                     $type,
-                                                            SleepingStockPlanService $sleepingStockPlanService): array{
+                                                            SleepingStockPlanService $sleepingStockPlanService): array {
+        $StockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
-            ->innerJoin(ReferenceArticle::class, "reference_article", Join::WITH, "reference_article.type = :type AND user MEMBER OF reference_article.managers")
+            ->innerJoin(ReferenceArticle::class, "reference_article", Join::WITH, "user MEMBER OF reference_article.managers")
             ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
             ->leftJoin("articles_fournisseur.articles", "article")
 
             // only managed articles or ref articles with a last movement NOT NULL
-            ->innerJoin(MouvementStock::class, 'movement', Join::WITH, 'movement = reference_article.lastMovement OR movement = article.lastMovement')
-            ->setParameter('type', $type);
+            ->innerJoin(MouvementStock::class, 'last_movement', Join::WITH, 'last_movement = reference_article.lastMovement OR last_movement = article.lastMovement');
 
-        $sleepingStockPlanService->findSleepingStock(
+        $StockMovementRepository->filterSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
             "type",
-            "movement",
+            "last_movement",
             "reference_article",
             "article",
             $type
