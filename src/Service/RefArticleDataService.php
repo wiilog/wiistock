@@ -542,7 +542,7 @@ class RefArticleDataService
         $response['id'] = $refArticle->getId();
         $response['edit'] = $rows;
         if ($sendMail) {
-            $this->sendMailCreateDraftOrDraftToActive($refArticle, $refArticle->getCreatedBy());
+            $this->sendMailCreateDraftOrDraftToActive($entityManager, $refArticle, $refArticle->getCreatedBy());
         }
         return $response;
     }
@@ -1001,13 +1001,14 @@ class RefArticleDataService
         }
     }
 
-    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to, bool $state = false): void {
+    public function sendMailCreateDraftOrDraftToActive(EntityManagerInterface $entityManager, ReferenceArticle $refArticle, $to, bool $state = false): void {
         $supplierArticles = $refArticle->getArticlesFournisseur();
         $title = $state ?
             "Une nouvelle référence vient d'être créée et attend d'être validée :" :
             "Votre référence vient d'être validée avec les informations suivantes :";
 
         $this->mailerService->sendMail(
+            $entityManager,
             $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
@@ -1022,10 +1023,11 @@ class RefArticleDataService
         );
     }
 
-    public function sendMailEntryStock(ReferenceArticle $refArticle, $to, $message = ''): void {
+    public function sendMailEntryStock(EntityManagerInterface $entityManager, ReferenceArticle $refArticle, $to, $message = ''): void {
         $supplierArticles = $refArticle->getArticlesFournisseur();
 
         $this->mailerService->sendMail(
+            $entityManager,
             $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Entrée de stock',
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
