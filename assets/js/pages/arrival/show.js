@@ -154,7 +154,7 @@ function openTableHisto($modalEditLitige, dispute = undefined) {
 function initPackDatatable(arrivalId, columns) {
     return initDataTable('tablePacks', {
         ajax: {
-            "url": Routing.generate('packs_api', {arrivage: arrivalId}, true),
+            "url": Routing.generate('packs_api', {arrivage: arrivalId}),
             "type": POST,
         },
         domConfig: {
@@ -170,7 +170,7 @@ function initPackDatatable(arrivalId, columns) {
 }
 
 function initDisputeDatatable(arrivalId) {
-    let pathArrivageLitiges = Routing.generate('arrival_diputes_api', {arrivage: arrivalId}, true);
+    let pathArrivageLitiges = Routing.generate('arrival_diputes_api', {arrivage: arrivalId});
     let tableArrivageLitigesConfig = {
         domConfig: {
             removeInfo: true
