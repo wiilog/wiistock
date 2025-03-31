@@ -59,7 +59,7 @@ class IndexController extends AbstractController {
             SleepingStockRequestInformation::class,
             static function () use ($sleepingStockRequestInformationRepository): array {
                 return Stream::from($sleepingStockRequestInformationRepository->findAll())
-                    ->reduce(
+                    ->keymap(
                         function (SleepingStockRequestInformation $sleepingStockRequestInformation): array {
                             $deliveryRequestTemplateId = $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getId();
                             $arrayKey = $deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate";
@@ -73,7 +73,8 @@ class IndexController extends AbstractController {
                             ];
                         },
                         true
-                    );
+                    )
+                    ->toArray();
             }
         );
 
@@ -128,7 +129,7 @@ class IndexController extends AbstractController {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
         $now = new DateTime();
         $actions = Stream::from(json_decode($request->request->get("actions"), true))
-            ->keyMap(
+            ->keymap(
                 function (array $action) use ($requestTemplateLineService, $now, $entityManager): array {
                     $id = $action["id"];
                     $requestTemplateLine = match ($action["entity"]) {
@@ -142,7 +143,8 @@ class IndexController extends AbstractController {
                     ];
                 },
                 true
-            );
+            )
+            ->toArray();
 
         foreach ($actions as $templateId => $lines) {
             if ($templateId > 0) {
