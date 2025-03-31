@@ -125,7 +125,7 @@ describe('edit a production request', () => {
             yesNo: 'Oui',
             numeric: 200,
             selectMultiple: ['choixmultiple1', 'choixmultiple2'],
-            selectSimple: 'select',
+            selectSimple: 'choix1',
         };
 
         Object.keys(freeFields).forEach((key) => {
