@@ -156,6 +156,8 @@ class IndexController extends AbstractController {
             }
         }
 
+        $entityManager->flush();
+
         return new JsonResponse([
             "success" => true,
             "msg" => "Votre demande a bien été prise en compte."
