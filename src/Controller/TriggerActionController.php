@@ -123,6 +123,7 @@ class TriggerActionController extends AbstractController
                     IOTService::INEO_SENS_ACS_BTN,
                     IOTService::SYMES_ACTION_MULTI,
                     IOTService::SYMES_ACTION_SINGLE,
+                    IOTService::SKIPLY_SMILIO,
                 ])) {
                     // button
                     $buttonIndex = $data['buttonIndex'] ?? false;

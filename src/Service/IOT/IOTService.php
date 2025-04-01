@@ -60,6 +60,7 @@ class IOTService {
     const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
     const MULTITECH_GATEWAY = 'gateway_multitech';
     const ENGINKO_LW22CCM = 'enginko-lw22ccm';
+    const SKIPLY_SMILIO = 'skily-smilio';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 8,
@@ -77,6 +78,7 @@ class IOTService {
         self::YOKOGAWA_XS550_XS110A => 8,
         self::MULTITECH_GATEWAY => 0,
         self::ENGINKO_LW22CCM => 8,
+        self::SKIPLY_SMILIO => 8
     ];
 
     const PROFILE_TO_TYPE = [
@@ -97,6 +99,7 @@ class IOTService {
         self::YOKOGAWA_XS550_XS110A => Sensor::TEMPERATURE,
         self::MULTITECH_GATEWAY => Sensor::GATEWAY,
         self::ENGINKO_LW22CCM => Sensor::TEMPERATURE_HYGROMETRY,
+        self::SKIPLY_SMILIO => Sensor::ACTION,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -115,6 +118,7 @@ class IOTService {
         self::YOKOGAWA_XS550_XS110A => 'x minutes',
         self::MULTITECH_GATEWAY =>'x minutes',
         self::ENGINKO_LW22CCM => 'x minutes',
+        self::SKIPLY_SMILIO => 'à l\'action',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -451,21 +455,23 @@ class IOTService {
             $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
         }
 
-        $messages = Stream::from($mainDatas)
-            ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager, $payload) :SensorMessage {
+        $messages = [];
+        foreach ($mainDatas as $type => $mainData) {
+            $mainData = is_array($mainData) ? $mainData : [$mainData];
+            foreach ($mainData as $value) {
                 $received = new SensorMessage();
                 $received
                     ->setPayload($message)
                     ->setDate($messageDate)
-                    ->setContent($mainData)
+                    ->setContent($value)
                     ->setContentType($type)
                     ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName(), $payload))
                     ->setLinkedSensorLastMessage($device)
                     ->setSensor($device);
 
-                return $received;
-            })
-            ->toArray();
+                $messages[] = $received;
+            }
+        }
 
         foreach ($messages as $message) {
             $entityManager->persist($message);
@@ -728,6 +734,22 @@ class IOTService {
                         self::DATA_TYPE_HYGROMETRY => hexdec($hexHygrometry) / 2,
                     ];
                 }
+                break;
+            case IOTService::SKIPLY_SMILIO:
+                $hexbtn = substr($payload, 14, strlen($payload) - 14);
+                $actions = Stream::from(str_split($hexbtn))
+                    ->filter(function ($char) {
+                        return $char !== '0';
+                    })
+                    ->reverse()
+                    ->toArray();
+
+                if (count($actions) === 0) {
+                    return [];
+                }
+
+                return [self::DATA_TYPE_ACTION => $actions];
+
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -1170,6 +1192,7 @@ class IOTService {
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
             IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
             IOTService::ENGINKO_LW22CCM => str_starts_with($payload, '15'),
+            IOTService::SKIPLY_SMILIO => str_starts_with($payload, '11'),
             default => true,
         };
     }
