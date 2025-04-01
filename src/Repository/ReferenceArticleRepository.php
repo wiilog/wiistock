@@ -662,6 +662,8 @@ class ReferenceArticleRepository extends EntityRepository {
                             if ($item === "0" && $freeFieldType === FreeField::TYPE_BOOL) {
                                 $item = "1";
                                 $conditionType = ' IS NULL';
+                            } else if($freeFieldType === FreeField::TYPE_LIST_MULTIPLE) {
+                                return "CONCAT(';', JSON_UNQUOTE(JSON_EXTRACT(ra.freeFields, '$.\"{$clId}\"')), ';') LIKE '%;$item;%'";
                             }
                             return "JSON_SEARCH(ra.freeFields, 'one', '{$item}', NULL, '$.\"{$clId}\"')" . $conditionType;
                         })

@@ -160,16 +160,15 @@ function displayFilterValue(elem) {
     let label = '';
     let datetimepicker = false;
     switch (type) {
+        case 'sync':
         case 'booleen':
             label = 'Oui / Non';
             type = 'checkbox';
             break;
         case 'number':
         case 'list':
-            label = 'Valeur';
-            break;
         case 'list multiple':
-            label = 'Contient';
+            label = 'Valeur';
             break;
         case 'date':
             label = 'Date';
@@ -180,10 +179,6 @@ function displayFilterValue(elem) {
             label = 'Date et heure'
             type = 'text';
             datetimepicker = true;
-            break;
-        case 'sync':
-            label = 'Oui / Non';
-            type = 'checkbox';
             break;
         default:
             label = 'Contient';
