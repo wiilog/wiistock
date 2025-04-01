@@ -18,7 +18,7 @@ use WiiCommon\Helper\Stream;
 
 class MailerService {
 
-    private const TEST_EMAIL = 'recette@wiilog.fr';
+    private const DEFAULT_REDIRECTION_EMAIL = 'recette@wiilog.fr';
 
     public const NO_MAIL_DOMAINS = [
         "nomail.fr",
@@ -60,13 +60,18 @@ class MailerService {
         }
 
         //protection dev
-        $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
+        $redirectTo = $_SERVER["MAILER_REDIRECT_TO"] ?? null;
+        $emailIsRedirected = (
+            $redirectTo
+            || !isset($_SERVER['APP_ENV'])
+            || $_SERVER['APP_ENV'] !== 'prod'
+        );
 
         foreach ($contents as $content) {
             $message = new Email();
 
             $body = $content['content'];
-            $body .= $redirectToTest ? $this->getRecipientsLabel($content['to']) : "";
+            $body .= $emailIsRedirected ? $this->getRecipientsLabel($content['to']) : "";
 
             $senderName = $this->settingsService->getValue($entityManager, Setting::MAILER_SENDER_NAME);
             if ($senderName) {
@@ -77,7 +82,9 @@ class MailerService {
                 ->subject($content['subject'])
                 ->html($body);
 
-            $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
+            $to = $emailIsRedirected
+                ? [$redirectTo ?? self::DEFAULT_REDIRECTION_EMAIL]
+                : $content['to'];
 
             $to = (is_array($to) || $to instanceof Traversable) ? $to : [$to];
             foreach ($to as $email) {
