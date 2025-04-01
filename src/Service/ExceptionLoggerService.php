@@ -10,6 +10,7 @@ use ReflectionClass;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
@@ -25,9 +26,10 @@ class ExceptionLoggerService {
     private Serializer $serializer;
 
     public function __construct(
-        private  HttpClientInterface $client,
-        private  LoggerInterface $symfonyLogger,
-        private  Security $security,
+        private HttpClientInterface $client,
+        private LoggerInterface     $symfonyLogger,
+        private Security            $security,
+        private RequestStack        $requestStack,
     ) {
         $encoder = new JsonEncoder();
         $defaultContext = [
@@ -40,7 +42,7 @@ class ExceptionLoggerService {
         $this->serializer = new Serializer([$normalizer], [$encoder]);
     }
 
-    public function sendLog(Throwable $throwable, ?Request $request = null): void {
+    public function sendLog(Throwable $throwable): void {
         if (!empty($_SERVER["APP_NO_LOGGER"]) ||
             empty($_SERVER["APP_LOGGER"]) ||
             $throwable instanceof NotFoundHttpException ||
@@ -62,6 +64,8 @@ class ExceptionLoggerService {
 
         $throwable = FlattenException::createFromThrowable($throwable);
         $exceptions = array_merge([$throwable], $throwable->getAllPrevious());
+
+        $request = $this->requestStack->getCurrentRequest();
 
         foreach ($exceptions as $previous) {
             $stacktrace = $previous->getTrace();
