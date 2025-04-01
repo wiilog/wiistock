@@ -21,7 +21,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), dismiss: true, value: handling.id, name: 'handling', id: 'submitEditStatut'}
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), dismiss: true, value: handling.id, name: 'handling', id: 'submitEditStatut', type: 'submit'}
                 ],
                 hideErrorContainer: true,
             } %}

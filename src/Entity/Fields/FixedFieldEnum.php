@@ -23,6 +23,9 @@ enum FixedFieldEnum: string
     case productArticleCode = "Code produit/article";
     case quantity = "Quantité";
     case emergency = "Urgence";
+    case loadingZone = "chargement";
+    case unloadingZone = "déchargement";
+    case carriedOutOperationCount = "nombre d'opération(s) réalisée(s)";
     case projectNumber = "Numéro projet";
     case comment = "Commentaire";
     case treatmentAt = "Date de traitement";
@@ -78,6 +81,7 @@ enum FixedFieldEnum: string
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";
+
 
     public static function fromCase(string $case): string|null {
         try {

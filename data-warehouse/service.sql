@@ -1,7 +1,7 @@
 SELECT
     handling.id,
     type.label AS type,
-    handling.subject AS objet,
+    handling.object AS objet,
     demandeur.username AS demandeur,
     handling.creation_date AS date_creation,
     handling.desired_date AS date_attendue,
