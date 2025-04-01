@@ -85,7 +85,7 @@ function main(): void {
         [
             STEP_DESCRIPTION => "Clear app cache",
             STEP_COMMANDS => function() {
-                execCommand("rm -rf /project/cache/*");
+                execCommand("rm -rf /project/var/cache/*");
             },
             STEP_FILTER => fn () => $mode === ENV_DEV,
         ],
