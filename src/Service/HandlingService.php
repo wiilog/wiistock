@@ -114,7 +114,7 @@ class HandlingService {
             'creationDate' => $this->formatService->datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
             'type' => $this->formatService->type($handling->getType()),
             'requester' => $this->formatService->handlingRequester($handling),
-            'subject' => $handling->getSubject() ?: '',
+            'object' => $handling->getObject() ?: '',
             "receivers" => $this->formatService->users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
                 ? $this->formatService->datetime($handling->getDesiredDate(), "", false, $user)
@@ -191,8 +191,8 @@ class HandlingService {
 
     public function parseRequestForCard(Handling $handling, DateTimeService $dateTimeService, array $averageRequestTimesByType): array {
         $requestStatus = $handling->getStatus()?->getCode();
-        $requestBodyTitle = !empty($handling->getSubject())
-            ? $handling->getSubject() . (!empty($handling->getType())
+        $requestBodyTitle = !empty($handling->getObject())
+            ? $handling->getObject() . (!empty($handling->getType())
                 ? ' - ' . $handling->getType()->getLabel()
                 : '')
             : '';
@@ -218,8 +218,6 @@ class HandlingService {
                 if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
                     $estimatedFinishTimeLabel = 'Heure de traitement estimée';
                     $deliveryDateEstimated = $expectedDate->format('H:i');
-                } else {
-
                 }
             }
         }
@@ -272,7 +270,7 @@ class HandlingService {
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande'), 'name' => 'creationDate',],
             ['title' => $this->translation->translate('Demande', 'Général', 'Type'), 'name' => 'type'],
             ['title' => $this->translation->translate('Demande', 'Général', 'Demandeur'), 'name' => 'requester'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'subject',],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'object',],
             ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'), 'name' => 'desiredDate',],
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'), 'name' => 'validationDate',],
             ['title' => $this->translation->translate('Demande', 'Général', 'Statut'), 'name' => 'status'],
@@ -301,7 +299,7 @@ class HandlingService {
         $row[] = $handling->getCreationDate() ? $formatService->datetime($handling->getCreationDate()) : "";
         $row[] = $formatService->handlingRequester($handling);
         $row[] = $formatService->type($handling->getType());
-        $row[] = $handling->getSubject() ??"";
+        $row[] = $handling->getObject() ??"";
         $row[] = $handling->getSource() ?? "";
         $row[] = $handling->getDestination() ?? "";
         $row[] = $includeDesiredTime

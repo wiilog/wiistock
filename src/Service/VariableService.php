@@ -205,7 +205,7 @@ class VariableService
                 self::REQUESTER => FormatHelper::user($entity->getRequester()),
                 self::CREATION_DATE => FormatHelper::datetime($entity->getCreationDate()),
                 self::EXPECTED_DATE => FormatHelper::datetime($entity->getDesiredDate()),
-                self::SUBJECT => $entity->getSubject(),
+                self::SUBJECT => $entity->getObject(),
                 self::OPERATIONS_COUNT => $entity->getCarriedOutOperationCount(),
             ];
         } else if ($entity instanceof TransferOrder) {
