@@ -234,7 +234,6 @@ class HandlingController extends AbstractController {
 
         $carriedOutOperationCount = $data->get('carriedOutOperationCount');
 
-        dump($data);
         $handling
             ->setNumber($handlingNumber)
             ->setCreationDate($date)
