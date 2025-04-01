@@ -428,7 +428,6 @@ class DeliveryRequestService
                     $fromNomade,
                     $simple,
                     $flush,
-                    $settingNeedPlanningValidation,
                     [
                         'requester' => $demandeArray['demandeur'] ?? null,
                         'directDelivery' => $demandeArray['directDelivery'] ?? false,
@@ -452,7 +451,6 @@ class DeliveryRequestService
                                          bool                   $fromNomade = false,
                                          bool                   $simpleValidation = false,
                                          bool                   $flush = true,
-                                         bool                   $settingNeedPlanningValidation = true,
                                          array                  $options = []): array {
         $response = [];
         $response['success'] = true;
@@ -461,6 +459,7 @@ class DeliveryRequestService
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        $settingNeedPlanningValidation = $this->settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING, false);
 
         $date = new DateTime('now');
 

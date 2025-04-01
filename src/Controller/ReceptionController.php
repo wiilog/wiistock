@@ -1617,7 +1617,6 @@ class ReceptionController extends AbstractController {
                             false,
                             $createDirectDelivery,
                             true,
-                            false,
                             ['sendNotification' => !$createDirectDelivery]
                         );
                     }
