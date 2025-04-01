@@ -1,4 +1,6 @@
 import Routing from '@app/fos-routing';
+import {POST} from "@app/ajax";
+import Form from "@app/form";
 import {exportFile} from "@app/utils";
 
 global.callbackSaveFilter = callbackSaveFilter;
@@ -127,18 +129,16 @@ function initDatatable(params) {
 
 function initModals(tableHandling) {
     let $modalNewHandling = $("#modalNewHandling");
-    let $submitNewHandling = $("#submitNewHandling");
-    let urlNewHandling = Routing.generate('handling_new', true);
-    InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {
+    Form.create($modalNewHandling).submitTo(POST,'handling_new', {
         tables: [tableHandling],
         keepModal: $modalNewHandling.is(`.keep-handling-modal-open`),
         success: () => $modalNewHandling.find(`.free-fields-container [data-type]`).addClass(`d-none`),
-    });
+    })
 
     let $modalDeleteHandling = $('#modalDeleteHandling');
-    let $submitDeleteHandling = $('#submitDeleteHandling');
-    let urlDeleteHandling = Routing.generate('handling_delete', true);
-    InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
+    Form.create($modalDeleteHandling).submitTo(POST, 'handling_delete', {
+        tables: [tableHandling],
+    });
 
     Select2Old.user($modalNewHandling.find('.ajax-autocomplete-user[name=receivers]'))
 }

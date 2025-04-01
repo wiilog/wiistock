@@ -23,6 +23,9 @@ enum FixedFieldEnum: string
     case productArticleCode = "Code produit/article";
     case quantity = "Quantité";
     case emergency = "Urgence";
+    case loadingZone = "chargement";
+    case unloadingZone = "déchargement";
+    case carriedOutOperationCount = "nombre d'opération(s) réalisée(s)";
     case projectNumber = "Numéro projet";
     case comment = "Commentaire";
     case treatmentAt = "Date de traitement";

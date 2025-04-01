@@ -33,7 +33,7 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
     private ?DateTime $creationDate = null;
 
     #[ORM\Column(type: 'string', length: 64)]
-    private ?string $subject = null;
+    private ?string $object = null;
 
     #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
     private ?int $treatmentDelay = null;
@@ -122,12 +122,12 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
         return $this;
     }
 
-    public function getSubject(): ?string {
-        return $this->subject;
+    public function getObject(): ?string {
+        return $this->object;
     }
 
-    public function setSubject(string $subject): self {
-        $this->subject = $subject;
+    public function setObject(string $object): self {
+        $this->object = $object;
 
         return $this;
     }

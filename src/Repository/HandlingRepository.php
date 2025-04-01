@@ -30,7 +30,7 @@ class HandlingRepository extends EntityRepository
         'creationDate' => 'creationDate',
         'type' => 'type',
         'requester' => 'requester',
-        'subject' => 'subject',
+        'object' => 'object',
         'desiredDate' => 'desiredDate',
         'validationDate' => 'validationDate',
         'status' => 'status',
@@ -74,7 +74,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE handling_requester.username END) as requester')
             ->addSelect('handling.source AS source')
             ->addSelect('handling.destination AS destination')
-            ->addSelect('handling.subject AS subject')
+            ->addSelect('handling.object AS subject')
             ->addSelect('handling.number AS number')
             ->addSelect('handling_type.label AS typeLabel')
             ->addSelect('handling_type.id AS typeId')
@@ -239,7 +239,7 @@ class HandlingRepository extends EntityRepository
                         }
                         break;
                     case 'subject':
-                        $qb->andWhere('handling.subject LIKE :filter_subject')
+                        $qb->andWhere('handling.object LIKE :filter_subject')
                             ->setParameter('filter_subject', "%{$filter['value']}%");
                         break;
                     case 'receivers':
@@ -267,7 +267,7 @@ class HandlingRepository extends EntityRepository
                             OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
                             OR search_requester.username LIKE :search_value
-                            OR handling.subject LIKE :search_value
+                            OR handling.object LIKE :search_value
                             OR DATE_FORMAT(handling.desiredDate, '%d/%m/%Y') LIKE :search_value
                             OR DATE_FORMAT(handling.validationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_status.nom LIKE :search_value
