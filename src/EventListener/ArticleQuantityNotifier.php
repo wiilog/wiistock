@@ -36,7 +36,7 @@ class ArticleQuantityNotifier {
 
     #[Deprecated]
     public function postFlush(): void {
-        if (!self::$disableArticleUpdate && !self::$referenceArticlesUpdating) {
+        if (count(self::$referenceArticlesToUpdate) && !self::$disableArticleUpdate && !self::$referenceArticlesUpdating) {
             self::$referenceArticlesUpdating = true;
 
             $cleanedEntityManager = $this->getEntityManager();
