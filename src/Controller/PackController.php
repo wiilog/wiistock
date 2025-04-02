@@ -478,13 +478,7 @@ class PackController extends AbstractController {
     #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
     public function postTrackingDelay(MessageBusInterface $messageBus,
                                       Pack                $logisticUnit): JsonResponse {
-        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()), [
-            AmqpStamp::createWithAttributes([
-                'headers' => [
-                    'x-deduplication-header' => $logisticUnit->getCode(),
-                ]
-            ])
-        ]);
+        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()));
 
         return $this->json([
             "success" => true,
