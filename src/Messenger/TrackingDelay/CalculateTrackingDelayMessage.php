@@ -2,12 +2,14 @@
 
 namespace App\Messenger\TrackingDelay;
 
-use App\Messenger\MessageInterface;
-use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueWaitingMessage;
+use App\Messenger\DeduplicatedMessageInterface;
 
-class CalculateTrackingDelayMessage extends UniqueWaitingMessage implements MessageInterface {
+class CalculateTrackingDelayMessage implements DeduplicatedMessageInterface {
 
-    public function __construct(private string $packCode) {}
+    public function __construct(
+        private string $packCode,
+    ) {
+    }
 
     public function getPackCode(): string {
         return $this->packCode;
