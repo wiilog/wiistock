@@ -320,7 +320,9 @@ function createArrival(form = null) {
                 $noTrackingSelect.find(`option[value=${event.params.data.id}]`).remove();
             })
             .off('select2:select.new-arrival')
-            .on(`select2:select.new-arrival`, function (event) {
+            .on(`select2:select.new-arrival`, function (event, option) {
+
+                event.option = option
                 onNoTrackingSelected($modal, event);
             })
             .off(`change.new-arrival`)
@@ -454,7 +456,8 @@ function onNoTrackingSelected($modal, event) {
         }
     };
 
-    const data = event.params.data || {};
+    const data = event.option || event.params.data || {};
+
     if (data.arrivals_id) {
         displayAlertModal(
             undefined,

@@ -1539,7 +1539,10 @@ class ArrivageController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function apiDeliveryNoteFile(Request                $request,
                                         HttpClientInterface    $client,
+                                        EntityManagerInterface $entityManager,
                                         ExceptionLoggerService $loggerService): JsonResponse {
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+
         if (!$request->files->has('file')) {
             throw new FormException("Aucun fichier n'a été importé");
         }
@@ -1565,6 +1568,11 @@ class ArrivageController extends AbstractController
 
             $apiOutput = json_decode($apiRequest->getContent(), true);
         } catch (Throwable $exception) {
+
+            $message = $exception->getContent();
+
+            dump($message);
+
             if ($exception->getCode() === 400 && $exception->getMessage()) {
                 throw new FormException($exception->getMessage());
             }
@@ -1581,6 +1589,31 @@ class ArrivageController extends AbstractController
             $loggerService->sendLog($exception, $request);
             return $this->json($content, $content['code']);
         }
+
+        // RECUPERER LE NUMERO DE COMMANDE
+        $trackingNumbers = $apiOutput['tracking_number'] ?? [];
+
+        foreach ($trackingNumbers as $trackingNumber) {
+            // RECHERCHER EN BDD
+            $truckArrivalLine = $truckArrivalLineRepository->getForSelect($trackingNumber, [
+                "carrierId" => $request->request->get('carrier'),
+                "strictSearch" => true,
+            ]);
+
+            dump($truckArrivalLine);
+            if (!empty($truckArrivalLine)) {
+                $apiOutput["truck_arrival_lines"][] = $truckArrivalLine[0];
+            }
+
+        }
+
+        // MODIFIER APIOUTPUT POUR L ENVOYER AU JS
+
+
+
+
+
+
 
         return $this->json([
             "success" => true,
