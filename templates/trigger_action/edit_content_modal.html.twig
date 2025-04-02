@@ -59,6 +59,13 @@
                     ? triggerAction.requestTemplate.id
                     : null
         ) }}
+
+        {% if triggerAction.config.buttonIndex is defined %}
+            <div class="form-group col-12 col-md-6">
+                Bouton {{ triggerAction.config.buttonIndex }}
+            </div>
+        {% endif %}
+
         {% if not isActionTypeZone %}
             <div class="form-group col-12 col-md-6">
                 <label class="wii-field-name">Type de modèle*</label>

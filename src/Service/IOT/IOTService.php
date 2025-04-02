@@ -150,6 +150,11 @@ class IOTService {
         self::DATA_TYPE_HYGROMETRY => '%',
     ];
 
+    const BUTTON_MULTIPLE_PROFILES = [
+        IOTService::SYMES_ACTION_MULTI,
+        IOTService::SKIPLY_SMILIO,
+    ];
+
     public function __construct(
         private TranslationService      $translationService,
         private TrackingMovementService $trackingMovementService,
@@ -276,8 +281,8 @@ class IOTService {
                                         SensorMessage          $sensorMessage,
                                         EntityManagerInterface $entityManager): void {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
-        if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
-            $button = $sensorMessage->getContent();
+        if ($needsTrigger && in_array($wrapper->getSensor()->getProfile()->getName(), IOTService::BUTTON_MULTIPLE_PROFILES)) {
+            $button = (int)$sensorMessage->getContent();
             $config = $triggerAction->getConfig();
             $wanted = intval($config['buttonIndex']);
             $needsTrigger = ($button === $wanted);
@@ -810,6 +815,9 @@ class IOTService {
                 if (str_starts_with($config['value']['payload'], "15")) {
                     return self::ACS_EVENT;
                 }
+                break;
+            case IOTService::SKIPLY_SMILIO:
+                return self::ACS_EVENT;
         }
         return 'Évenement non trouvé';
     }

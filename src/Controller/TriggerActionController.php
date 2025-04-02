@@ -52,8 +52,7 @@ class TriggerActionController extends AbstractController
     #[HasPermission([Menu::IOT, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
-                        TriggerActionService $triggerActionService): Response
-    {
+                        TriggerActionService $triggerActionService): Response {
         if($data = json_decode($request->getContent(), true)){
             $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
             if($data['sensorWrapper']){
@@ -228,8 +227,7 @@ class TriggerActionController extends AbstractController
 
     #[Route("/api-modifier", name: "trigger_action_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::IOT, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $triggerActionRepository = $entityManager->getRepository(TriggerAction::class);
 
@@ -395,6 +393,14 @@ class TriggerActionController extends AbstractController
             return $this->json([
                 "success" => false,
                 "msg" => "Ce capteur n'existe pas",
+            ]);
+        } else if(isset($sensorWrapper) || (isset($sensor) && $typeLabel === Sensor::ACTION && in_array($sensor->getProfile()->getName(), IOTService::BUTTON_MULTIPLE_PROFILES))){
+            $html = $this->renderView('trigger_action/modalButtonMultiple.html.twig', [
+                "profile" => $sensor ? $sensor->getProfile()->getName() : "",
+                "templateTypes" => [
+                    TriggerAction::DROP_ON_LOCATION => "Dépose sur emplacement",
+                    ...TriggerAction::TEMPLATE_TYPES,
+                ]
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::ACTION){
             $html = $this->renderView('trigger_action/modalButton.html.twig', [
