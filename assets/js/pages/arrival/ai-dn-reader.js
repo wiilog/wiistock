@@ -24,6 +24,7 @@ $(function () {
 
             $button.prop('disabled', !carrier)
 
+            //When an element is deleted, cancel highlights
             $(document)
                 .on('change', '[name="noTracking"]', function () {
                     const $noTrackingSelect2 = $(this)
@@ -80,18 +81,18 @@ function scanDeliveryNoteFile($input) {
                 const $noTrackingSelect2 = $selectNoTracking.siblings('.select2-container').find('.select2-selection');
 
                 $selectNoTracking.empty();
+                $noTrackingSelect2.removeClass('ai-highlight');
 
                 if (data.truck_arrival_lines) {
                     let trackingNumbers = data.truck_arrival_lines;
 
+                    // When AI is predicted, highlight the field
                     if (trackingNumbers.length) {
                         $noTrackingSelect2.addClass('ai-highlight')
                         trackingNumbers.forEach(trackingNumber => {
                             $selectNoTracking.append(new Option(trackingNumber.text, trackingNumber.id, true, true));
                             $selectNoTracking.trigger('select2:select.new-arrival', trackingNumber);
                         });
-                    } else {
-                        $noTrackingSelect2.removeClass('ai-highlight');
                     }
                 }
 
@@ -103,15 +104,15 @@ function scanDeliveryNoteFile($input) {
                     const $selectOrderNumber = $modal.find('[name="numeroCommandeList"]');
                     const $orderNumberSelect2 = $selectOrderNumber.siblings('.select2-container').find('.select2-selection');
 
+                    $selectOrderNumber.empty();
+                    $orderNumberSelect2.removeClass('ai-highlight');
+
                     if (orderNumbers.length) {
                         $orderNumberSelect2.addClass('ai-highlight');
                         orderNumbers.forEach(orderNumber => {
                             $selectOrderNumber.append(new Option(orderNumber, orderNumber, true, true));
                             $selectOrderNumber.trigger('change');
                         });
-
-                    } else {
-                        $orderNumberSelect2.removeClass('ai-highlight');
                     }
                 }
                 const fieldsToExclude = ["tracking_number", "truck_arrival_lines", "order_number"];

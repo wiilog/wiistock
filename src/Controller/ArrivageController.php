@@ -1597,7 +1597,6 @@ class ArrivageController extends AbstractController
                 "strictSearch" => true,
             ]);
 
-            dump($truckArrivalLine);
             if (!empty($truckArrivalLine)) {
                 $apiOutput["truck_arrival_lines"][] = $truckArrivalLine[0];
             }
