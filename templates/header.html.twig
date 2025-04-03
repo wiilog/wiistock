@@ -105,7 +105,7 @@
                         hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DISPLAY_PRODUCTION_REQUEST'))
                         and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::CREATE_PRODUCTION_REQUEST'))
                         ) %}
-                    {% if app.user.role.isShowBasket %}
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_CART')) %}
                         <div class="col-auto pr-0 mr-0">
                             <a class="header-icon cart" href="{{ path('cart_index') }}">
                                 {% set referencesQuantity = app.user.cart.references|length %}
@@ -122,7 +122,7 @@
                             </a>
                         </div>
                     {% endif %}
-                    {% if app.user.role.isShowNotification %}
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_NOTIFICATIONS')) %}
                         <div class="col-auto ml-0">
                             <a class="header-icon notifications white" href="{{ path('notifications_index') }}">
                                 <div class="icon-figure notification-figure small {{ not app.user.unreadNotifications or app.user.unreadNotifications.count == 0  ? 'd-none' }}">
@@ -287,7 +287,7 @@
                         </div>
                     {% endif %}
 
-                    {% if app.user.role.isShowFlag %}
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_LANGUAGES')) %}
                         <div>
                             <div class="col col-lg-auto language-date pointer d-flex align-items-center user-select-none ml-3 dropdown dropdown-toggle"
                                  data-toggle="dropdown"

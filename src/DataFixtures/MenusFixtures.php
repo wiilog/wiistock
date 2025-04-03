@@ -11,6 +11,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
     const MENUS = [
+        Menu::GENERAL => null,
         Menu::DASHBOARDS => null,
         Menu::TRACA => null,
         Menu::QUALI => null,
@@ -25,6 +26,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
     ];
 
     const ORDER = [
+        Menu::GENERAL,
         Menu::PRODUCTION,
         Menu::TRACA,
         Menu::QUALI,
