@@ -53,6 +53,8 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Exception\ClientException;
+use http\Client;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -1566,16 +1568,8 @@ class ArrivageController extends AbstractController
                 "body" => $formData->bodyToIterable(),
             ]);
 
-            $apiOutput = json_decode($apiRequest->getContent(), true);
+            $apiOutput = json_decode($apiRequest->getContent(false), true);
         } catch (Throwable $exception) {
-
-            $message = $exception->getContent();
-
-            dump($message);
-
-            if ($exception->getCode() === 400 && $exception->getMessage()) {
-                throw new FormException($exception->getMessage());
-            }
             $content = [
                 "success" => false,
                 'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
@@ -1590,11 +1584,14 @@ class ArrivageController extends AbstractController
             return $this->json($content, $content['code']);
         }
 
-        // RECUPERER LE NUMERO DE COMMANDE
+        if (isset($apiOutput['err'])){
+            throw new FormException($apiOutput['err']);
+        }
+
         $trackingNumbers = $apiOutput['tracking_number'] ?? [];
 
         foreach ($trackingNumbers as $trackingNumber) {
-            // RECHERCHER EN BDD
+
             $truckArrivalLine = $truckArrivalLineRepository->getForSelect($trackingNumber, [
                 "carrierId" => $request->request->get('carrier'),
                 "strictSearch" => true,
@@ -1606,14 +1603,6 @@ class ArrivageController extends AbstractController
             }
 
         }
-
-        // MODIFIER APIOUTPUT POUR L ENVOYER AU JS
-
-
-
-
-
-
 
         return $this->json([
             "success" => true,
