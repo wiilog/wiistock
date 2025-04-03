@@ -120,7 +120,9 @@
     <div class="row mt-3">
         <div class="col-12">
             {{ form.image(setting('FILE_OVERCONSUMPTION_LOGO'), 'Logo du bon de surconsommation', false, setting_value('FILE_OVERCONSUMPTION_LOGO'), {
-                formats: 'image/png, image/jpeg, image/jpg'
+                formats: 'image/png, image/jpeg, image/jpg',
+                previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
+                deleteValue: '',
             }) }}
         </div>
     </div>
