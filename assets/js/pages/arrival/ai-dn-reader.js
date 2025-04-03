@@ -1,5 +1,4 @@
 import AJAX, {POST} from "@app/ajax";
-import button from "bootstrap/js/src/button";
 
 const KEY_TRANSLATIONS = {
     tracking_number: "Numéro de tracking",
@@ -22,38 +21,38 @@ $(function () {
             const carrier = $(event.target).val()
             const $button = $('[name="uploadAndScan"]').siblings("button")
 
-            $button.prop('disabled', !carrier)
+            $button.prop('disabled', !carrier);
+        });
 
-            //When an element is deleted, cancel highlights
-            $(document)
-                .on('change', '[name="noTracking"]', function () {
-                    const $noTrackingSelect2 = $(this)
-                        .siblings('.select2-container')
-                        .find('.select2-selection');
-                    const hasValue = $(this).val() && $(this).val().length > 0;
-                    if (!hasValue) {
-                        $noTrackingSelect2.removeClass('ai-highlight');
-                    }
-                });
+    //When an element is deleted, cancel highlights
+    $(document)
+        .on('change', '#modalNewArrivage [name="noTracking"]', function () {
+            const $noTrackingSelect2 = $(this)
+                .siblings('.select2-container')
+                .find('.select2-selection');
+            const hasValue = $(this).val() && $(this).val().length > 0;
+            if (!hasValue) {
+                $noTrackingSelect2.removeClass('ai-highlight');
+            }
+        });
 
-            $(document)
-                .on('change', '[name="numeroCommandeList"]', function () {
-                    const $orderNumberSelect2 = $(this)
-                        .siblings('.select2-container')
-                        .find('.select2-selection');
-                    const hasValue = $(this).val() && $(this).val().length > 0;
-                    if (!hasValue) {
-                        $orderNumberSelect2.removeClass('ai-highlight');
-                    }
-                });
+    $(document)
+        .on('change', '[name="numeroCommandeList"]', function () {
+            const $orderNumberSelect2 = $(this)
+                .siblings('.select2-container')
+                .find('.select2-selection');
+            const hasValue = $(this).val() && $(this).val().length > 0;
+            if (!hasValue) {
+                $orderNumberSelect2.removeClass('ai-highlight');
+            }
+        });
 
-            $(document)
-                .on('keyup click', '.ql-editor', function () {
-                    const text = $(this).text().trim();
-                    if (!text) {
-                        $(this).removeClass('ai-highlight');
-                    }
-                });
+    $(document)
+        .on('keyup click', '.ql-editor', function () {
+            const text = $(this).text().trim();
+            if (!text) {
+                $(this).removeClass('ai-highlight');
+            }
         });
 });
 
@@ -72,7 +71,9 @@ function scanDeliveryNoteFile($input) {
         formData.append("file", file, file.name);
         formData.append("carrier", $modal.find('[name="transporteur"]').val());
         return AJAX
-            .route(POST, `api_delivery_note_file`, {}).json(formData).then(({success, data}) => {
+            .route(POST, `api_delivery_note_file`, {})
+            .json(formData)
+            .then(({success, data}) => {
                 if (!success) {
                     return
                 }
