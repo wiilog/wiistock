@@ -616,7 +616,10 @@ class IOTService {
                     self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
             case IOTService::INEO_SENS_ACS_TEMP:
-                $hexTemperature = substr($payload, 6, 2);
+                $hexTemperature = match (true) {
+                    str_starts_with($payload, '6d') => substr($payload, 6, 2),
+                    str_starts_with($payload, '42') => substr($payload, 32, 2),
+                };
                 $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 return [self::DATA_TYPE_TEMPERATURE => $temperature,];
             case IOTService::INEO_SENS_ACS_HYGRO:
@@ -830,7 +833,10 @@ class IOTService {
             case IOTService::INEO_SENS_ACS_HYGRO:
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
-                return 100 - hexdec(substr($payload, 10, 2));
+                return match (true) {
+                    str_starts_with($payload, '12') => 100 - hexdec(substr($payload, 10, 2)),
+                    str_starts_with($payload, '42') => 100 - hexdec(substr($payload, 32, 2))
+                };
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
@@ -1194,7 +1200,7 @@ class IOTService {
 
     public function validateFrame(string $profile, ?string $payload): bool {
         return match ($profile) {
-            IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
+            IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d') || str_starts_with($payload, '42'),
             IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
