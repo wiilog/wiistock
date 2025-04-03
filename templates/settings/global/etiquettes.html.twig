@@ -32,6 +32,8 @@
             {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
                 formats: 'image/png, image/jpeg, image/jpg',
                 tooltip: 'Logo visible sur les étiquettes d’UL d’arrivages, des articles, et sur le bon d’acheminement',
+                previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
+                deleteValue: '',
             }) }}
         </div>
     </div>

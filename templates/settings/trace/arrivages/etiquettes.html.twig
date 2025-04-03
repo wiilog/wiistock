@@ -63,6 +63,9 @@
                 <div class="col-sm-5 col-12 my-1">
                     {{ form.image(setting('EMERGENCY_ICON'), null, false, setting_value('EMERGENCY_ICON'), {
                         formats: 'image/png, image/jpeg, image/jpg',
+                        previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
+                        emptyImage: true,
+                        deleteValue: '',
                     }) }}
                 </div>
             </div>
@@ -76,6 +79,9 @@
                 <div class="col-sm-5 col-12 my-1">
                     {{ form.image(setting('CUSTOM_ICON'), null, false, setting_value('CUSTOM_ICON'), {
                         formats: 'image/png, image/jpeg, image/jpg',
+                        previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
+                        emptyImage: true,
+                        deleteValue: '',
                     }) }}
                 </div>
             </div>
