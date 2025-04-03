@@ -35,18 +35,6 @@ class Role {
     #[ORM\OneToMany(mappedBy: 'role', targetEntity: Utilisateur::class)]
     private Collection $users;
 
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $isMailSendAccountCreation = false;
-
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $showNotification = false;
-
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $showBasket = false;
-
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $showFlag = false;
-
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
@@ -142,44 +130,6 @@ class Role {
             }
         }
 
-        return $this;
-    }
-
-    public function getIsMailSendAccountCreation(): ?bool {
-        return $this->isMailSendAccountCreation;
-    }
-
-    public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self {
-        $this->isMailSendAccountCreation = $isMailSendAccountCreation;
-
-        return $this;
-    }
-
-    public function isShowNotification(): ?bool {
-        return $this->showNotification;
-    }
-
-    public function setShowNotification(bool $showNotification): self {
-        $this->showNotification = $showNotification;
-        return $this;
-    }
-
-    public function isShowBasket(): ?bool {
-        return $this->showBasket;
-    }
-
-    public function setShowBasket(bool $showBasket): self {
-        $this->showBasket = $showBasket;
-        return $this;
-    }
-
-    public function isShowFlag(): ?bool
-    {
-        return $this->showFlag;
-    }
-
-    public function setShowFlag(bool $showFlag): self {
-        $this->showFlag = $showFlag;
         return $this;
     }
 
