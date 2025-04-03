@@ -406,12 +406,6 @@ class TrackingMovementService {
                     $createdMovements[] = $groupingTrackingMovement;
 
                     if($packSplittingCase) {
-                        if($packParent->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
-                            return [
-                                "success" => false,
-                                "msg" => "Impossible de diviser le colis {$packParent->getCode()}",
-                            ];
-                        }
                         $this->manageSplitPack($entityManager, $packParent, $movedPack, $date);
                     }
                 }
@@ -2010,6 +2004,11 @@ class TrackingMovementService {
                                     Pack                   $packParent,
                                     Pack                   $pack,
                                     DateTime               $date): void {
+
+        if($packParent->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
+            throw new FormException("Impossible de diviser le colis {$packParent->getCode()}");
+        }
+
         $packSplitTrackingMovement = $this->createTrackingMovement(
             $pack,
             null,
