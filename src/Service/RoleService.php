@@ -98,10 +98,6 @@ class RoleService
 
         $role
             ->setLabel($label)
-            ->setIsMailSendAccountCreation($request->request->getBoolean('isMailSendAccountCreation'))
-            ->setShowNotification($request->request->getBoolean('showNotification'))
-            ->setShowBasket($request->request->getBoolean('showBasket'))
-            ->setShowFlag($request->request->getBoolean('showFlag'))
             ->setQuantityType($quantityType)
             ->setLandingPage($landingPage)
             ->setActions($actions);

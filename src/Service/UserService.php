@@ -238,7 +238,7 @@ class UserService {
                                        Utilisateur            $newUser): void {
 
         $roleRepository = $entityManager->getRepository(Role::class);
-        $rolesToSendEmail = $roleRepository->findBy(['isMailSendAccountCreation' => true]);
+        $rolesToSendEmail = $roleRepository->findByActionParams(Menu::GENERAL, Action::RECEIVE_EMAIL_ON_NEW_USER);
         $userToSendEmail = Stream::from($rolesToSendEmail)
             ->flatMap(static fn(Role $role) => $role->getUsers()->toArray())
             ->toArray();

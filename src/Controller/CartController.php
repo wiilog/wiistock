@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use WiiCommon\Helper\Stream;
 
 
@@ -120,6 +121,9 @@ class CartController extends AbstractController {
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function addReferenceToCart(ReferenceArticle         $reference,
                                        EntityManagerInterface   $entityManager): JsonResponse {
+
+
+
         $cart = $this->getUser()->getCart();
         if (!$cart->getArticles()->isEmpty()){
             throw new FormException("Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des références.");
