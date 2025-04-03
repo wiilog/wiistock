@@ -436,6 +436,16 @@
                 </button>
             {% endif %}
 
+            {% if options.deleteValue is defined and (options.deleteValue or options.deleteValue == '')%}
+                <input type="hidden"
+                       class="delete-value"
+                       value="{{ options.deleteValue }}"/>
+                <button class="btn btn-primary btn-remove-image ml-1 bg-white p-1 d-flex align-items-center justify-content-center"
+                        onclick="deleteImage($(this))">
+                    <i class="wii-icon wii-icon-trash bg-primary w-px-20 h-px-20"></i>
+                </button>
+            {% endif %}
+
             <input type="file"
                    id="upload-{{ name }}"
                    name="{{ name }}"

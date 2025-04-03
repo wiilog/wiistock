@@ -466,6 +466,8 @@ class SettingsService {
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
+            [Setting::CUSTOM_ICON, null],
+            [Setting::EMERGENCY_ICON, null],
         ];
 
         foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
