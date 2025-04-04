@@ -98,7 +98,6 @@ class RoleService
 
         $role
             ->setLabel($label)
-            ->setIsMailSendAccountCreation($request->request->getBoolean('isMailSendAccountCreation'))
             ->setQuantityType($quantityType)
             ->setLandingPage($landingPage)
             ->setActions($actions);

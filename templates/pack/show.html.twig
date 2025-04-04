@@ -228,14 +228,16 @@
                                 <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
                             </div>
                             <div class="content current-articles">
-                                {% if logisticUnit.childArticles |length > 0%}
-                                    <button
-                                        type="button"
-                                        class="btn btn-primary btn-sm d-flex align-items-center mt-2 ml-auto add-cart-btn"
-                                        title="Ajouter au panier">
-                                        <span class="wii-icon wii-icon-cart mr-2" alt="Icône ajouter au panier"></span>
-                                        Ajouter au panier
-                                    </button>
+                                {% if logisticUnit.childArticles |length > 0 %}
+                                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'),constant('App\\Entity\\Action::SHOW_CART')) %}
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary btn-sm d-flex align-items-center mt-2 ml-auto add-cart-btn"
+                                            title="Ajouter au panier">
+                                            <span class="wii-icon wii-icon-cart mr-2" alt="Icône ajouter au panier"></span>
+                                            Ajouter au panier
+                                        </button>
+                                    {% endif %}
                                     {% for article in logisticUnit.childArticles %}
                                         {% include 'pack/article-card.html.twig' with { article: article } %}
                                     {% endfor %}

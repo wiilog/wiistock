@@ -244,6 +244,10 @@ class Action {
     const MODULE_ACCESS_RECEIPT_ASSOCIATION = 'Accès associations BR';
     const MODULE_ACCESS_RECEPTION = 'Accès réception';
     const MODULE_ACCESS_READING_MENU = 'Accès menu lecture';
+    const SHOW_NOTIFICATIONS = 'Afficher les notifications';
+    const SHOW_CART = 'Afficher le panier';
+    const SHOW_LANGUAGES = 'Choisir la langue';
+    const RECEIVE_EMAIL_ON_NEW_USER = 'Réception email création nouveau compte';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
