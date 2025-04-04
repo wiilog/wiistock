@@ -20,6 +20,7 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
+use App\Entity\SessionHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\Tracking\TrackingMovement;
@@ -113,6 +114,7 @@ class UserService {
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
         $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
         $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
+        $sessionHistoryRecordRepository =  $entityManager->getRepository(SessionHistoryRecord::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -140,6 +142,7 @@ class UserService {
             + $shippingRequestRepository->count(['plannedBy' => $user->getId()]) + $shippingRequestRepository->count(['treatedBy' => $user->getId()])
             + $shippingRequestRepository->countByRequesters($user->getId());
         $hasExternalLinks = $deliveryStationLineRepository->countByUser($user);
+        $hasSessionHistoryRecord = $sessionHistoryRecordRepository->findOneBy(['user' => $user]) !== null;
 
         return [
             mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
@@ -159,6 +162,7 @@ class UserService {
             "historique(s) de statut" => $hasStatusHistory,
             "demande(s) d'expédition" => $hasShippingRequest,
             "lien(s) externe" => $hasExternalLinks,
+            "historique(s) de connexion" => $hasSessionHistoryRecord
         ];
 	}
 
