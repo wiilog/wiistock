@@ -37,9 +37,11 @@ $(function () {
         });
 });
 
+/**
+ * @param {jQuery} $input
+ */
 function scanDeliveryNoteFile($input) {
     const $modal = $input.closest('.modal');
-    const $comment = $modal.find('.ql-editor');
     const $loaderContainer = $modal.find('.modal-body, [data-dismiss="modal"], .modal-footer')
 
     wrapLoadingOnActionButton($loaderContainer, () => {
@@ -62,11 +64,19 @@ function scanDeliveryNoteFile($input) {
             });
     });
 }
+
+/**
+ * @param {jQuery} $transporteur
+ */
 function onCarrierChange($transporteur) {
     const carrier = $transporteur.val()
     const $button = $('[name="uploadAndScan"]').siblings("button")
     $button.prop('disabled', !carrier);
 }
+
+/**
+ * @param {jQuery} $noTracking
+ */
 function onTrackingChange($noTracking) {
     const $noTrackingSelect2 = $noTracking
         .siblings('.select2-container')
@@ -76,6 +86,10 @@ function onTrackingChange($noTracking) {
         $noTrackingSelect2.removeClass('ai-highlight');
     }
 }
+
+/**
+ * @param {jQuery} $orderNumber
+ */
 function onNumeroCommandeListChange($orderNumber) {
     const $orderNumberSelect2 = $orderNumber
         .siblings('.select2-container')
@@ -85,12 +99,21 @@ function onNumeroCommandeListChange($orderNumber) {
         $orderNumberSelect2.removeClass('ai-highlight');
     }
 }
+
+/**
+ * @param {jQuery} $editor
+ */
 function onCommentEditInput($editor) {
     const text = $editor.text().trim();
     if (!text) {
         $editor.removeClass('ai-highlight');
     }
 }
+
+/**
+ * @param {jQuery} $modal
+ * @param {{[x: string]: *}} data
+ */
 function fillDeliveryNoteForm($modal, data) {
     const $comment = $modal.find('.ql-editor');
     const $selectNoTracking = $modal.find('[name="noTracking"]');
