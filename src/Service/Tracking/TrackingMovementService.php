@@ -2005,12 +2005,12 @@ class TrackingMovementService {
                                     Pack                   $pack,
                                     DateTime               $date): void {
 
-        if($packParent->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
-            throw new FormException("Impossible de diviser le colis {$packParent->getCode()}");
+        if($packParent->getSplitCountFrom() >= Pack::SPLIT_MAX_ANCESTORS) {
+            throw new FormException("Impossible de diviser le colis {$packParent->getCode()} : nombre maximum de générations atteint.");
         }
 
-        if ($packParent->getSplitCountTo() >= Pack::MAX_CHILD) {
-            throw new FormException("Impossible de diviser le colis {$packParent->getCode()} : nombre maximum d’enfants atteint.");
+        if ($packParent->getSplitCountTarget() >= Pack::SPLIT_MAX_CHILDREN) {
+            throw new FormException("Impossible de diviser le colis {$packParent->getCode()} : nombre maximum d'enfants atteint.");
         }
 
         $packSplitTrackingMovement = $this->createTrackingMovement(
