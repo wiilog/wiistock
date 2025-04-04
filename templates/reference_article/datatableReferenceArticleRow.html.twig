@@ -66,7 +66,7 @@
                     },
                 ]
             } %}
-            {% if showAddRefToCart %}
+            {% if showAddRefToCart and hasRight(constant('App\\Entity\\Menu::GENERAL'),constant('App\\Entity\\ACTION::SHOW_CART')) %}
                 {% include 'datatable/addRefToCart.html.twig' with {reference: reference_id} %}
             {% endif %}
             {% if attachmentsLength > 0 %}

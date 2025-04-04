@@ -21,6 +21,7 @@ use App\Exceptions\FormException;
 use App\Service\CartService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,7 @@ use WiiCommon\Helper\Stream;
 class CartController extends AbstractController {
 
     #[Route("/", name: "index")]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function cart(EntityManagerInterface $manager,
                          SettingsService        $settingsService): Response {
         $typeRepository = $manager->getRepository(Type::class);
@@ -120,9 +122,12 @@ class CartController extends AbstractController {
     #[Route("/ajouter/{reference}", name: "add_reference", options: ['expose' => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function addReferenceToCart(ReferenceArticle         $reference,
-                                       EntityManagerInterface   $entityManager): JsonResponse {
+                                       EntityManagerInterface   $entityManager,
+                                       UserService $userService): JsonResponse {
 
-
+        if (!$userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART)) {
+            throw new FormException("Vous ne disposez pas des droits nécessaires pour ajouter des références articles au panier.");
+        }
 
         $cart = $this->getUser()->getCart();
         if (!$cart->getArticles()->isEmpty()){
@@ -144,6 +149,7 @@ class CartController extends AbstractController {
     }
 
     #[Route("/infos/livraison/{request}", name: "delivery_data", options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function deliveryRequestData(Demande $request): JsonResponse {
         return $this->json([
             "success" => true,
@@ -160,6 +166,7 @@ class CartController extends AbstractController {
     }
 
     #[Route("/infos/collecte/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function collectRequestData(Collecte $request): JsonResponse {
         return $this->json([
             "success" => true,
@@ -178,6 +185,7 @@ class CartController extends AbstractController {
     }
 
     #[Route("/retirer/{reference}", name: "remove_reference", options: ['expose' => true])]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function removeReference(EntityManagerInterface $manager, ReferenceArticle $reference): Response {
         $cart = $this->getUser()->getCart();
         $cart->removeReference($reference);
@@ -191,6 +199,7 @@ class CartController extends AbstractController {
     }
 
     #[Route("/validate-cart", name: "validate", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function validateCart(Request                $request,
                                  EntityManagerInterface $entityManager,
                                  CartService            $cartService): JsonResponse {
@@ -217,7 +226,8 @@ class CartController extends AbstractController {
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function addLogisticUnitsToCart(Request                $request,
                                            EntityManagerInterface $entityManager,
-                                           TranslationService     $translation): Response {
+                                           TranslationService     $translation,
+                                           UserService $userService): Response {
         $data = $request->query->all();
         $ids = explode(",", $data["ids"]);
         $response = [];
@@ -228,6 +238,10 @@ class CartController extends AbstractController {
         $cart = $this->getUser()->getCart();
 
         $packRepository = $entityManager->getRepository(Pack::class);
+
+        if (!$userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART)) {
+            throw new FormException("Vous ne disposez pas des droits nécessaires pour ajouter des UL au panier. ");
+        }
 
         if ($cart->getReferences()->count()){
             $response[] = [
@@ -340,7 +354,7 @@ class CartController extends AbstractController {
 
 
     #[Route("/articles-logistic-units-api", name: "articles_logistic_units_api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
-    //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART])]
     public function getLogisticUnitsAndArticlesApi(): JsonResponse {
         $articlesInCart = $this->getUser()->getCart()->getArticles();
         $articles = Stream::from($articlesInCart)
@@ -389,6 +403,7 @@ class CartController extends AbstractController {
     }
 
     #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::GENERAL, Action::SHOW_CART], mode: HasPermission::IN_JSON)]
     public function deleteRow(EntityManagerInterface $entityManager, Request $request): Response {
         $type = $request->query->get('type');
         $cart = $this->getUser()?->getCart();
