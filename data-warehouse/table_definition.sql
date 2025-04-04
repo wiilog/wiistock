@@ -195,8 +195,8 @@ CREATE TABLE dw_reference_article
     classe_produit             varchar(255),
     code_ndp                   varchar(255),
     derniere_reponse_stockage  timestamp(0),
-    duree_stockage_maximal     integer,
-    temps_immobilisation       integer
+    duree_stockage_maximale    integer,
+    duree_immobilisation_maximale       integer
 );
 
 CREATE TABLE dw_service
@@ -587,8 +587,8 @@ CREATE TABLE dw_article
     pays_origine                varchar(255),
     date_fabrication            timestamp(0),
     derniere_reponse_stockage   timestamp(0),
-    duree_stockage_maximal      integer,
-    temps_immobilisation        integer
+    duree_stockage_maximale     integer,
+    duree_immobilisation_maximale        integer
 );
 
 CREATE TABLE dw_unite_logistique
