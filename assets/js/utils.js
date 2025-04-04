@@ -12,6 +12,7 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
+global.deleteImage = deleteImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
 global.getUserFiltersByPage = getUserFiltersByPage;
 global.clearFilters = clearFilters;
@@ -136,6 +137,24 @@ function resetImage($button) {
     $keepImage.val(0);
 
     if (defaultValue === '') {
+        $image.addClass('d-none');
+    }
+}
+
+function deleteImage($button) {
+    const $deleteValue = $button.siblings('.delete-value');
+    const $image = $button.siblings('.preview-container').find('.image');
+    const $keepImage = $button.siblings('.keep-image');
+    const $input = $button.siblings('[type="file"]');
+    const deleteValue = $deleteValue.val();
+
+    $input.val('');
+    $image
+        .attr('src', deleteValue)
+        .removeClass('d-none');
+    $keepImage.val(0);
+
+    if (deleteValue === '') {
         $image.addClass('d-none');
     }
 }

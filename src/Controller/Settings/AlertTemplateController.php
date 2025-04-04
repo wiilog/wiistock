@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\Menu;
+use App\Service\FormService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,6 +20,7 @@ class AlertTemplateController extends AbstractController
 
     #[Route('/modele-alerte/header/{template}', name: 'settings_alert_template_header', options: ['expose' => true])]
     public function alertTemplateHeader(Request        $request,
+                                        FormService $formService,
                                         ?AlertTemplate $template = null): Response {
 
         $edit = $request->query->getBoolean("edit");
@@ -112,12 +114,9 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "label" => 'Image de début de mail',
                     "class" => "col-md-4",
-                    "value" => $this->renderView('image_input.html.twig', [
-                        'name' => "image",
-                        'label' => "",
-                        'required' => false,
-                        'image' => $image ? 'uploads/attachments/' . $image : '',
-                        'options' => []
+                    "value" => $formService->macro("image","image","",false, $image ? 'uploads/attachments/' . $image : '',[
+                        "deleteValue" => "",
+                        "previewClass" => "minw-100px minh-80px mr-2 border-radius-2",
                     ]),
                 ];
 
