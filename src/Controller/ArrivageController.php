@@ -53,6 +53,8 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Exception\ClientException;
+use http\Client;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -1539,7 +1541,10 @@ class ArrivageController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function apiDeliveryNoteFile(Request                $request,
                                         HttpClientInterface    $client,
+                                        EntityManagerInterface $entityManager,
                                         ExceptionLoggerService $loggerService): JsonResponse {
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+
         if (!$request->files->has('file')) {
             throw new FormException("Aucun fichier n'a été importé");
         }
@@ -1563,11 +1568,8 @@ class ArrivageController extends AbstractController
                 "body" => $formData->bodyToIterable(),
             ]);
 
-            $apiOutput = json_decode($apiRequest->getContent(), true);
+            $apiOutput = json_decode($apiRequest->getContent(false), true);
         } catch (Throwable $exception) {
-            if ($exception->getCode() === 400 && $exception->getMessage()) {
-                throw new FormException($exception->getMessage());
-            }
             $content = [
                 "success" => false,
                 'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
@@ -1580,6 +1582,25 @@ class ArrivageController extends AbstractController
             ];
             $loggerService->sendLog($exception, $request);
             return $this->json($content, $content['code']);
+        }
+
+        if (isset($apiOutput['err'])){
+            throw new FormException($apiOutput['err']);
+        }
+
+        $trackingNumbers = $apiOutput['tracking_number'] ?? [];
+
+        foreach ($trackingNumbers as $trackingNumber) {
+
+            $truckArrivalLine = $truckArrivalLineRepository->getForSelect($trackingNumber, [
+                "carrierId" => $request->request->get('carrier'),
+                "strictSearch" => true,
+            ]);
+
+            if (!empty($truckArrivalLine)) {
+                $apiOutput["truck_arrival_lines"][] = $truckArrivalLine[0];
+            }
+
         }
 
         return $this->json([

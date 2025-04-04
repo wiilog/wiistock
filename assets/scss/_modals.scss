@@ -101,3 +101,11 @@ option {
 .modal-footer {
     z-index: 2;
 }
+
+.ai-highlight {
+    border: 2px solid #6433D7 !important;
+}
+
+.select2-container--default .select2-selection--multiple.ai-highlight {
+    border: 2px solid #6433D7 !important;
+}

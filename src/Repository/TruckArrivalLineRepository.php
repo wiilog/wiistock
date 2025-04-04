@@ -125,6 +125,9 @@ class TruckArrivalLineRepository extends EntityRepository
     public function getForSelect(?string $term, $option = []): array {
         $qb = $this->createQueryBuilder('truck_arrival_line');
 
+        $strictSearch = $option['strictSearch'] ?? false;
+        $term = $strictSearch ? $term : "%$term%";
+
         $qb ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
@@ -143,7 +146,7 @@ class TruckArrivalLineRepository extends EntityRepository
             ->leftJoin('truck_arrival_line.arrivals', 'arrivals')
             ->leftJoin('truck_arrival_line.reserve', 'reserve')
             ->leftJoin('reserve.reserveType', 'reserveType')
-            ->setParameter('term', "%$term%");
+            ->setParameter('term', $term);
 
 
         if (isset($option['truckArrivalId'])) {
