@@ -41,6 +41,8 @@ class Pack implements PairedEntity {
 
     public const MAX_SPLIT_LEVEL = 3;
 
+    public const MAX_CHILD = 500;
+
     public const GROUPING_LIMIT = 300;
 
     #[ORM\Id]
@@ -934,6 +936,11 @@ class Pack implements PairedEntity {
         return $parent
             ? 1 + $parent->getSplitCountFrom()
             : 0;
+    }
+
+    public function getSplitCountTo(): int
+    {
+        return $this->getSplitTargets()->count();
     }
 
     public function getCurrentTrackingDelay(): ?TrackingDelay {

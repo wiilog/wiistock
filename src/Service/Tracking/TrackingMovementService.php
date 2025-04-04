@@ -2009,6 +2009,10 @@ class TrackingMovementService {
             throw new FormException("Impossible de diviser le colis {$packParent->getCode()}");
         }
 
+        if ($packParent->getSplitCountTo() >= Pack::MAX_CHILD) {
+            throw new FormException("Impossible de diviser le colis {$packParent->getCode()} : nombre maximum d’enfants atteint.");
+        }
+
         $packSplitTrackingMovement = $this->createTrackingMovement(
             $pack,
             null,
