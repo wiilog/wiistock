@@ -101,7 +101,6 @@ class ExceptionLoggerService {
                         "context" => [
                             "instance" => $instance,
                             "env" => $_SERVER["APP_ENV"] ?? null,
-                            "locale" => $_SERVER["APP_LOCALE"] ?? null,
                             "client" => $_SERVER["APP_CLIENT"] ?? null,
                             "dashboard_token" => $_SERVER["APP_DASHBOARD_TOKEN"] ?? null,
                             "url" => $url ?? null,
