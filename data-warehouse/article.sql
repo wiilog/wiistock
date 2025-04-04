@@ -26,8 +26,8 @@ SELECT article.id                                                         AS id,
        native_country.label                                               AS pays_origine,
        article.manufactured_at                                            AS date_fabrication,
        reference_article.last_sleeping_stock_alert_answer                 AS derniere_reponse_stockage,
-       FLOOR(sleeping_stock_plan.max_storage_time/60/60/24)               AS duree_stockage_maximal,
-       FLOOR(sleeping_stock_plan.max_stationary_time/60/60/24)            AS temps_immobilisation
+       FLOOR(sleeping_stock_plan.max_storage_time/60/60/24)               AS duree_stockage_maximale,
+       FLOOR(sleeping_stock_plan.max_stationary_time/60/60/24)            AS duree_immobilisation_maximale
 
 FROM article
          LEFT JOIN statut ON article.statut_id = statut.id
