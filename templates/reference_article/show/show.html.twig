@@ -74,7 +74,7 @@
                                     </span>
                                 </div>
                             </div>
-                            {% if referenceArticle.statut ? referenceArticle.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') : false %}
+                            {% if (referenceArticle.statut ? referenceArticle.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') : false) and hasRight(constant('App\\Entity\\Menu::GENERAL'),constant('App\\Entity\\ACTION::SHOW_CART')) %}
                             <div class="d-flex align-content-around justify-content-end">
                                 <button type="button" class="btn btn-primary btn-sm d-flex align-items-center mt-2" data-reference="{{ referenceArticle.id }}"  title="Ajouter au panier" onclick="addReferenceToCart($(this))">
                                     <img class="add-cart-btn mr-2" src="{{ asset('svg/cart.svg') }}" alt="Icône ajouter au panier" width="20px">

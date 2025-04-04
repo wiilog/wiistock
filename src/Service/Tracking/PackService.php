@@ -583,12 +583,17 @@ class PackService {
 
     public function getPackListColumnVisibleConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
+        $hasRightAddToCart = $this->userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART);
 
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
                 ["name" => 'details', "title" => '<span class="fa fa-search"><span>', "className" => 'noVis', "orderable" => false],
-                ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart add-all-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
+                ...$hasRightAddToCart
+                    ? [
+                        ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart add-all-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
+                    ]
+                    : [],
                 ['name' => 'pairing', 'title' => '<span class="wii-icon wii-icon-pairing black"><span>', 'classname' => 'pairing-row'],
                 ['name' => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')],
                 ['name' => 'nature', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Nature')],
