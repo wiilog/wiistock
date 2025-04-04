@@ -1,5 +1,6 @@
 import {getStatusHistory} from "@app/pages/handling/common";
-import Routing from '@app/fos-routing';
+import Form from "@app/form";
+import {POST} from "@app/ajax";
 
 
 $(function () {
@@ -8,13 +9,13 @@ $(function () {
     getStatusHistory(handlingId);
 
     let $modalDeleteHandling = $('#modalDeleteHandling');
-    let $submitDeleteHandling = $('#submitDeleteHandling');
-    let urlDeleteHandling = Routing.generate('handling_delete', true);
-    InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling);
+    Form.create($modalDeleteHandling).submitTo(POST, 'handling_delete', {
+        success: response => window.location = response.redirect,
+    });
 
     let $modalEditStatus = $('#modalEditStatut');
-    let $submitEditStatut = $('#submitEditStatut');
-    let urlEditStatut = Routing.generate('handling_status_edit', true);
-    InitModal($modalEditStatus, $submitEditStatut, urlEditStatut, {success: () => { location.reload() }});
+    Form.create($modalEditStatus).submitTo(POST, 'handling_status_edit', {
+        success: () => { location.reload() }
+    });
 });
 
