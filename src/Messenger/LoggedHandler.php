@@ -9,7 +9,10 @@ use Throwable;
 
 abstract class LoggedHandler {
 
-    public function __construct(private ExceptionLoggerService $loggerService) {}
+    public function __construct(
+        private ExceptionLoggerService $loggerService
+    ) {
+    }
 
     protected function handle(MessageInterface $message): void {
         try {
@@ -24,6 +27,7 @@ abstract class LoggedHandler {
             $this->loggerService->sendLog($sentException);
         }
     }
+
     abstract protected function process(MessageInterface $message): void;
 
 }

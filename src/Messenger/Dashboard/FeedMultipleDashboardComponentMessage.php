@@ -2,17 +2,20 @@
 
 namespace App\Messenger\Dashboard;
 
-use App\Messenger\MessageInterface;
+use App\Messenger\DeduplicatedMessageInterface;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
-use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueMessage;
 use WiiCommon\Helper\Stream;
 
-class FeedMultipleDashboardComponentMessage implements UniqueMessage, MessageInterface {
+class FeedMultipleDashboardComponentMessage implements DeduplicatedMessageInterface {
 
     /**
      * @param class-string<MultipleDashboardComponentGenerator> $generatorClass
      */
-    public function __construct(private array $componentIds,  private string $generatorClass) {}
+    public function __construct(
+        private array  $componentIds,
+        private string $generatorClass
+    ) {
+    }
 
     public function getComponentIds(): ?array {
         return $this->componentIds;
@@ -26,7 +29,9 @@ class FeedMultipleDashboardComponentMessage implements UniqueMessage, MessageInt
     }
 
     public function getUniqueKey(): string {
-        return Stream::from($this->componentIds)->sort(static fn($a, $b) => $a <=> $b)->join('_');
+        return Stream::from($this->componentIds)
+            ->sort(static fn($a, $b) => $a <=> $b)
+            ->join('_');
     }
 
     public function normalize(): array {

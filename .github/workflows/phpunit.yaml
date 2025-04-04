@@ -13,7 +13,7 @@ jobs:
     phpunit-run:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-builder:v1.0.5
+            image: wiilog/wiistock-builder:v1.0.10
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
