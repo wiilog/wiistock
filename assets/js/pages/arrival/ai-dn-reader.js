@@ -12,47 +12,28 @@ const KEY_TRANSLATIONS = {
 
 $(function () {
     $(document)
-        .on('change', `[name="uploadAndScan"]`, function () {
+        .on('change', '#modalNewArrivage [name="uploadAndScan"]', function () {
             scanDeliveryNoteFile($(this));
         });
 
     $(document)
-        .on('change', '#modalNewArrivage [name="transporteur"]', function (event) {
-            const carrier = $(event.target).val()
-            const $button = $('[name="uploadAndScan"]').siblings("button")
-
-            $button.prop('disabled', !carrier);
+        .on('change', '#modalNewArrivage [name="transporteur"]', function () {
+            onCarrierChange($(this));
         });
 
-    //When an element is deleted, cancel highlights
     $(document)
         .on('change', '#modalNewArrivage [name="noTracking"]', function () {
-            const $noTrackingSelect2 = $(this)
-                .siblings('.select2-container')
-                .find('.select2-selection');
-            const hasValue = $(this).val() && $(this).val().length > 0;
-            if (!hasValue) {
-                $noTrackingSelect2.removeClass('ai-highlight');
-            }
+            onTrackingChange($(this));
         });
 
     $(document)
-        .on('change', '[name="numeroCommandeList"]', function () {
-            const $orderNumberSelect2 = $(this)
-                .siblings('.select2-container')
-                .find('.select2-selection');
-            const hasValue = $(this).val() && $(this).val().length > 0;
-            if (!hasValue) {
-                $orderNumberSelect2.removeClass('ai-highlight');
-            }
+        .on('change', '#modalNewArrivage [name="numeroCommandeList"]', function () {
+            onNumeroCommandeListChange($(this));
         });
 
     $(document)
-        .on('keyup click', '.ql-editor', function () {
-            const text = $(this).text().trim();
-            if (!text) {
-                $(this).removeClass('ai-highlight');
-            }
+        .on('keyup click', '#modalNewArrivage .ql-editor', function () {
+            onCommentEditInput($(this))
         });
 });
 
@@ -75,68 +56,104 @@ function scanDeliveryNoteFile($input) {
             .json(formData)
             .then(({success, data}) => {
                 if (!success) {
-                    return
+                    return;
                 }
-
-                const $selectNoTracking = $modal.find('[name="noTracking"]');
-                const $noTrackingSelect2 = $selectNoTracking.siblings('.select2-container').find('.select2-selection');
-
-                $selectNoTracking.empty();
-                $noTrackingSelect2.removeClass('ai-highlight');
-
-                if (data.truck_arrival_lines) {
-                    let trackingNumbers = data.truck_arrival_lines;
-
-                    // When AI is predicted, highlight the field
-                    if (trackingNumbers.length) {
-                        $noTrackingSelect2.addClass('ai-highlight')
-                        trackingNumbers.forEach(trackingNumber => {
-                            $selectNoTracking.append(new Option(trackingNumber.text, trackingNumber.id, true, true));
-                            $selectNoTracking.trigger('select2:select.new-arrival', trackingNumber);
-                        });
-                    }
-                }
-
-                if (data.order_number) {
-                    let orderNumbers = Array.isArray(data.order_number)
-                        ? data.order_number
-                        : [data.order_number];
-
-                    const $selectOrderNumber = $modal.find('[name="numeroCommandeList"]');
-                    const $orderNumberSelect2 = $selectOrderNumber.siblings('.select2-container').find('.select2-selection');
-
-                    $selectOrderNumber.empty();
-                    $orderNumberSelect2.removeClass('ai-highlight');
-
-                    if (orderNumbers.length) {
-                        $orderNumberSelect2.addClass('ai-highlight');
-                        orderNumbers.forEach(orderNumber => {
-                            $selectOrderNumber.append(new Option(orderNumber, orderNumber, true, true));
-                            $selectOrderNumber.trigger('change');
-                        });
-                    }
-                }
-                const fieldsToExclude = ["tracking_number", "truck_arrival_lines", "order_number"];
-                const commentContent = Object
-                    .keys(data)
-                    .filter(key => !fieldsToExclude.includes(key))
-                    .map((key) => {
-                        const value = data[key] || "";
-                        key = KEY_TRANSLATIONS[key] || "";
-                        return `<p><strong>${key}</strong>: ${value.toString()}</p>`;
-                    })
-                    .join("")
-
-                $comment.html(
-                    commentContent
-                );
-
-                if (commentContent.length > 0) {
-                    $comment.addClass('ai-highlight');
-                } else {
-                    $comment.removeClass('ai-highlight');
-                }
-
+                fillDeliveryNoteForm($modal, data);
             });
     });
+}
+function onCarrierChange($transporteur) {
+    const carrier = $transporteur.val()
+    const $button = $('[name="uploadAndScan"]').siblings("button")
+    $button.prop('disabled', !carrier);
+}
+function onTrackingChange($noTracking) {
+    const $noTrackingSelect2 = $noTracking
+        .siblings('.select2-container')
+        .find('.select2-selection');
+    const hasValue = $noTracking.val() && $noTracking.val().length > 0;
+    if (!hasValue) {
+        $noTrackingSelect2.removeClass('ai-highlight');
+    }
+}
+function onNumeroCommandeListChange($orderNumber) {
+    const $orderNumberSelect2 = $orderNumber
+        .siblings('.select2-container')
+        .find('.select2-selection');
+    const hasValue = $orderNumber.val() && $orderNumber.val().length > 0;
+    if (!hasValue) {
+        $orderNumberSelect2.removeClass('ai-highlight');
+    }
+}
+function onCommentEditInput($editor) {
+    const text = $editor.text().trim();
+    if (!text) {
+        $editor.removeClass('ai-highlight');
+    }
+}
+function fillDeliveryNoteForm($modal, data) {
+    const $comment = $modal.find('.ql-editor');
+    const $selectNoTracking = $modal.find('[name="noTracking"]');
+    const $noTrackingSelect2 = $selectNoTracking
+        .siblings('.select2-container')
+        .find('.select2-selection');
+
+    $selectNoTracking.empty();
+    $noTrackingSelect2.removeClass('ai-highlight');
+
+    if (data.truck_arrival_lines) {
+        const trackingNumbers = data.truck_arrival_lines;
+        if (trackingNumbers.length) {
+            $noTrackingSelect2.addClass('ai-highlight');
+            trackingNumbers.forEach(trackingNumber => {
+                $selectNoTracking.append(
+                    new Option(trackingNumber.text, trackingNumber.id, true, true)
+                );
+                $selectNoTracking.trigger('select2:select.new-arrival', trackingNumber);
+            });
+        }
+    }
+
+    if (data.order_number) {
+        const orderNumbers = Array.isArray(data.order_number)
+            ? data.order_number
+            : [data.order_number];
+
+        const $selectOrderNumber = $modal.find('[name="numeroCommandeList"]');
+        const $orderNumberSelect2 = $selectOrderNumber
+            .siblings('.select2-container')
+            .find('.select2-selection');
+
+        $selectOrderNumber.empty();
+        $orderNumberSelect2.removeClass('ai-highlight');
+
+        if (orderNumbers.length) {
+            $orderNumberSelect2.addClass('ai-highlight');
+            orderNumbers.forEach(orderNumber => {
+                $selectOrderNumber.append(
+                    new Option(orderNumber, orderNumber, true, true)
+                );
+                $selectOrderNumber.trigger('change');
+            });
+        }
+    }
+
+    const fieldsToExclude = ["tracking_number", "truck_arrival_lines", "order_number"];
+    const commentContent = Object
+        .keys(data)
+        .filter(key => !fieldsToExclude.includes(key))
+        .map(key => {
+            const value = data[key] || "";
+            const label = KEY_TRANSLATIONS[key] || key;
+            return `<p><strong>${label}</strong>: ${value.toString()}</p>`;
+        })
+        .join("");
+
+    $comment.html(commentContent);
+
+    if (commentContent.length > 0) {
+        $comment.addClass('ai-highlight');
+    } else {
+        $comment.removeClass('ai-highlight');
+    }
 }
