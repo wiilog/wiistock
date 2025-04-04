@@ -39,9 +39,12 @@ class Pack implements PairedEntity {
     public const PACK_ALREADY_IN_GROUP = 'PACK_ALREADY_IN_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
-    public const MAX_SPLIT_LEVEL = 3;
+    public const SPLIT_MAX_ANCESTORS = 3;
+
+    public const SPLIT_MAX_CHILDREN = 500;
 
     public const GROUPING_LIMIT = 300;
+
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -934,6 +937,11 @@ class Pack implements PairedEntity {
         return $parent
             ? 1 + $parent->getSplitCountFrom()
             : 0;
+    }
+
+    public function getSplitCountTarget(): int
+    {
+        return $this->getSplitTargets()->count();
     }
 
     public function getCurrentTrackingDelay(): ?TrackingDelay {
