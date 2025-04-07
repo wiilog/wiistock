@@ -30,13 +30,13 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 #[Route("/mouvement-traca")]
@@ -293,10 +293,15 @@ class TrackingMovementController extends AbstractController
                     }
                 }
             }
-        } catch (Exception $exception) {
+        }
+        catch (FormException $exception) {
+            throw $exception;
+        }
+        catch (Throwable $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
                 throw new FormException("L'unité logistique scannée est un groupe");
-            } else {
+            }
+            else {
                 // uncomment following line to debug
                 // throw $exception;
                 throw new FormException("Une erreur est survenue lors du traitement de la requête");
