@@ -73,9 +73,6 @@ class Sensor {
     #[ORM\ManyToOne(targetEntity: SensorProfile::class, inversedBy: 'sensors')]
     private ?SensorProfile $profile = null;
 
-    /**
-     * @var null|SensorMessage
-     */
     #[ORM\OneToOne(targetEntity: SensorMessage::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?SensorMessage $lastMessage = null;
