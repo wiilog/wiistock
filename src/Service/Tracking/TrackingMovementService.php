@@ -2005,7 +2005,7 @@ class TrackingMovementService {
                                     Pack                   $pack,
                                     DateTime               $date): void {
 
-        if($packParent->getSplitCountFrom() >= Pack::SPLIT_MAX_ANCESTORS) {
+        if ($packParent->getSplitCountFrom() >= Pack::SPLIT_MAX_ANCESTORS) {
             throw new FormException("Impossible de diviser le colis {$packParent->getCode()} : nombre maximum de générations atteint.");
         }
 
