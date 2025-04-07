@@ -475,15 +475,8 @@ class IOTService {
 
                 $device->setLastMessage($received);
 
-                return $received;
-            })
-            ->toArray();
-                $messages[] = $received;
+                $entityManager->persist($received);
             }
-        }
-
-        foreach ($messages as $message) {
-            $entityManager->persist($message);
         }
 
         return $messages;
