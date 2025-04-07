@@ -23,7 +23,6 @@
 
         <env name="APP_DEBUG" value="1"/>
         <env name="APP_SECRET" value="42e3bb3f05285c5f56e30d4fa11eba45"/>
-        <env name="APP_LOCALE" value="wiilog"/>
         <env name="APP_CLIENT" value="wiilog"/>
         <env name="APP_INSTANCE" value="wiilog-test"/>
         <env name="APP_DASHBOARD_TOKEN" value="42e3bb3f05285c5f56e30d4fa11eba45"/>
