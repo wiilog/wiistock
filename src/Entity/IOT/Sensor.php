@@ -73,10 +73,7 @@ class Sensor {
     #[ORM\ManyToOne(targetEntity: SensorProfile::class, inversedBy: 'sensors')]
     private ?SensorProfile $profile = null;
 
-    /**
-     * @var null|SensorMessage
-     */
-    #[ORM\OneToOne(inversedBy: 'linkedSensorLastMessage', targetEntity: SensorMessage::class)]
+    #[ORM\OneToOne(targetEntity: SensorMessage::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?SensorMessage $lastMessage = null;
 
@@ -177,17 +174,7 @@ class Sensor {
     }
 
     public function setLastMessage(?SensorMessage $lastMessage): self {
-        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
-            $oldLastMessage = $this->lastMessage;
-            $this->lastMessage = null;
-            $oldLastMessage->setLinkedSensorLastMessage(null);
-        }
-
         $this->lastMessage = $lastMessage;
-
-        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
-            $this->lastMessage->setLinkedSensorLastMessage($this);
-        }
 
         return $this;
     }

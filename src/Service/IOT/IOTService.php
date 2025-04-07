@@ -471,15 +471,12 @@ class IOTService {
                     ->setContent($value)
                     ->setContentType($type)
                     ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName(), $payload))
-                    ->setLinkedSensorLastMessage($device)
                     ->setSensor($device);
 
-                $messages[] = $received;
-            }
-        }
+                $device->setLastMessage($received);
 
-        foreach ($messages as $message) {
-            $entityManager->persist($message);
+                $entityManager->persist($received);
+            }
         }
 
         return $messages;
