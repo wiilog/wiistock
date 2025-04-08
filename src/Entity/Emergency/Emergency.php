@@ -29,7 +29,7 @@ abstract class Emergency
     private ?string $endEmergencyCriteria = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
