@@ -196,44 +196,6 @@ class Transporteur {
         return $this;
     }
 
-    // TODO WISS-12642
-
-    public function getUrgences(): Collection {
-        return $this->urgences;
-    }
-
-    public function addUrgence(Urgence $urgence): self {
-        if(!$this->urgences->contains($urgence)) {
-            $this->urgences[] = $urgence;
-            $urgence->setCarrier($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUrgence(Emergency $urgence): self {
-        if($this->urgences->removeElement($urgence)) {
-            if($urgence->getCarrier() === $this) {
-                $urgence->setCarrier(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setUrgences(?array $urgences): self {
-        foreach($this->getUrgences()->toArray() as $urgence) {
-            $this->removeEmergency($urgence);
-        }
-
-        $this->urgences = new ArrayCollection();
-        foreach($urgences as $urgence) {
-            $this->addUrgence($urgence);
-        }
-
-        return $this;
-    }
-
     public function getEmergencies(): Collection {
         return $this->emergencies;
     }

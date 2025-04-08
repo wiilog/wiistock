@@ -219,11 +219,21 @@ class Arrivage implements AttachmentContainer {
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getUrgencesAcheteurs(): Collection {
-        $emergencyBuyer = $this->urgences // TODO WIIS-12642
+    public function getUrgencesAcheteurs(): Collection { // TODO WIIS-12642
+        $emergencyBuyer = $this->urgences
             ->map(function(Urgence $urgence) {
                 return $urgence->getBuyer();
             })
+            ->filter(fn($buyer) => $buyer !== null);
+
+        return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
+    }
+
+    public function getEmergencyBuyer(): Collection {
+        $emergencyBuyer = $this->emergencies //
+        ->map(function(Emergency $emergency) {
+            return $emergency->getBuyer();
+        })
             ->filter(fn($buyer) => $buyer !== null);
 
         return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
@@ -330,48 +340,6 @@ class Arrivage implements AttachmentContainer {
             // set the owning side to null (unless already changed)
             if($pack->getArrivage() === $this) {
                 $pack->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
-
-    // TODO WIIS-12642
-
-    /**
-     * @return Collection|Urgence[]
-     */
-    public function getUrgences(): Collection {
-        return $this->urgences;
-    }
-
-    /**
-     * @return void
-     */
-    public function clearUrgences(): void {
-        foreach($this->urgences as $urgence) {
-            if($urgence->getLastArrival() === $this) {
-                $urgence->setLastArrival(null);
-            }
-        }
-        $this->urgences->clear();
-    }
-
-    public function addUrgence(Urgence $urgence): self {
-        if(!$this->urgences->contains($urgence)) {
-            $this->urgences[] = $urgence;
-            $urgence->setLastArrival($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUrgence(Urgence $urgence): self {
-        if($this->urgences->contains($urgence)) {
-            $this->urgences->removeElement($urgence);
-            // set the owning side to null (unless already changed)
-            if($urgence->getLastArrival() === $this) {
-                $urgence->setLastArrival(null);
             }
         }
 

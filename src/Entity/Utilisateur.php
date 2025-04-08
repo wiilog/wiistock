@@ -948,36 +948,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    // TODO WIIS-12642
-
-    /**
-     * @return Collection|Urgence[]
-     */
-    public function getUrgences(): Collection {
-        return $this->urgences;
-    }
-
-    public function addUrgence(Urgence $urgence): self {
-        if(!$this->urgences->contains($urgence)) {
-            $this->urgences[] = $urgence;
-            $urgence->setBuyer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUrgence(Urgence $urgence): self {
-        if($this->urgences->contains($urgence)) {
-            $this->urgences->removeElement($urgence);
-            // set the owning side to null (unless already changed)
-            if($urgence->getBuyer() === $this) {
-                $urgence->setBuyer(null);
-            }
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection|Emergency[]
      */
