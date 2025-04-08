@@ -7,6 +7,7 @@ use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
 use Symfony\Component\Messenger\Envelope;
 use \Symfony\Component\Messenger\MessageBus as SymfonyMessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
+use WiiCommon\Helper\Stream;
 
 /**
  * Extends symfony default message bus
@@ -20,14 +21,15 @@ class MessageBus extends SymfonyMessageBus {
                              array  $stamps = []): Envelope {
 
         if ($message instanceof DeduplicatedMessageInterface) {
-            array_unshift(
-                $stamps,
-                AmqpStamp::createWithAttributes([
-                    'headers' => [
-                        'x-deduplication-header' => $message->getUniqueKey(),
-                    ]
-                ])
-            );
+            $stamps = Stream::from($stamps)
+                ->prepend(
+                    AmqpStamp::createWithAttributes([
+                        'headers' => [
+                            'x-deduplication-header' => $message->getUniqueKey(),
+                        ]
+                    ])
+                )
+                ->toArray();
         }
 
         return parent::dispatch($message, $stamps);
