@@ -13,6 +13,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HandlingRepository::class)]
@@ -26,19 +27,19 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $creationDate = null;
 
-    #[ORM\Column(type: 'string', length: 64)]
+    #[ORM\Column(type: Types::STRING, length: 64)]
     private ?string $object = null;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['unsigned' => true])]
     private ?int $treatmentDelay = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'handlings')]
@@ -52,28 +53,28 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
 
-    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $destination = null;
 
-    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $source = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $desiredDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $validationDate = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private ?string $number = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $emergency = null;
 
     #[ORM\OneToMany(mappedBy: 'handling', targetEntity: 'Attachment')]
     private Collection $attachments;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $carriedOutOperationCount = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedHandlings')]
@@ -89,7 +90,7 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
     private Collection $statusHistory;
 
     // old handling request without timeline
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private ?bool $withoutHistory = false;
 
     public function __construct() {
@@ -232,7 +233,7 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
     }
 
     /**
-     * @return Collection|Attachment[]
+     * @return Collection<int,Attachment>
      */
     public function getAttachments(): Collection {
         return $this->attachments;
@@ -296,7 +297,7 @@ class Handling extends StatusHistoryContainer implements AttachmentContainer {
     }
 
     /**
-     * @return Collection|Utilisateur[]
+     * @return Collection<int, Utilisateur>
      */
     public function getReceivers(): Collection {
         return $this->receivers;

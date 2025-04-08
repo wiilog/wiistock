@@ -194,16 +194,16 @@ class HandlingController extends AbstractController {
     #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
-                        Request $request,
-                        HandlingService $handlingService,
-                        FreeFieldService $freeFieldService,
-                        AttachmentService $attachmentService,
-                        TranslationService $translation,
-                        UniqueNumberService $uniqueNumberService,
-                        NotificationService $notificationService,
-                        SettingsService $settingsService,
-                        StatusHistoryService $statusHistoryService,
-                        FixedFieldService $fixedFieldService): Response {
+                        Request                $request,
+                        HandlingService        $handlingService,
+                        FreeFieldService       $freeFieldService,
+                        AttachmentService      $attachmentService,
+                        TranslationService     $translation,
+                        UniqueNumberService    $uniqueNumberService,
+                        NotificationService    $notificationService,
+                        SettingsService        $settingsService,
+                        StatusHistoryService   $statusHistoryService,
+                        FixedFieldService      $fixedFieldService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -307,16 +307,15 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/modifier/{id}", name: "handling_edit", options: ["expose" => true], methods: "POST")]
+    #[Route("/modifier/{id}", name: "handling_edit", options: ["expose" => true], methods: [self::POST])]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
-                         Request $request,
-                         Handling $handling,
-                         FreeFieldService $freeFieldService,
-                         TranslationService $translation,
-                         AttachmentService $attachmentService,
-                         FixedFieldService $fixedFieldService): Response
-    {
+                         Request                $request,
+                         Handling               $handling,
+                         FreeFieldService       $freeFieldService,
+                         TranslationService     $translation,
+                         AttachmentService      $attachmentService,
+                         FixedFieldService      $fixedFieldService): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, false);
         $containsHours = $data->get('desired-date') && str_contains($data->get('desired-date'), ':');
@@ -385,13 +384,11 @@ class HandlingController extends AbstractController {
     }
 
 
-    #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request,
+    public function delete(Request                $request,
                            EntityManagerInterface $entityManager,
-                           TranslationService $translation): Response
-    {
-
+                           TranslationService     $translation): Response {
         $data = $request->request;
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -417,7 +414,7 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: "GET")]
+    #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function getHandlingsCSV(Request                $request,
                                     TranslationService     $translation,
@@ -500,7 +497,7 @@ class HandlingController extends AbstractController {
         }
     }
 
-    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
+    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function show(Handling $handling, EntityManagerInterface $entityManager, UserService $userService): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
