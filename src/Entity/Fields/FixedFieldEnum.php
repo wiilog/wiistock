@@ -78,6 +78,8 @@ enum FixedFieldEnum: string
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";
+    case provider = "Fournisseur";
+    case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
 
     public static function fromCase(string $case): string|null {
         try {
