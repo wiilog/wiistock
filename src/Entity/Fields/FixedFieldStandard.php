@@ -217,6 +217,7 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
     const ENTITY_CODE_PRODUCTION = 'production';
+    const ENTITY_CODE_TRACKING_EMERGENCY = 'trackingEmergency';
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;

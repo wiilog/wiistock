@@ -65,6 +65,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 TYPE::LABEL_NOMADE_SESSION_HISTORY,
             ],
             CategoryType::PRODUCTION => [Type::LABEL_STANDARD],
+            CategoryType::TRACKING_EMERGENCY => [Type::LABEL_STANDARD],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);

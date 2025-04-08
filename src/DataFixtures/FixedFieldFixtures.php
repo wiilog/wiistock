@@ -96,19 +96,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
-
-            FixedFieldStandard::ENTITY_CODE_EMERGENCY => [
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_BUYER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_PROVIDER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_COMMAND_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-            ],
-
         ];
 
         $subLinesFieldCodes = [
@@ -154,7 +141,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_DISPATCH_TYPE , 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
-
             FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
                 ['code' => FixedFieldEnum::manufacturingOrderNumber->name, 'label' => FixedFieldEnum::manufacturingOrderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
@@ -168,7 +154,17 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::lineCount->name, 'label' => FixedFieldEnum::lineCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::destinationLocation->name, 'label' => FixedFieldEnum::destinationLocation->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
-
+            FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY => [
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_BUYER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_PROVIDER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_COMMAND_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+            ],
         ];
 
         $fieldsParamStandardRepository = $manager->getRepository(FixedFieldStandard::class);
@@ -251,9 +247,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         foreach($fixedFieldByType as $fieldEntity => $listFieldCodes) {
-            $categoryType = $fieldEntity == FixedFieldStandard::ENTITY_CODE_DISPATCH ? CategoryType::DEMANDE_DISPATCH : null;
-
-            $typeRepository->findByCategoryLabels([$categoryType]);
             $entityTypes = $typeRepository->findByCategoryLabels([$fieldEntity]);
             $entityTypes = new ArrayCollection($entityTypes);
             $emptyCollection = new ArrayCollection();
