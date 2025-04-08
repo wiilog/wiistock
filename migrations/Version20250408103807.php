@@ -33,7 +33,7 @@ final class Version20250408103807 extends AbstractMigration
         $this->connection->executeQuery("INSERT INTO category_type (label) VALUES ('" . CategoryType::TRACKING_EMERGENCY . "')");
         $categoryTypeId = $this->connection->executeQuery("SELECT LAST_INSERT_ID() AS id")->fetchAllAssociative();
 
-        if(!empty($emergencyTypes) && isset($categoryTypeId[0]["id"])){
+        if(!empty($emergencyTypes) && isset($emergencyTypes[0]['elements']) && isset($categoryTypeId[0]["id"])){
             $emergencyTypesDecoded = json_decode($emergencyTypes[0]['elements'], true);
 
             foreach ($emergencyTypesDecoded ?? [] as $emergencyType) {
