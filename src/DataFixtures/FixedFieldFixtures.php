@@ -155,14 +155,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::destinationLocation->name, 'label' => FixedFieldEnum::destinationLocation->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
             FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY => [
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_BUYER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_PROVIDER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_COMMAND_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldEnum::buyer->name, 'label' => FixedFieldEnum::buyer->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldEnum::provider->name, 'label' => FixedFieldEnum::provider->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldEnum::orderNumber->name, 'label' => FixedFieldEnum::orderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldEnum::postNumber->name, 'label' => FixedFieldEnum::postNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FixedFieldEnum::internalArticleCode->name, 'label' => FixedFieldEnum::internalArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldEnum::supplierArticleCode->name, 'label' => FixedFieldEnum::supplierArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
             ],
         ];
 
