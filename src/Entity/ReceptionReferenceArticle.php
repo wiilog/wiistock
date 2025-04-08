@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Tracking\TrackingMovement;
 use App\Repository\ReceptionReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -60,6 +61,9 @@ class ReceptionReferenceArticle {
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?string $unitPrice = null;
+
+    #[ORM\ManyToOne(inversedBy: 'receptionReferenceArticle')]
+    private ?StockEmergency $stockEmergency = null;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -256,6 +260,18 @@ class ReceptionReferenceArticle {
         $this->unitPrice = isset($unitPrice)
             ? ((string) $unitPrice)
             : null;
+
+        return $this;
+    }
+
+    public function getStockEmergency(): ?StockEmergency
+    {
+        return $this->stockEmergency;
+    }
+
+    public function setStockEmergency(?StockEmergency $stockEmergency): self
+    {
+        $this->stockEmergency = $stockEmergency;
 
         return $this;
     }

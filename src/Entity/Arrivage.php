@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Emergency\Emergency;
+use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
@@ -84,7 +86,7 @@ class Arrivage implements AttachmentContainer {
     private ?Statut $statut = null;
 
     #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Urgence::class)]
-    private Collection $urgences;
+    private Collection $emergencies;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $customs = null;
@@ -113,11 +115,14 @@ class Arrivage implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: TruckArrival::class)]
     private ?TruckArrival $truckArrival = null;
 
+    #[ORM\ManyToOne(inversedBy: 'arrivals')]
+    private ?TrackingEmergency $trackingEmergency = null;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
-        $this->urgences = new ArrayCollection();
+        $this->emergencies = new ArrayCollection();
         $this->numeroCommandeList = [];
         $this->truckArrivalLines = new ArrayCollection();
         $this->receivers = new ArrayCollection();
@@ -211,9 +216,9 @@ class Arrivage implements AttachmentContainer {
      * @return Collection|Utilisateur[]
      */
     public function getUrgencesAcheteurs(): Collection {
-        $emergencyBuyer = $this->urgences
-            ->map(function(Urgence $urgence) {
-                return $urgence->getBuyer();
+        $emergencyBuyer = $this->emergencies
+            ->map(function(Emergency $emergencies) {
+                return $emergencies->getBuyer();
             })
             ->filter(fn($buyer) => $buyer !== null);
 
@@ -331,36 +336,36 @@ class Arrivage implements AttachmentContainer {
      * @return Collection|Urgence[]
      */
     public function getUrgences(): Collection {
-        return $this->urgences;
+        return $this->emergencies;
     }
 
     /**
      * @return void
      */
     public function clearUrgences(): void {
-        foreach($this->urgences as $urgence) {
-            if($urgence->getLastArrival() === $this) {
-                $urgence->setLastArrival(null);
+        foreach($this->emergencies as $emergency) {
+            if($emergency->getLastArrival() === $this) {
+                $emergency->setLastArrival(null);
             }
         }
-        $this->urgences->clear();
+        $this->$emergency->clear();
     }
 
-    public function addUrgence(Urgence $urgence): self {
-        if(!$this->urgences->contains($urgence)) {
-            $this->urgences[] = $urgence;
-            $urgence->setLastArrival($this);
+    public function addUrgence(Emergency $emergency): self {
+        if(!$this->emergencies->contains($emergency)) {
+            $this->emergencies[] = $emergency;
+            $emergency->setLastArrival($this);
         }
 
         return $this;
     }
 
-    public function removeUrgence(Urgence $urgence): self {
-        if($this->urgences->contains($urgence)) {
-            $this->urgences->removeElement($urgence);
+    public function removeUrgence(Emergency $emergency): self {
+        if($this->emergencies->contains($emergency)) {
+            $this->emergencies->removeElement($emergency);
             // set the owning side to null (unless already changed)
-            if($urgence->getLastArrival() === $this) {
-                $urgence->setLastArrival(null);
+            if($emergency->getLastArrival() === $this) {
+                $emergency->setLastArrival(null);
             }
         }
 
@@ -575,9 +580,18 @@ class Arrivage implements AttachmentContainer {
             : $this->truckArrival;
     }
 
-    public function setTruckArrival(?TruckArrival $truckArrival): self
-    {
+    public function setTruckArrival(?TruckArrival $truckArrival): self {
         $this->truckArrival = $truckArrival;
+
+        return $this;
+    }
+
+    public function getTrackingEmergency(): ?TrackingEmergency {
+        return $this->trackingEmergency;
+    }
+
+    public function setTrackingEmergency(?TrackingEmergency $trackingEmergency): self {
+        $this->trackingEmergency = $trackingEmergency;
 
         return $this;
     }

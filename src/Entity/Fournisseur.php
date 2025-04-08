@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Emergency\Emergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
@@ -45,7 +46,7 @@ class Fournisseur {
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $possibleCustoms = false;
 
-    #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Urgence::class)]
+    #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Emergency::class)]
     private Collection $emergencies;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -199,7 +200,7 @@ class Fournisseur {
         return $this->emergencies;
     }
 
-    public function addEmergency(Urgence $emergency): self {
+    public function addEmergency(Emergency $emergency): self {
         if(!$this->emergencies->contains($emergency)) {
             $this->emergencies[] = $emergency;
             $emergency->setProvider($this);
@@ -208,7 +209,7 @@ class Fournisseur {
         return $this;
     }
 
-    public function removeEmergency(Urgence $emergency): self {
+    public function removeEmergency(Emergency $emergency): self {
         if($this->emergencies->removeElement($emergency)) {
             if($emergency->getProvider() === $this) {
                 $emergency->setProvider(null);

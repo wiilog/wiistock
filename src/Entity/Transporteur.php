@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Emergency\Emergency;
 use App\Repository\TransporteurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -36,7 +37,7 @@ class Transporteur {
     #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'carrier')]
     private Collection $dispatches;
 
-    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')]
+    #[ORM\OneToMany(targetEntity: Emergency::class, mappedBy: 'carrier')]
     private Collection $emergencies;
 
     #[ORM\Column(nullable: true)]
@@ -196,19 +197,19 @@ class Transporteur {
         return $this->emergencies;
     }
 
-    public function addEmergency(Urgence $urgence): self {
-        if(!$this->emergencies->contains($urgence)) {
-            $this->emergencies[] = $urgence;
-            $urgence->setCarrier($this);
+    public function addEmergency(Emergency $emergency): self {
+        if(!$this->emergencies->contains($emergency)) {
+            $this->emergencies[] = $emergency;
+            $emergency->setCarrier($this);
         }
 
         return $this;
     }
 
-    public function removeEmergency(Urgence $urgence): self {
-        if($this->emergencies->removeElement($urgence)) {
-            if($urgence->getCarrier() === $this) {
-                $urgence->setCarrier(null);
+    public function removeEmergency(Emergency $emergency): self {
+        if($this->emergencies->removeElement($emergency)) {
+            if($emergency->getCarrier() === $this) {
+                $emergency->setCarrier(null);
             }
         }
 
