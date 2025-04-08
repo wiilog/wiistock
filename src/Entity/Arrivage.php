@@ -86,6 +86,9 @@ class Arrivage implements AttachmentContainer {
     private ?Statut $statut = null;
 
     #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Urgence::class)]
+    private Collection $urgences; //TODO WIIS-12642
+
+    #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Emergency::class)]
     private Collection $emergencies;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -122,6 +125,7 @@ class Arrivage implements AttachmentContainer {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->urgences = new ArrayCollection(); // TODO WIIS-12642
         $this->emergencies = new ArrayCollection();
         $this->numeroCommandeList = [];
         $this->truckArrivalLines = new ArrayCollection();
@@ -216,9 +220,9 @@ class Arrivage implements AttachmentContainer {
      * @return Collection|Utilisateur[]
      */
     public function getUrgencesAcheteurs(): Collection {
-        $emergencyBuyer = $this->emergencies
-            ->map(function(Emergency $emergencies) {
-                return $emergencies->getBuyer();
+        $emergencyBuyer = $this->urgences // TODO WIIS-12642
+            ->map(function(Urgence $urgence) {
+                return $urgence->getBuyer();
             })
             ->filter(fn($buyer) => $buyer !== null);
 
@@ -332,26 +336,68 @@ class Arrivage implements AttachmentContainer {
         return $this;
     }
 
+    // TODO WIIS-12642
+
     /**
      * @return Collection|Urgence[]
      */
     public function getUrgences(): Collection {
-        return $this->emergencies;
+        return $this->urgences;
     }
 
     /**
      * @return void
      */
     public function clearUrgences(): void {
+        foreach($this->urgences as $urgence) {
+            if($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
+            }
+        }
+        $this->urgences->clear();
+    }
+
+    public function addUrgence(Urgence $urgence): self {
+        if(!$this->urgences->contains($urgence)) {
+            $this->urgences[] = $urgence;
+            $urgence->setLastArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrgence(Urgence $urgence): self {
+        if($this->urgences->contains($urgence)) {
+            $this->urgences->removeElement($urgence);
+            // set the owning side to null (unless already changed)
+            if($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Emergency[]
+     */
+    public function getEmergencies(): Collection {
+        return $this->emergencies;
+    }
+
+    /**
+     * @return void
+     */
+    public function clearEmergencies(): void {
         foreach($this->emergencies as $emergency) {
             if($emergency->getLastArrival() === $this) {
                 $emergency->setLastArrival(null);
             }
         }
-        $this->$emergency->clear();
+        $this->urgences->clear();
     }
 
-    public function addUrgence(Emergency $emergency): self {
+    public function addEmergency(Emergency $emergency): self {
         if(!$this->emergencies->contains($emergency)) {
             $this->emergencies[] = $emergency;
             $emergency->setLastArrival($this);
@@ -360,7 +406,7 @@ class Arrivage implements AttachmentContainer {
         return $this;
     }
 
-    public function removeUrgence(Emergency $emergency): self {
+    public function removeEmergency(Emergency $emergency): self {
         if($this->emergencies->contains($emergency)) {
             $this->emergencies->removeElement($emergency);
             // set the owning side to null (unless already changed)

@@ -371,6 +371,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Emergency::class)]
     private Collection $emergencies;
 
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
+    private Collection $urgences;
+
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]
     private Collection $arrivagesAcheteur;
 
@@ -939,6 +942,36 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             // set the owning side to null (unless already changed)
             if($ordreCollecte->getUtilisateur() === $this) {
                 $ordreCollecte->setUtilisateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    // TODO WIIS-12642
+
+    /**
+     * @return Collection|Urgence[]
+     */
+    public function getUrgences(): Collection {
+        return $this->urgences;
+    }
+
+    public function addUrgence(Urgence $urgence): self {
+        if(!$this->urgences->contains($urgence)) {
+            $this->urgences[] = $urgence;
+            $urgence->setBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrgence(Urgence $urgence): self {
+        if($this->urgences->contains($urgence)) {
+            $this->urgences->removeElement($urgence);
+            // set the owning side to null (unless already changed)
+            if($urgence->getBuyer() === $this) {
+                $urgence->setBuyer(null);
             }
         }
 

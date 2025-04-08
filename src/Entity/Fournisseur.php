@@ -49,6 +49,9 @@ class Fournisseur {
     #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Emergency::class)]
     private Collection $emergencies;
 
+    #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Urgence::class)]
+    private Collection $urgences; // TODO WIIS-12642
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $address = null;
 
@@ -193,6 +196,44 @@ class Fournisseur {
 
     public function setPossibleCustoms(bool $possibleCustoms): self {
         $this->possibleCustoms = $possibleCustoms;
+        return $this;
+    }
+
+    // TODO WIIS-12642
+
+    public function getUrgences(): Collection {
+        return $this->urgences;
+    }
+
+    public function addUrgence(Urgence $urgence): self {
+        if(!$this->urgences->contains($urgence)) {
+            $this->urgences[] = $urgence;
+            $urgence->setProvider($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrgence(Urgence $urgence): self {
+        if($this->urgences->removeElement($urgence)) {
+            if($urgence->getProvider() === $this) {
+                $urgence->setProvider(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setUrgences(?array $urgences): self {
+        foreach($this->getUrgences()->toArray() as $urgences) {
+            $this->removeUrgence($urgences);
+        }
+
+        $this->urgences = new ArrayCollection();
+        foreach($urgences as $urgence) {
+            $this->addUrgence($urgence);
+        }
+
         return $this;
     }
 
