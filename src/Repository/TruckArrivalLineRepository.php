@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
@@ -191,22 +192,26 @@ class TruckArrivalLineRepository extends EntityRepository
         return $qb->getQuery()->getArrayResult();
     }
 
+    /**
+     * @param array{locations: Emplacement[]} $options
+     */
     public function getUnassociatedLines(array $options = []) {
         $qb = $this->createQueryBuilder('line');
 
-        $qb->andWhere('arrivals.id IS NULL')
+        $qb
+            ->leftJoin('line.arrivals', 'arrivals')
+            ->leftJoin('line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
+            ->andWhere('arrivals.id IS NULL')
             ->andWhere($qb->expr()->orX(
                 "join_reserveType.disableTrackingNumber IS NULL",
                 "join_reserveType.disableTrackingNumber = 0"
-            ))
-            ->leftJoin('line.arrivals', 'arrivals')
-            ->leftJoin('line.reserve', 'join_reserve')
-            ->leftJoin('join_reserve.reserveType', 'join_reserveType');
+            ));
 
         if(!empty($options['locations'])) {
             $qb
-                ->andWhere('join_truck_arrival.unloadingLocation IN (:locations)')
                 ->leftJoin('line.truckArrival', 'join_truck_arrival')
+                ->andWhere('join_truck_arrival.unloadingLocation IN (:locations)')
                 ->setParameter('locations', $options['locations']);
         }
 

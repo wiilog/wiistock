@@ -63,9 +63,8 @@ class TruckArrivalService
         if($fromDashboard) {
             $filters = [
                 ...($locationsFilter ? [["field" => "unloadingLocation", "value" => $locationsFilter]] : []),
-                ...($countNoLinkedTruckArrival
-                    ? [["field" => "countNoLinkedTruckArrival", "value" => true]]
-                    : ($carrierTrackingNumberNotAssigned ? [["field" => "carrierTrackingNumberNotAssigned", "value" => true]] : [])),
+                ...($carrierTrackingNumberNotAssigned && !$countNoLinkedTruckArrival ? [["field" => "carrierTrackingNumberNotAssigned", "value" => true]] : []),
+                ...($countNoLinkedTruckArrival ? [["field" => "countNoLinkedTruckArrival", "value" => true]] : []),
             ];
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);

@@ -153,33 +153,23 @@ class TruckArrivalRepository extends EntityRepository
                         ->leftJoin('truckArrival.driver', 'filter_driver')
                         ->setParameter('filter_value_filteredDrivers', $value);
                     break;
+                case 'countNoLinkedTruckArrival':
                 case 'carrierTrackingNumberNotAssigned':
                     if ($filter['value'] == '1') {
                         $qb
+                            ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
+                            ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
+                            ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
+                            ->leftJoin('filter_reserve.reserveType', 'filter_reserveType')
                             ->andWhere('filter_arrival_notAssigned IS NULL')
                             ->andWhere($qb->expr()->orX(
                                 "filter_reserveType.disableTrackingNumber IS NULL",
                                 "filter_reserveType.disableTrackingNumber = 0"
-                            ))
-                            ->andWhere('truckArrival.trackingLines IS NOT EMPTY')
-                            ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
-                            ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
-                            ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
-                            ->leftJoin('filter_reserve.reserveType', 'filter_reserveType');
-                    }
-                    break;
-                case 'countNoLinkedTruckArrival':
-                    if ($filter['value'] == '1') {
-                        $qb
-                            ->andWhere('filter_arrival_notAssigned IS NULL')
-                            ->andWhere($qb->expr()->orX(
-                                "filter_reserveType.disableTrackingNumber IS NULL",
-                                "filter_reserveType.disableTrackingNumber = 0"
-                            ))
-                            ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
-                            ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
-                            ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
-                            ->leftJoin('filter_reserve.reserveType', 'filter_reserveType');
+                            ));
+
+                            if($filter['field'] === 'carrierTrackingNumberNotAssigned'){
+                                $qb->andWhere('truckArrival.trackingLines IS NOT EMPTY');
+                            }
                     }
                     break;
                 case 'unloadingLocation':

@@ -34,12 +34,10 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
         $meter->setSubtitle($this->formatService->carriers($carriers) ?: '-');
         $meter->setCount(0);
         if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
-            $locations = $locationRepository->findBy(["id" => $config['locations']]);
+            $locations = !empty($config['locations']) ? $locationRepository->findBy(["id" => $config['locations']]) : [];
 
             $unassociatedLines = $lineRepository->getUnassociatedLines([
-                'locations' => Stream::from($locations)
-                    ->map(static fn(Emplacement $location) => $location->getId())
-                    ->toArray(),
+                'locations' => $locations,
             ]);
             $meter->setCount(count($unassociatedLines));
 
