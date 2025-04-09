@@ -78,8 +78,9 @@ enum FixedFieldEnum: string
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";
+    case supplier = "Fournisseur";
+    case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
     case buyer = "Acheteur";
-    case provider = "Fournisseur";
     case postNumber = "N° de poste";
     case internalArticleCode = "Code article interne";
     case supplierArticleCode = "Code article fournisseur";

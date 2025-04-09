@@ -3,7 +3,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
@@ -153,6 +152,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::quantity->name, 'label' => FixedFieldEnum::quantity->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::lineCount->name, 'label' => FixedFieldEnum::lineCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::destinationLocation->name, 'label' => FixedFieldEnum::destinationLocation->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+            ],
+            FixedFieldStandard::ENTITY_CODE_STOCK_EMERGENCY => [
+                ['code' => FixedFieldEnum::comment->name, 'label' => FixedFieldEnum::comment->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::orderNumber->name, 'label' => FixedFieldEnum::orderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::attachments->name, 'label' => FixedFieldEnum::attachments->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::expectedEmergencyLocation->name, 'label' => FixedFieldEnum::expectedEmergencyLocation->value, 'displayedCreate' => true, 'displayedEdit' => true],
             ],
             FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY => [
                 ['code' => FixedFieldEnum::buyer->name, 'label' => FixedFieldEnum::buyer->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],

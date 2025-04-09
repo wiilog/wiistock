@@ -66,6 +66,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
             ],
             CategoryType::PRODUCTION => [Type::LABEL_STANDARD],
             CategoryType::TRACKING_EMERGENCY => [Type::LABEL_STANDARD],
+            CategoryType::STOCK_EMERGENCY => [Type::LABEL_STANDARD],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);
