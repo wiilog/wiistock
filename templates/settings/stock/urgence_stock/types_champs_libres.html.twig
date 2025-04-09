@@ -1,0 +1,27 @@
+{% extends 'settings/types_and_free_fields_template.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block title %}Types et champs libres{% endblock %}
+
+{% block typesDescription %}
+    Un type est une classification de vos entités. Vous pouvez associer à un type des champs libres afin d'apporter des informations
+    supplémentaires propres à cette classification. Cela vous permet de personnaliser votre application pour votre contexte d'utilisation.
+{% endblock %}
+
+{% block filters %}
+    {{ form.switch('entity', null, false, types, {expanded: true}) }}
+{% endblock %}
+
+{% block button %}
+    <button class="btn btn-primary mt-1 add-entity d-flex align-items-center">
+        <span class="wii-icon wii-icon-plus mr-2"></span>
+        Ajouter un type
+    </button>
+{% endblock %}
+
+{% block footer %}
+    {% include 'settings/modal_edit_translations.html.twig' with {
+        large: true,
+    } %}
+{% endblock %}
