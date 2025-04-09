@@ -7,6 +7,7 @@ namespace DoctrineMigrations;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Setting;
 use App\Entity\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Schema\Schema;
@@ -27,39 +28,67 @@ final class Version20250408104119 extends AbstractMigration implements Container
 
     public function up(Schema $schema): void
     {
+        $fieldsToFill = [
+            "required_create" => "fixed_field_by_type_required_create",
+            "required_edit" => "fixed_field_by_type_required_edit",
+            "displayed_create" => "fixed_field_by_type_displayed_create",
+            "displayed_edit" => "fixed_field_by_type_displayed_edit",
+            "kept_in_memory" => "fixed_field_by_type_kept_in_memory",
+        ];
+
+        // security in case the table does not exist (never happened normally)
         if (!$schema->hasTable('fixed_field_by_type')) {
             return;
         }
 
-        $entityManager = $this->container->get('doctrine.orm.entity_manager');
+        // find the category production
+        $category = $this->connection->fetchAssociative('SELECT id FROM category_type WHERE label = "'.CategoryType::TRACKING_EMERGENCY.'"', []);
 
-        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::TRACKING_EMERGENCY]);
-        $types = new ArrayCollection($types);
-        $emptyCollection = new ArrayCollection([]);
+        // find all the types id for the category production
+        $types = $this->connection->fetchAllAssociative('SELECT id FROM type WHERE category_id = :category_id',
+            [
+                'category_id' => $category['id']
+            ]
+        );
 
-        $fieldsStandards = $fixedFieldStandardRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY);
-        foreach ($fieldsStandards as $field) {
-            $fieldByType = (new FixedFieldByType())
-                ->setEntityCode(FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY)
-                ->setFieldCode($field->getFieldCode())
-                ->setFieldLabel($field->getFieldLabel())
-                ->setElements($field->getElements())
-                ->setElementsType($field->getElementsType())
-                ->setRequiredCreate($field->isRequiredCreate() ? $types : $emptyCollection)
-                ->setRequiredEdit($field->isRequiredEdit() ? $types : $emptyCollection)
-                ->setKeptInMemory($field->isKeptInMemory() ? $types : $emptyCollection)
-                ->setDisplayedCreate($field->isDisplayedCreate() ? $types : $emptyCollection)
-                ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection);
+        // find all the fixed fields standard for the entity code production
+        $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = "production"');
 
-            $entityManager->persist($fieldByType);
-            $entityManager->remove($field);
+        foreach ($fieldsStandards as $fieldsStandard) {
+            // create a new fixed field by type for each fixed field standard
+            $this->addSql('INSERT INTO fixed_field_by_type (entity_code, field_code, field_label, elements, elements_type) VALUES (:entity_code, :field_code, :field_label, :elements, :elements_type)',
+                [
+                    'entity_code' => FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY,
+                    'field_code' => $fieldsStandard['field_code'],
+                    'field_label' => $fieldsStandard['field_label'],
+                    'elements' => $fieldsStandard['elements'],
+                    'elements_type' => $fieldsStandard['elements_type'],
+                ]
+            );
+
+            // create the lines in association table for each type
+            foreach ($fieldsToFill as $fieldToFill => $table) {
+                if ($fieldsStandard[$fieldToFill]) {
+                    foreach ($types as $type) {
+                        $this->addSql('
+                                INSERT INTO ' . $table . ' (fixed_field_by_type_id, type_id) VALUES (
+                                    (SELECT id FROM fixed_field_by_type WHERE entity_code = :entity_code AND field_code = :field_code),
+                                    :type_id
+                                )
+                            ',
+                            [
+                                'type_id' => $type['id'],
+                                'entity_code' => $fieldsStandard['entity_code'],
+                                'field_code' => $fieldsStandard['field_code'],
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // delete the fixed field standard
+            $this->addSql('DELETE FROM fixed_field_standard WHERE id = :id', ['id' => $fieldsStandard['id']]);
         }
-
-        $entityManager->flush();
-
-
     }
 
     public function down(Schema $schema): void
