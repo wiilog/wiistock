@@ -30,6 +30,7 @@ class CategoryType {
     const SESSION_HISTORY = 'Historique de session';
     const IMPORT = 'import';
     const PRODUCTION = 'production';
+    const STOCK_EMERGENCY = 'urgences stock';
 
     public const ALL = [
         self::RECEPTION,
