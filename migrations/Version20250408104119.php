@@ -18,16 +18,13 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250408104119 extends AbstractMigration implements ContainerAwareInterface
-{
+final class Version20250408104119 extends AbstractMigration implements ContainerAwareInterface {
     use ContainerAwareTrait;
-    public function getDescription(): string
-    {
+    public function getDescription(): string {
         return 'Creation du parametrage des champs fixes par type pour les urgences traces en fonction du parametrage des champs fixes standards';
     }
 
-    public function up(Schema $schema): void
-    {
+    public function up(Schema $schema): void {
         $fieldsToFill = [
             "required_create" => "fixed_field_by_type_required_create",
             "required_edit" => "fixed_field_by_type_required_edit",
@@ -96,9 +93,5 @@ final class Version20250408104119 extends AbstractMigration implements Container
         }
     }
 
-    public function down(Schema $schema): void
-    {
-        // this down() migration is auto-generated, please modify it to your needs
-
-    }
+    public function down(Schema $schema): void {}
 }
