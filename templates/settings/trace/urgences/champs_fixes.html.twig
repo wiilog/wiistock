@@ -1,24 +1,27 @@
 {% import 'form.html.twig' as form %}
 
+<div class="row p-3">
+    <div class="col-12 mb-3 wii-small-text">
+        Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez
+        paramétrer leur visibilité ou leur caractère obligatoire.
+    </div>
+</div>
 
-{% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE'),
-    field: emergencyType.field,
-    elementsType: emergencyType.elementsType,
-    elements: emergencyType.elements,
-} %}
+<div class="wii-section-title">Entête</div>
+<div class="row p-3 typeChoice">
+    <div class="col-12 mb-3 wii-small-text">
+        {% block filters %}
+            {{ form.switch('type', null, false, types, {expanded: true}) }}
+        {% endblock %}
+    </div>
+</div>
 
 <div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez paramétrer leur visibilité et
-            leur caractère obligatoire.
-        </div>
-    </div>
-    <table id="table-emergencies-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
+    <table id="table-emergencies-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
         {% include 'datatable/main-header.html.twig' with {
-            cells: 6,
-            needsFilterColumn: true,
+            needsFilterColumn: false,
+            cells: 5
         } %}
+
     </table>
 </div>
