@@ -20,6 +20,7 @@ class AppCacheClearCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $this->cacheService->clear();
+
         return 0;
     }
 }

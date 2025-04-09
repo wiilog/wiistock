@@ -180,7 +180,7 @@ class DispatchController extends AbstractController
                     $entityManager->flush();
                     $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
                 } catch (Exception $error) {
-                    $exceptionLoggerService->sendLog($error, $request);
+                    $exceptionLoggerService->sendLog($error);
                     $errors[] = $error instanceof FormException ? $error->getMessage() : "Une erreur est survenue sur le traitement d'un des acheminements";
                     [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                 }
@@ -213,7 +213,7 @@ class DispatchController extends AbstractController
                         );
                         $entityManager->flush();
                     } catch (Exception $error) {
-                        $exceptionLoggerService->sendLog($error, $request);
+                        $exceptionLoggerService->sendLog($error);
                         $errors[] = "Une erreur est survenue lors de la signature de l'acheminement {$dispatch->getNumber()}";
                         [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                     }
@@ -233,7 +233,7 @@ class DispatchController extends AbstractController
                         $dispatchService->generateWayBill($dispatch->getCreatedBy(), $dispatch, $entityManager, $waybill);
                         $entityManager->flush();
                     } catch (Exception $error) {
-                        $exceptionLoggerService->sendLog($error, $request);
+                        $exceptionLoggerService->sendLog($error);
                         $errors[] = "La génération de la lettre de voiture n°{$dispatch->getNumber()} s'est mal déroulée";
                         [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                     }

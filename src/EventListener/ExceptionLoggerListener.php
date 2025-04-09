@@ -16,11 +16,12 @@ class ExceptionLoggerListener {
     }
 
     public function onKernelException(ExceptionEvent $event) {
-        if($event->getThrowable() instanceof FormException || $event->getThrowable() instanceof AccessDeniedException) {
+        if ($event->getThrowable() instanceof FormException
+            || $event->getThrowable() instanceof AccessDeniedException) {
             return;
         }
 
-        $this->exceptionLoggerService->sendLog($event->getThrowable(), $event->getRequest());
+        $this->exceptionLoggerService->sendLog($event->getThrowable());
     }
 
 }
