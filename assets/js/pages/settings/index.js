@@ -1351,29 +1351,10 @@ function changeSettingsAssoBR($checkbox) {
 }
 
 function initializeEmergenciesFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-emergencies-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const selectorTable = `#table-emergencies-fixed-fields`;
+    const $typeInput = initFixedFieldByTypeSettings(`trackingEmergency`, $container, selectorTable, canEdit);
+    $typeInput.first().trigger(`change`);
 }
-
 
 
 function initializeProductionFixedFields($container, canEdit) {
