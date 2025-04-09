@@ -30,18 +30,29 @@ final class Version20250408103807 extends AbstractMigration
             'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE,
         ])->fetchAllAssociative();
 
-        $this->connection->executeQuery("INSERT INTO category_type (label) VALUES ('" . CategoryType::TRACKING_EMERGENCY . "')");
-        $categoryTypeId = $this->connection->executeQuery("SELECT LAST_INSERT_ID() AS id")->fetchAllAssociative();
-
-        if(!empty($emergencyTypes) && isset($emergencyTypes[0]['elements']) && isset($categoryTypeId[0]["id"])){
+        if(!empty($emergencyTypes) && isset($emergencyTypes[0]['elements'])){
+            $this->addSql("INSERT INTO category_type (label) VALUES ('" . CategoryType::TRACKING_EMERGENCY . "')");
             $emergencyTypesDecoded = json_decode($emergencyTypes[0]['elements'], true);
 
             foreach ($emergencyTypesDecoded ?? [] as $emergencyType) {
-                $this->addSql("INSERT INTO type (category_id, label) VALUES (:categoryTypeId, :emergencyLabel)", [
-                    'categoryTypeId' => $categoryTypeId[0]["id"],
+                $this->addSql("INSERT INTO type (category_id, color, label) VALUES ((SELECT category_type.id
+                         FROM category_type
+                         WHERE category_type.label = :categoryTypeLabel
+                         LIMIT 1), :color, :emergencyLabel)", [
+                    'categoryTypeLabel' => CategoryType::TRACKING_EMERGENCY,
+                    'color' => Type::DEFAULT_COLOR,
                     'emergencyLabel' => $emergencyType,
                 ]);
             }
+        } else {
+            $this->addSql("INSERT INTO type (category_id, color, label) VALUES ((SELECT category_type.id
+                         FROM category_type
+                         WHERE category_type.label = :categoryTypeLabel
+                         LIMIT 1), :color, :emergencyLabel)", [
+                'categoryTypeLabel' => CategoryType::TRACKING_EMERGENCY,
+                'color' => Type::DEFAULT_COLOR,
+                'emergencyLabel' => Type::LABEL_STANDARD,
+            ]);
         }
     }
 

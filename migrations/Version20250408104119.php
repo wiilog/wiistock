@@ -42,17 +42,22 @@ final class Version20250408104119 extends AbstractMigration implements Container
         }
 
         // find the category production
-        $category = $this->connection->fetchAssociative('SELECT id FROM category_type WHERE label = "'.CategoryType::TRACKING_EMERGENCY.'"', []);
+        $category = $this->connection->fetchAssociative('SELECT category_type.id FROM category_type WHERE category_type.label = :categoryTypeLabel LIMIT 1', [
+            "categoryTypeLabel" => CategoryType::TRACKING_EMERGENCY,
+        ]);
 
         // find all the types id for the category production
-        $types = $this->connection->fetchAllAssociative('SELECT id FROM type WHERE category_id = :category_id',
-            [
-                'category_id' => $category['id']
-            ]
-        );
+        $types = $category
+            ? $this->connection->fetchAllAssociative('SELECT id FROM type WHERE category_id = :category_id',
+                [
+                    'category_id' => $category['id']
+                ])
+            : [];
 
         // find all the fixed fields standard for the entity code production
-        $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = "'.FixedFieldStandard::ENTITY_CODE_EMERGENCY.'"');
+        $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = :entityCode', [
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_EMERGENCY,
+        ]);
 
         foreach ($fieldsStandards as $fieldsStandard) {
             // create a new fixed field by type for each fixed field standard
