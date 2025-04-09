@@ -144,10 +144,6 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get('input[type=file]')
             .selectFile(`cypress/fixtures/${arrival.file}`, {force: true});
 
-        cy.getTheDate().then(logisticUnitsArrivalCreationDate => {
-            cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
-        })
-
         cy.closeAndVerifyModal(selectorModal, null, 'arrivage_new', true);
 
         cy.get('#alert-modal', {timeout: 30000})
