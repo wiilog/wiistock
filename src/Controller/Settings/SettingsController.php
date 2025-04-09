@@ -1456,9 +1456,23 @@ class SettingsController extends AbstractController {
                     },
                 ],
                 self::MENU_ARRIVALS => [
-                    self::MENU_FIXED_FIELDS => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::TRACKING_EMERGENCY),
-                    ],
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
+                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+
+                        return [
+                            "businessUnit" => [
+                                "field" => $field->getId(),
+                                "elementsType" => $field->getElementsType(),
+                                "elements" => Stream::from($field->getElements())
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::ARRIVAGE),
                         'category' => CategoryType::ARRIVAGE,
@@ -1542,22 +1556,9 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_EMERGENCIES => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $emergencyTypeField = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE);
-                        return [
-                            "emergencyType" => [
-                                "field" => $emergencyTypeField->getId(),
-                                "elementsType" => $emergencyTypeField->getElementsType(),
-                                "elements" => Stream::from($emergencyTypeField->getElements() ?? [])
-                                    ->map(fn(string $element) => [
-                                        "label" => $element,
-                                        "value" => $element,
-                                        "selected" => true,
-                                    ])
-                                    ->toArray(),
-                            ],
-                        ];
-                    },
+                    self::MENU_FIXED_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::TRACKING_EMERGENCY),
+                    ],
                 ],
             ],
             self::CATEGORY_PRODUCTION => [
