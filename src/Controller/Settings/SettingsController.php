@@ -201,6 +201,16 @@ class SettingsController extends AbstractController {
                         ]
                     ],
                 ],
+                self::MENU_STOCK_EMERGENCY => [
+                    "label" => "Urgences",
+                    "right" => Action::SETTINGS_DISPLAY_ARTICLES,
+                    "menus" => [
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false,
+                        ],
+                    ],
+                ],
                 self::MENU_TOUCH_TERMINAL => [
                     "label" => "Borne tactile",
                     "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
@@ -735,6 +745,8 @@ class SettingsController extends AbstractController {
     public const MENU_INVENTORY_PLANIFICATOR = "planificateur";
     public const MENU_ARTICLES = "articles";
     public const MENU_RECEPTIONS = "receptions";
+
+    public const MENU_STOCK_EMERGENCY = "urgence_stock";
     public const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
     public const MENU_DISPUTE_STATUSES = "statuts_litiges";
     public const MENU_DISPUTE_TYPES = "types_litiges";
@@ -1188,6 +1200,27 @@ class SettingsController extends AbstractController {
                 ],
             ],
             self::CATEGORY_STOCK => [
+                self::MENU_STOCK_EMERGENCY => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
+                        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
+                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
+
+                        return [
+                            'types' => $types,
+                            "expectedAt" => [
+                                "field" => $expectedAtField?->getId(),
+                                "elementsType" => $expectedAtField?->getElementsType(),
+                                "elements" => $this->settingsService->getDefaultProductionExpectedAtByType($this->manager)
+                            ],
+                            "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
+                            "category" => CategoryType::PRODUCTION
+                        ];
+                    },
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::PRODUCTION),
+                        'category' => CategoryType::PRODUCTION,
+                    ],
+                ],
                 self::MENU_ARTICLES => [
                     self::MENU_LABELS => fn() => [
                         "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
