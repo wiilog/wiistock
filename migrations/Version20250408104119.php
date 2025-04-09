@@ -52,7 +52,7 @@ final class Version20250408104119 extends AbstractMigration implements Container
         );
 
         // find all the fixed fields standard for the entity code production
-        $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = "production"');
+        $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = "'.FixedFieldStandard::ENTITY_CODE_EMERGENCY.'"');
 
         foreach ($fieldsStandards as $fieldsStandard) {
             // create a new fixed field by type for each fixed field standard
@@ -78,7 +78,7 @@ final class Version20250408104119 extends AbstractMigration implements Container
                             ',
                             [
                                 'type_id' => $type['id'],
-                                'entity_code' => $fieldsStandard['entity_code'],
+                                'entity_code' => FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY,
                                 'field_code' => $fieldsStandard['field_code'],
                             ]
                         );
