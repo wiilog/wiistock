@@ -78,6 +78,7 @@ const initializers = {
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     stock_articles_alerte_stock_dormant: initializeSleepingStockSettingPage,
     //urgences
+    stock_urgence_stock_champs_fixes: initializeProductionFixedFields,
     stock_urgence_stock_types_champs_libres: createProductionFreeFieldsPage,
     //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
