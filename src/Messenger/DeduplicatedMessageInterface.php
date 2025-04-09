@@ -8,6 +8,6 @@ namespace App\Messenger;
  */
 interface DeduplicatedMessageInterface extends MessageInterface {
 
-    public function getUniqueKey(): string|int;
+    public function getUniqueKey(): string;
 
 }
