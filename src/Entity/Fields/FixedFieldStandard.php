@@ -3,6 +3,7 @@
 namespace App\Entity\Fields;
 
 use App\Repository\Fields\FixedFieldStandardRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FixedFieldStandardRepository::class)]
@@ -219,25 +220,25 @@ class FixedFieldStandard extends FixedField {
     const ENTITY_CODE_PRODUCTION = 'production';
     const ENTITY_CODE_STOCK_EMERGENCY = 'stockEmergency';
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $requiredCreate = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $requiredEdit = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $keptInMemory = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedCreate = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedEdit = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedFilters = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
 
     public function isRequiredCreate(): ?bool {
