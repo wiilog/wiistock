@@ -185,8 +185,8 @@ class Action {
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
-    const SETTINGS_DISPLAY_EMERGENCIES = 'afficher urgences';
-
+    const SETTINGS_DISPLAY_EMERGENCIES = 'afficher urgences'; // TODO WIIS-12642
+    const SETTINGS_DISPLAY_STOCK_EMERGENCIES = 'afficher urgences stock';
 
     const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';
     const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';

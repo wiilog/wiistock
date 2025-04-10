@@ -79,7 +79,7 @@ const initializers = {
     stock_articles_alerte_stock_dormant: initializeSleepingStockSettingPage,
     //urgences
     stock_urgence_stock_champs_fixes: initializeProductionFixedFields,
-    stock_urgence_stock_types_champs_libres: createProductionFreeFieldsPage,
+    stock_urgence_stock_champs_fixes: initializeStockEmergencyFixedFields,
     //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
@@ -1383,6 +1383,13 @@ function initializeProductionFixedFields($container, canEdit) {
         });
     const selectorTable = `#table-production-fixed-fields`;
     const $typeInputs = initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit);
+    $typeInputs.first().trigger( "change" );
+}
+
+function initializeStockEmergencyFixedFields($container, canEdit) {
+
+    const selectorTable = `#table-stock-emergency-fixed-fields`;
+    const $typeInputs = initFixedFieldByTypeSettings(`stockEmergency`, $container, selectorTable, canEdit);
     $typeInputs.first().trigger( "change" );
 }
 

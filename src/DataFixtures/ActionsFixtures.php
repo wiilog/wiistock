@@ -327,6 +327,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_REQUESTS,
                 Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
                 Action::SETTINGS_DISPLAY_INVENTORIES,
+                Action::SETTINGS_DISPLAY_STOCK_EMERGENCIES,
                 Action::SETTINGS_DISPLAY_RECEP,
                 Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
             ],

@@ -203,12 +203,11 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_STOCK_EMERGENCY => [
                     "label" => "Urgences",
-                    "right" => Action::SETTINGS_DISPLAY_ARTICLES,
+                    "right" => Action::SETTINGS_DISPLAY_STOCK_EMERGENCIES,
                     "menus" => [
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
-                            "discard" => true,
                         ],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
@@ -1207,18 +1206,10 @@ class SettingsController extends AbstractController {
             self::CATEGORY_STOCK => [
                 self::MENU_STOCK_EMERGENCY => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
-                        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
-                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
-
+                        $types = $this->typeGenerator(CategoryType::STOCK_EMERGENCY, true);
                         return [
                             'types' => $types,
-                            "expectedAt" => [
-                                "field" => $expectedAtField?->getId(),
-                                "elementsType" => $expectedAtField?->getElementsType(),
-                                "elements" => $this->settingsService->getDefaultProductionExpectedAtByType($this->manager)
-                            ],
-                            "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
-                            "category" => CategoryType::PRODUCTION
+                            "category" => CategoryType::STOCK_EMERGENCY
                         ];
                     },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
