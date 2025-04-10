@@ -2289,7 +2289,6 @@ class SettingsController extends AbstractController {
                     ],
                 ]);
             }
-
             if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
                 $locationRepository = $this->manager->getRepository(Emplacement::class);
 
