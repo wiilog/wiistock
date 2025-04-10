@@ -62,7 +62,7 @@ class ReceptionReferenceArticle {
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?string $unitPrice = null;
 
-    #[ORM\ManyToMany(targetEntity:StockEmergency::class, inversedBy: 'receptionReferenceArticle')]
+    #[ORM\ManyToMany(targetEntity:StockEmergency::class, inversedBy: 'receptionReferenceArticles')]
     private Collection $stockEmergencies;
 
     public function __construct() {

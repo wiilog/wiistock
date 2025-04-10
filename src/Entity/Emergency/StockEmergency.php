@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class StockEmergency extends Emergency {
 
     #[ORM\Column(type: TYPES::STRING, length: 255, nullable: false, enumType: EmergencyTriggerEnum::class)]
-    private ?string $emergencyTrigger = null;
+    private ?EmergencyTriggerEnum $emergencyTrigger = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $expectedQuantity = null;
@@ -31,18 +31,18 @@ class StockEmergency extends Emergency {
     /**
      * @var Collection<int, ReceptionReferenceArticle>
      */
-    #[ORM\ManyToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'stockEmergency')]
+    #[ORM\ManyToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'stockEmergencies')]
     private Collection $receptionReferenceArticles;
 
     public function __construct() {
         $this->receptionReferenceArticles = new ArrayCollection();
     }
 
-    public function getEmergencyTrigger(): ?string {
+    public function getEmergencyTrigger(): ?EmergencyTriggerEnum {
         return $this->emergencyTrigger;
     }
 
-    public function setEmergencyTrigger(string $emergencyTrigger): self {
+    public function setEmergencyTrigger(?EmergencyTriggerEnum $emergencyTrigger): self {
         $this->emergencyTrigger = $emergencyTrigger;
 
         return $this;

@@ -15,7 +15,7 @@ class TrackingEmergency extends Emergency
     /**
      * @var Collection<int, Arrivage>
      */
-    #[ORM\ManyToMany(mappedBy: 'trackingEmergency', targetEntity: Arrivage::class)]
+    #[ORM\ManyToMany(mappedBy: 'trackingEmergencies', targetEntity: Arrivage::class)]
     private Collection $arrivals;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]

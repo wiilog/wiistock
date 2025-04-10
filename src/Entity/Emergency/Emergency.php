@@ -33,8 +33,8 @@ abstract class Emergency {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false, enumType: EndEmergencyCriteriaEnum::class)]
-    private ?string $endEmergencyCriteria = null;
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: EndEmergencyCriteriaEnum::class)]
+    private ?EndEmergencyCriteriaEnum $endEmergencyCriteria = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -77,11 +77,11 @@ abstract class Emergency {
         return $this->id;
     }
 
-    public function getEndEmergencyCriteria(): ?string {
+    public function getEndEmergencyCriteria(): ?EndEmergencyCriteriaEnum {
         return $this->endEmergencyCriteria;
     }
 
-    public function setEndEmergencyCriteria(string $endEmergencyCriteria): self {
+    public function setEndEmergencyCriteria(?EndEmergencyCriteriaEnum $endEmergencyCriteria): self {
         $this->endEmergencyCriteria = $endEmergencyCriteria;
 
         return $this;
