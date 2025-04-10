@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 final class Version20250408104119 extends AbstractMigration implements ContainerAwareInterface {
     use ContainerAwareTrait;
     public function getDescription(): string {
-        return 'Creation du parametrage des champs fixes par type pour les urgences traces en fonction du parametrage des champs fixes standards';
+        return 'Migrate fixedFieldStandard to FixedFieldByType';
     }
 
     public function up(Schema $schema): void {
@@ -38,12 +38,12 @@ final class Version20250408104119 extends AbstractMigration implements Container
             return;
         }
 
-        // find the category production
+        // find the category trackingEmergency
         $category = $this->connection->fetchAssociative('SELECT category_type.id FROM category_type WHERE category_type.label = :categoryTypeLabel LIMIT 1', [
             "categoryTypeLabel" => CategoryType::TRACKING_EMERGENCY,
         ]);
 
-        // find all the types id for the category production
+        // find all the types id for the category trackingEmergency
         $types = $category
             ? $this->connection->fetchAllAssociative('SELECT id FROM type WHERE category_id = :category_id',
                 [
@@ -51,7 +51,7 @@ final class Version20250408104119 extends AbstractMigration implements Container
                 ])
             : [];
 
-        // find all the fixed fields standard for the entity code production
+        // find all the fixed fields standard for the entity code trackingEmergency
         $fieldsStandards = $this->connection->fetchAllAssociative('SELECT * FROM fixed_field_standard WHERE entity_code = :entityCode', [
             "entityCode" => FixedFieldStandard::ENTITY_CODE_EMERGENCY,
         ]);
