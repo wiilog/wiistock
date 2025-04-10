@@ -1201,24 +1201,9 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_STOCK_EMERGENCY => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
-                        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
-                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
-
-                        return [
-                            'types' => $types,
-                            "expectedAt" => [
-                                "field" => $expectedAtField?->getId(),
-                                "elementsType" => $expectedAtField?->getElementsType(),
-                                "elements" => $this->settingsService->getDefaultProductionExpectedAtByType($this->manager)
-                            ],
-                            "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
-                            "category" => CategoryType::PRODUCTION
-                        ];
-                    },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::PRODUCTION),
-                        'category' => CategoryType::PRODUCTION,
+                        'types' => $this->typeGenerator(CategoryType::STOCK_EMERGENCY),
+                        'category' => CategoryType::STOCK_EMERGENCY,
                     ],
                 ],
                 self::MENU_ARTICLES => [
@@ -2233,7 +2218,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY])) {
                 $inputId = rand(0, 1000000);
 
                 $data[] = [
@@ -2274,37 +2259,35 @@ class SettingsController extends AbstractController {
                     "label" => "Envoi d'un email au destinataire",
                     "value" => "<input name='mailReceiver' type='checkbox' class='data form-control mt-1 smaller' $receiverMailsEnabled>",
                 ];
-            } else {
-                if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
-                    $locationRepository = $this->manager->getRepository(Emplacement::class);
+            } else if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                $locationRepository = $this->manager->getRepository(Emplacement::class);
 
-                    $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
+                $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
-                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
-                        ->map(fn(Emplacement $location) => [
-                            "value" => $location->getId(),
-                            "label" => $location->getLabel(),
-                            "selected" => true,
-                        ])
-                        ->toArray()
-                    : [];
+                $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                    ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                    ->map(fn(Emplacement $location) => [
+                        "value" => $location->getId(),
+                        "label" => $location->getLabel(),
+                        "selected" => true,
+                    ])
+                    ->toArray()
+                : [];
 
-                    $data = array_merge($data, [
-                        [
-                            "label" => "Emplacement de prise par défaut",
-                            "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
-                        ],
-                        [
-                            "label" => "Emplacement(s) de prise suggéré(s)",
-                            "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
-                                "type" => "location",
-                                "multiple" => true,
-                                "items" => $suggestedPickLocationOptions,
-                            ]),
-                        ],
-                    ]);
-                }
+                $data = array_merge($data, [
+                    [
+                        "label" => "Emplacement de prise par défaut",
+                        "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
+                    ],
+                    [
+                        "label" => "Emplacement(s) de prise suggéré(s)",
+                        "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
+                            "type" => "location",
+                            "multiple" => true,
+                            "items" => $suggestedPickLocationOptions,
+                        ]),
+                    ],
+                ]);
             }
 
             if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
@@ -2417,7 +2400,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $formService->macro("switch", "isDefault", null, true, [
@@ -2509,7 +2492,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY])) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
@@ -2610,7 +2593,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type?->isDefault()) ?: "Non",
