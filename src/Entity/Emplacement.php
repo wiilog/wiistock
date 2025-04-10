@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Emergency\StockEmergency;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
@@ -209,7 +208,6 @@ class Emplacement implements PairedEntity {
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
-        $this->stockEmergencies = new ArrayCollection();
     }
 
     public function getId(): ?int {

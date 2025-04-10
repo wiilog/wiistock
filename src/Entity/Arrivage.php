@@ -227,14 +227,11 @@ class Arrivage implements AttachmentContainer {
     }
 
     /**
-     * @return array
+     * @return Utilisateur[]
      */
     public function getEmergencyBuyers(): array {
-
         return Stream::from($this->trackingEmergencies)
-            ->filterMap(function(Emergency $emergency){
-                return $emergency->getBuyer();
-            })
+            ->filterMap(static fn(Emergency $emergency) => $emergency->getBuyer())
             ->unique()
             ->values();
     }

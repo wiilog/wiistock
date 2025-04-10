@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(fields: ["emergencyTrigger"])]
 class StockEmergency extends Emergency {
 
-    #[ORM\Column(type: TYPES::STRING, length: 255, nullable: false, enumType: EmergencyTriggerEnum::class)]
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: EmergencyTriggerEnum::class)]
     private ?EmergencyTriggerEnum $emergencyTrigger = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
@@ -49,7 +49,7 @@ class StockEmergency extends Emergency {
     }
 
     /**
-     * @return Collection<int, ReferenceArticle>
+     * @return Collection<int, ReceptionReferenceArticle>
      */
     public function getReceptionReferenceArticle(): Collection {
         return $this->receptionReferenceArticles;

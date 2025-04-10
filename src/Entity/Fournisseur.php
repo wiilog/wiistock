@@ -2,9 +2,7 @@
 
 namespace App\Entity;
 
-use App\Entity\Emergency\Emergency;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
 use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;

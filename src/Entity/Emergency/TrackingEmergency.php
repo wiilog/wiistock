@@ -10,13 +10,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingEmergencyRepository::class)]
-class TrackingEmergency extends Emergency
-{
-    /**
-     * @var Collection<int, Arrivage>
-     */
-    #[ORM\ManyToMany(mappedBy: 'trackingEmergencies', targetEntity: Arrivage::class)]
-    private Collection $arrivals;
+class TrackingEmergency extends Emergency {
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $postNumber = null;
@@ -26,6 +20,12 @@ class TrackingEmergency extends Emergency
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $supplierArticleCode = null;
+
+    /**
+     * @var Collection<int, Arrivage>
+     */
+    #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'trackingEmergencies')]
+    private Collection $arrivals;
 
     public function __construct() {
         $this->arrivals = new ArrayCollection();
@@ -49,7 +49,7 @@ class TrackingEmergency extends Emergency
 
     public function removeArrival(Arrivage $arrival): self {
         if ($this->arrivals->removeElement($arrival)) {
-                $arrival->removeTrackingEmergency($this);
+            $arrival->removeTrackingEmergency($this);
         }
 
         return $this;

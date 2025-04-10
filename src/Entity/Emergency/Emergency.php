@@ -25,7 +25,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(fields: ["createdAt"])]
 #[ORM\Index(fields: ["closedAt"])]
 #[ORM\Index(fields: ["endEmergencyCriteria"])]
+#[ORM\Index(fields: ["discr"])]
 abstract class Emergency {
+
     use FreeFieldsManagerTrait;
 
     #[ORM\Id]
