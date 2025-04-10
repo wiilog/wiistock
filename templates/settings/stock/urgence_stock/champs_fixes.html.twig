@@ -1,25 +1,13 @@
 
 {% import 'form.html.twig' as form %}
 
-{% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name,
-    field: expectedAt.field,
-    elementsType: expectedAt.elementsType,
-    elements: expectedAt.elements,
-    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
-    types : types,
-    category : category,
-    productionTypesCount : productionTypesCount,
-} %}
-
 <div class="wii-section">
     <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
+        <div class="col-12 wii-small-text">
             Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez paramétrer leur visibilité et
             leur caractère obligatoire.
         </div>
     </div>
-    <div class="wii-section-title">Entête</div>
     <div class="row p-3 typeChoice">
         <div class="col-12 mb-3 wii-small-text">
             {% block filters %}
@@ -27,7 +15,7 @@
             {% endblock %}
         </div>
     </div>
-    <table id="table-production-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
+    <table id="table-stock-emergency-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
         {% include 'datatable/main-header.html.twig' with {
             cells: 5,
             needsFilterColumn: false,
