@@ -12,25 +12,27 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockEmergencyRepository::class)]
+#[ORM\Index(fields: ["emergencyTrigger"])]
 class StockEmergency extends Emergency {
+
     #[ORM\Column(type: TYPES::STRING, length: 255, nullable: false, enumType: EmergencyTriggerEnum::class)]
     private ?string $emergencyTrigger = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $expectedQuantity = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $alreadyReceivedQuantity = null;
+
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Emplacement $expectedLocation = null;
 
     /**
      * @var Collection<int, ReceptionReferenceArticle>
      */
     #[ORM\ManyToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'stockEmergency')]
     private Collection $receptionReferenceArticles;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $expectedQuantity = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $quantityAlreadyReceived = null;
-
-    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Emplacement $expectedLocation = null;
 
     public function __construct() {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -77,12 +79,12 @@ class StockEmergency extends Emergency {
         return $this;
     }
 
-    public function getQuantityAlreadyReceived(): ?int {
-        return $this->quantityAlreadyReceived;
+    public function getAlreadyReceivedQuantity(): ?int {
+        return $this->alreadyReceivedQuantity;
     }
 
-    public function setQuantityAlreadyReceived(?int $quantityAlreadyReceived): self {
-        $this->quantityAlreadyReceived = $quantityAlreadyReceived;
+    public function setAlreadyReceivedQuantity(?int $alreadyReceivedQuantity): self {
+        $this->alreadyReceivedQuantity = $alreadyReceivedQuantity;
 
         return $this;
     }

@@ -20,6 +20,11 @@ use Doctrine\ORM\Mapping as ORM;
     EmergencyDiscrEnum::STOCK_EMERGENCY->value => StockEmergency::class,
     EmergencyDiscrEnum::TRACKING_EMERGENCY->value => TrackingEmergency::class,
 ])]
+#[ORM\Index(fields: ["dateStart"])]
+#[ORM\Index(fields: ["dateEnd"])]
+#[ORM\Index(fields: ["createdAt"])]
+#[ORM\Index(fields: ["closedAt"])]
+#[ORM\Index(fields: ["endEmergencyCriteria"])]
 abstract class Emergency {
     use FreeFieldsManagerTrait;
 
@@ -30,10 +35,6 @@ abstract class Emergency {
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false, enumType: EndEmergencyCriteriaEnum::class)]
     private ?string $endEmergencyCriteria = null;
-
-    #[ORM\ManyToOne(targetEntity: Type::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Type $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -47,10 +48,6 @@ abstract class Emergency {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateEnd = null;
 
-    #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Fournisseur $supplier = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $createdAt = null;
 
@@ -59,6 +56,14 @@ abstract class Emergency {
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $command = null;
+
+    #[ORM\ManyToOne(targetEntity: Type::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Type $type = null;
+
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Fournisseur $supplier = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: true)]
