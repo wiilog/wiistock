@@ -50,6 +50,7 @@ class CategoryType {
         self::COLLECT_TRANSPORT,
         self::SHIPPING_REQUEST,
         self::PRODUCTION,
+        self::STOCK_EMERGENCY,
         self::TRACKING_EMERGENCY,
     ];
 
