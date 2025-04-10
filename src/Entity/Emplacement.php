@@ -180,12 +180,6 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $newNatureOnDropEnabled = false;
 
-    /**
-     * @var Collection<int, StockEmergency>
-     */
-    #[ORM\OneToMany(mappedBy: 'location', targetEntity: StockEmergency::class)]
-    private Collection $stockEmergencies;
-
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -1214,36 +1208,6 @@ class Emplacement implements PairedEntity {
 
     public function setNewNatureOnDropEnabled(bool $newNatureOnDropEnabled): self {
         $this->newNatureOnDropEnabled = $newNatureOnDropEnabled;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StockEmergency>
-     */
-    public function getStockEmergencies(): Collection
-    {
-        return $this->stockEmergencies;
-    }
-
-    public function addStockEmergency(StockEmergency $stockEmergency): static
-    {
-        if (!$this->stockEmergencies->contains($stockEmergency)) {
-            $this->stockEmergencies->add($stockEmergency);
-            $stockEmergency->setLocation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeStockEmergency(StockEmergency $stockEmergency): static
-    {
-        if ($this->stockEmergencies->removeElement($stockEmergency)) {
-            // set the owning side to null (unless already changed)
-            if ($stockEmergency->getLocation() === $this) {
-                $stockEmergency->setLocation(null);
-            }
-        }
 
         return $this;
     }

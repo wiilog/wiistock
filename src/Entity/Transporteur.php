@@ -40,9 +40,6 @@ class Transporteur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')] // TODO WIIS-12642
     private Collection $urgences;
 
-    #[ORM\OneToMany(targetEntity: Emergency::class, mappedBy: 'carrier')]
-    private Collection $emergencies;
-
     #[ORM\Column(nullable: true)]
     private ?bool $recurrent = false;
 
@@ -56,7 +53,6 @@ class Transporteur {
         $this->chauffeurs = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->reception = new ArrayCollection();
-        $this->emergencies = new ArrayCollection();
         $this->attachments = new ArrayCollection();
     }
 
@@ -191,42 +187,6 @@ class Transporteur {
             if($dispatch->getCarrier() === $this) {
                 $dispatch->setCarrier(null);
             }
-        }
-
-        return $this;
-    }
-
-    public function getEmergencies(): Collection {
-        return $this->emergencies;
-    }
-
-    public function addEmergency(Emergency $emergency): self {
-        if(!$this->emergencies->contains($emergency)) {
-            $this->emergencies[] = $emergency;
-            $emergency->setCarrier($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmergency(Emergency $emergency): self {
-        if($this->emergencies->removeElement($emergency)) {
-            if($emergency->getCarrier() === $this) {
-                $emergency->setCarrier(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setEmergencies(?array $emergencies): self {
-        foreach($this->getEmergencies()->toArray() as $emergency) {
-            $this->removeEmergency($emergency);
-        }
-
-        $this->emergencies = new ArrayCollection();
-        foreach($emergencies as $emergency) {
-            $this->addEmergency($emergency);
         }
 
         return $this;

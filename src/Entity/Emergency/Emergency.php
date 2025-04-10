@@ -8,7 +8,7 @@ use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\EmergencyRepository;
+use App\Repository\Emergency\EmergencyRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,16 +16,19 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EmergencyRepository::class)]
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'discr', type: Types::STRING)]
-abstract class Emergency
-{
+#[ORM\DiscriminatorMap([
+    EmergencyDiscrEnum::STOCK_EMERGENCY->value => StockEmergency::class,
+    EmergencyDiscrEnum::TRACKING_EMERGENCY->value => TrackingEmergency::class,
+])]
+abstract class Emergency {
     use FreeFieldsManagerTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false, enumType: EndEmergencyCriteriaEnum::class)]
     private ?string $endEmergencyCriteria = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
@@ -38,17 +41,18 @@ abstract class Emergency
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $carrierTrackingNumber = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateStart = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateEnd = null;
 
-    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'emergencies')]
-    private ?Fournisseur $provider = null;
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Fournisseur $supplier = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?DateTime $createdAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
@@ -56,10 +60,12 @@ abstract class Emergency
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $command = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'emergencies')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $buyer = null;
 
-    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'emergencies')]
+    #[ORM\ManyToOne(targetEntity: Transporteur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Transporteur $carrier = null;
 
     public function getId(): ?int {
@@ -81,11 +87,7 @@ abstract class Emergency
     }
 
     public function setCarrier(?Transporteur $carrier): self {
-        if($this->carrier && $this->carrier!== $carrier) {
-            $this->carrier->removeEmergency($this);
-        }
-        $this->carrier = $carrier;
-        $carrier->addEmergency($this);
+        $this->carrier = $carrier;;
 
         return $this;
     }
@@ -95,11 +97,7 @@ abstract class Emergency
     }
 
     public function setBuyer(?Utilisateur $buyer): self {
-        if($this->buyer && $this->buyer!== $buyer) {
-            $this->buyer->removeEmergency($this);
-        }
         $this->buyer = $buyer;
-        $buyer->addEmergency($this);
 
         return $this;
     }
@@ -118,7 +116,7 @@ abstract class Emergency
         return $this->type;
     }
 
-    public function setType(?Type $type): self {
+    public function setType(Type $type): self {
         $this->type = $type;
 
         return $this;
@@ -184,12 +182,12 @@ abstract class Emergency
         return $this;
     }
 
-    public function getProvider(): ?Fournisseur {
-        return $this->provider;
+    public function getSupplier(): ?Fournisseur {
+        return $this->supplier;
     }
 
-    public function setProvider(?Fournisseur $provider): self {
-        $this->provider = $provider;
+    public function setSupplier(?Fournisseur $supplier): self {
+        $this->supplier = $supplier;
 
         return $this;
     }

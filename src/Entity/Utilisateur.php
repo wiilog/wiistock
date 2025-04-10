@@ -368,10 +368,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Emergency::class)]
-    private Collection $emergencies;
-
-    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)] // TODO WIIS-12642
     private Collection $urgences;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]
@@ -532,7 +529,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
-        $this->emergencies = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
@@ -942,34 +938,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             // set the owning side to null (unless already changed)
             if($ordreCollecte->getUtilisateur() === $this) {
                 $ordreCollecte->setUtilisateur(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Emergency[]
-     */
-    public function getEmergencies(): Collection {
-        return $this->emergencies;
-    }
-
-    public function addEmergency(Emergency $emergency): self {
-        if(!$this->emergencies->contains($emergency)) {
-            $this->emergencies[] = $emergency;
-            $emergency->setBuyer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmergency(Emergency $emergency): self {
-        if($this->emergencies->contains($emergency)) {
-            $this->emergencies->removeElement($emergency);
-            // set the owning side to null (unless already changed)
-            if($emergency->getBuyer() === $this) {
-                $emergency->setBuyer(null);
             }
         }
 

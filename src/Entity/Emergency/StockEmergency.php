@@ -3,57 +3,44 @@
 namespace App\Entity\Emergency;
 
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
-use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
-use App\Repository\StockEmergencyRepository;
+use App\Repository\Emergency\StockEmergencyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockEmergencyRepository::class)]
-class StockEmergency extends Emergency
-{
-    #[ORM\Column(type: TYPES::STRING, length: 255)]
+class StockEmergency extends Emergency {
+    #[ORM\Column(type: TYPES::STRING, length: 255, nullable: false, enumType: EmergencyTriggerEnum::class)]
     private ?string $emergencyTrigger = null;
 
     /**
-     * @var Collection<int, ReferenceArticle>
+     * @var Collection<int, ReceptionReferenceArticle>
      */
-    #[ORM\OneToMany(mappedBy: 'stockEmergency', targetEntity: ReceptionReferenceArticle::class)]
-    private Collection $receptionReferenceArticle;
-
-    #[ORM\OneToOne(targetEntity: Reception::class)]
-    #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?Reception $lastReception = null;
-
-    #[ORM\ManyToOne(targetEntity: Reception::class)]
-    #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?ReferenceArticle $reference = null;
+    #[ORM\ManyToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'stockEmergency')]
+    private Collection $receptionReferenceArticles;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $quantity = null;
+    private ?int $expectedQuantity = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $quantityAlreadyReceived = null;
 
-    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'stockEmergencies')]
-    private ?Emplacement $location = null;
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Emplacement $expectedLocation = null;
 
-    public function __construct()
-    {
-        $this->receptionReferenceArticle = new ArrayCollection();
+    public function __construct() {
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
-    public function getEmergencyTrigger(): ?string
-    {
+    public function getEmergencyTrigger(): ?string {
         return $this->emergencyTrigger;
     }
 
-    public function setEmergencyTrigger(string $emergencyTrigger): self
-    {
+    public function setEmergencyTrigger(string $emergencyTrigger): self {
         $this->emergencyTrigger = $emergencyTrigger;
 
         return $this;
@@ -62,89 +49,50 @@ class StockEmergency extends Emergency
     /**
      * @return Collection<int, ReferenceArticle>
      */
-    public function getReceptionReferenceArticle(): Collection
-    {
-        return $this->receptionReferenceArticle;
+    public function getReceptionReferenceArticle(): Collection {
+        return $this->receptionReferenceArticles;
     }
 
-    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
-        if (!$this->receptionReferenceArticle->contains($receptionReferenceArticle)) {
-            $this->receptionReferenceArticle[] = $receptionReferenceArticle;
-            $receptionReferenceArticle->setStockEmergency($this);
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
         }
 
         return $this;
     }
 
-    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
-        if ($this->receptionReferenceArticle->removeElement($receptionReferenceArticle)) {
-            // set the owning side to null (unless already changed)
-            if ($receptionReferenceArticle->getStockEmergency() === $this) {
-                $receptionReferenceArticle->setStockEmergency(null);
-            }
-        }
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
+        $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
 
         return $this;
     }
 
-    public function getLastReception(): ?Reception
-    {
-        return $this->lastReception;
+    public function getExpectedQuantity(): ?int {
+        return $this->expectedQuantity;
     }
 
-    public function setLastReception(?Reception $lastReception): self
-    {
-        $this->lastReception = $lastReception;
+    public function setExpectedQuantity(?int $expectedQuantity): self {
+        $this->expectedQuantity = $expectedQuantity;
 
         return $this;
     }
 
-    public function getReference(): ?ReferenceArticle
-    {
-        return $this->reference;
-    }
-
-    public function setReference(?ReferenceArticle $reference): self
-    {
-        $this->reference = $reference;
-
-        return $this;
-    }
-
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
-    }
-
-    public function setQuantity(?int $quantity): self
-    {
-        $this->quantity = $quantity;
-
-        return $this;
-    }
-
-    public function getQuantityAlreadyReceived(): ?int
-    {
+    public function getQuantityAlreadyReceived(): ?int {
         return $this->quantityAlreadyReceived;
     }
 
-    public function setQuantityAlreadyReceived(?int $quantityAlreadyReceived): self
-    {
+    public function setQuantityAlreadyReceived(?int $quantityAlreadyReceived): self {
         $this->quantityAlreadyReceived = $quantityAlreadyReceived;
 
         return $this;
     }
 
-    public function getLocation(): ?Emplacement
-    {
-        return $this->location;
+    public function getExpectedLocation(): ?Emplacement {
+        return $this->expectedLocation;
     }
 
-    public function setLocation(?Emplacement $location): self
-    {
-        $this->location = $location;
+    public function setExpectedLocation(?Emplacement $expectedLocation): self {
+        $this->expectedLocation = $expectedLocation;
 
         return $this;
     }

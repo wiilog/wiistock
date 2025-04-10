@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Emergency;
 
 
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends @extends EntityRepository<TagTemplate>
+ * @extends EntityRepository<TrackingEmergencyRepository>
  */
 class TrackingEmergencyRepository extends EntityRepository {
 

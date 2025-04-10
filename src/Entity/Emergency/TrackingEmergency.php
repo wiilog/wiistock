@@ -3,7 +3,7 @@
 namespace App\Entity\Emergency;
 
 use App\Entity\Arrivage;
-use App\Repository\TrackingEmergencyRepository;
+use App\Repository\Emergency\TrackingEmergencyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -15,11 +15,8 @@ class TrackingEmergency extends Emergency
     /**
      * @var Collection<int, Arrivage>
      */
-    #[ORM\OneToMany(mappedBy: 'trackingEmergency', targetEntity: Arrivage::class)]
+    #[ORM\ManyToMany(mappedBy: 'trackingEmergency', targetEntity: Arrivage::class)]
     private Collection $arrivals;
-
-    #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'emergencies')]
-    private ?Arrivage $lastArrival = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $postNumber = null;
@@ -44,7 +41,7 @@ class TrackingEmergency extends Emergency
     public function addArrival(Arrivage $arrival): self {
         if (!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
-            $arrival->setTrackingEmergency($this);
+            $arrival->addTrackingEmergency($this);
         }
 
         return $this;
@@ -52,17 +49,14 @@ class TrackingEmergency extends Emergency
 
     public function removeArrival(Arrivage $arrival): self {
         if ($this->arrivals->removeElement($arrival)) {
-            // set the owning side to null (unless already changed)
-            if ($arrival->getTrackingEmergency() === $this) {
-                $arrival->setTrackingEmergency(null);
-            }
+                $arrival->removeTrackingEmergency($this);
         }
 
         return $this;
     }
 
     public function setArrivals(?iterable $arrivals): self {
-        foreach ($this->getArrivals()->toArray() as $arrival){
+        foreach($this->getArrivals()->toArray() as $arrival) {
             $this->removeArrival($arrival);
         }
 
@@ -70,16 +64,6 @@ class TrackingEmergency extends Emergency
         foreach ($arrivals ?? [] as $arrival){
             $this->addArrival($arrival);
         }
-
-        return $this;
-    }
-
-    public function getLastArrival(): ?Arrivage {
-        return $this->lastArrival;
-    }
-
-    public function setLastArrival(?Arrivage $lastArrival): self {
-        $this->lastArrival = $lastArrival;
 
         return $this;
     }

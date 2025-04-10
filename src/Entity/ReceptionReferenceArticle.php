@@ -62,8 +62,8 @@ class ReceptionReferenceArticle {
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?string $unitPrice = null;
 
-    #[ORM\ManyToOne(inversedBy: 'receptionReferenceArticle')]
-    private ?StockEmergency $stockEmergency = null;
+    #[ORM\ManyToMany(targetEntity:StockEmergency::class, inversedBy: 'receptionReferenceArticle')]
+    private Collection $stockEmergencies;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -264,16 +264,40 @@ class ReceptionReferenceArticle {
         return $this;
     }
 
-    public function getStockEmergency(): ?StockEmergency
-    {
-        return $this->stockEmergency;
+    /**
+     * @return Collection<int, StockEmergency>
+     */
+    public function getStockEmergencies(): Collection {
+        return $this->stockEmergencies;
     }
 
-    public function setStockEmergency(?StockEmergency $stockEmergency): self
-    {
-        $this->stockEmergency = $stockEmergency;
+    public function addStockEmergency(StockEmergency $stockEmergency): self {
+        if (!$this->stockEmergencies->contains($stockEmergency)) {
+            $this->stockEmergencies[] = $stockEmergency;
+            $stockEmergency->addReceptionReferenceArticle($this);
+        }
 
         return $this;
     }
 
+    public function removeStockEmergency(StockEmergency $stockEmergency): self {
+        if ($this->stockEmergencies->removeElement($stockEmergency)) {
+            $stockEmergency->removeReceptionReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function setStockEmergencies(?iterable $stockEmergencies): self {
+        foreach($this->getStockEmergencies()->toArray() as $stockEmergencies) {
+            $this->removeStockEmergency($stockEmergencies);
+        }
+
+        $this->stockEmergencies = new ArrayCollection();
+        foreach($stockEmergencies ?? [] as $stockEmergency) {
+            $this->addStockEmergency($stockEmergency);
+        }
+
+        return $this;
+    }
 }

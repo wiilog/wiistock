@@ -117,7 +117,8 @@ class ArrivageService {
         }
 
         $acheteursUsernames = [];
-        foreach ($arrival->getAcheteurs()->filter(fn($acheteur) => $acheteur) as $acheteur) {
+        $buyers = Stream::from($arrival->getAcheteurs());
+        foreach ($buyers->filter(fn($acheteur) => $acheteur) as $acheteur) {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
@@ -527,7 +528,9 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)'),
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray()) : '',
+                'value' => count($buyers) > 0
+                    ? implode(', ', Stream::from($buyers)->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray())
+                    : '',
                 'show' => ['fieldName' => 'acheteurs'],
                 'isRaw' => true
             ],
