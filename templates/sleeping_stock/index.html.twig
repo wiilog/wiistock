@@ -12,6 +12,20 @@
     <div class="m-4 wii-page-card">
         <div class="row">
             <div class="col-12">
+                <p class="text-center h4">
+                    {{ trans(
+                        'Stock',
+                        'Références',
+                        "Général",
+                        "En tant que gestionnaires des articles présents dans cette liste, vous devez choisir une action parmi les options à gauche de chaque article puis cliquer sur le bouton valider en bas de la page pour gérer votre stock.",
+                    ) }}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="m-4 wii-page-card">
+        <div class="row">
+            <div class="col-12">
                 <table id="tableSleepingStockForm" class="table w-100" data-initial-data="{{ datatableInitialData }}">
                 </table>
             </div>

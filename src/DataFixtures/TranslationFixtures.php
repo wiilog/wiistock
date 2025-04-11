@@ -3075,7 +3075,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Code barre",
                             "en" => "Barcode"
-                        ]
+                        ],
+                        [
+                            "fr" => "En tant que gestionnaires des articles présents dans cette liste, vous devez choisir une action parmi les options à gauche de chaque article puis cliquer sur le bouton valider en bas de la page pour gérer votre stock.",
+                            "en" => "As managers of the articles in this list, you must choose an action from the options to the left of each article, then click on the validate button at the bottom of the page to manage your stock."
+                        ],
                     ],
                 ],
                 "Email stock dormant" => [

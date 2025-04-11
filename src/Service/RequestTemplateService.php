@@ -23,9 +23,8 @@ use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLineArticle;
 use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
-use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
-use App\Repository\StatutRepository;
+use App\Service\UserService;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,6 +41,7 @@ class RequestTemplateService {
         private StatusHistoryService   $statusHistoryService,
         private DeliveryRequestService $deliveryRequestService,
         private CacheService           $cacheService,
+        private UserService            $userService,
     ) {}
 
     public function getType(string $type): ?Type {
@@ -186,6 +186,7 @@ class RequestTemplateService {
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
+            ->setUtilisateur($this->userService->getUser())
             ->setFreeFields($requestTemplate->getFreeFields());
 
         foreach ($requestTemplate->getLines() as $requestTemplateLine) {
