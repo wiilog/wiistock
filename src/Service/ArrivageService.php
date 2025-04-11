@@ -116,11 +116,9 @@ class ArrivageService {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
-        $acheteursUsernames = [];
-        $buyers = Stream::from($arrival->getAcheteurs());
-        foreach ($buyers->filter(fn($acheteur) => $acheteur) as $acheteur) {
-            $acheteursUsernames[] = $acheteur->getUsername();
-        }
+        $buyerUsernames = Stream::from($arrival->getAcheteurs())
+            ->filterMap(fn($buyer) => $buyer->getUsername())
+            ->toArray();
 
         $row = [
             'id' => $arrivalId,
@@ -139,7 +137,7 @@ class ArrivageService {
             'receivers' => Stream::from($arrival->getReceivers())
                 ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))
                 ->join(", "),
-            'buyers' => implode(', ', $acheteursUsernames),
+            'buyers' => implode(', ', $buyerUsernames),
             'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
