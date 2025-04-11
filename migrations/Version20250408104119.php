@@ -15,11 +15,7 @@ use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-/**
- * Auto-generated Migration: Please modify to your needs!
- */
-final class Version20250408104119 extends AbstractMigration implements ContainerAwareInterface {
-    use ContainerAwareTrait;
+final class Version20250408104119 extends AbstractMigration {
     public function getDescription(): string {
         return 'Migrate fixedFieldStandard to FixedFieldByType';
     }
