@@ -25,7 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(fields: ["createdAt"])]
 #[ORM\Index(fields: ["closedAt"])]
 #[ORM\Index(fields: ["endEmergencyCriteria"])]
-#[ORM\Index(fields: ["discr"])]
+#[ORM\Index(columns: ["discr"])] // columns instead of fields because discr column is not in the entity
 abstract class Emergency {
 
     use FreeFieldsManagerTrait;
