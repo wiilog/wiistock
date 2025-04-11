@@ -21,6 +21,7 @@ import {
     createHandlingFreeFieldsPage,
     createDeliveryRequestFieldsPage,
     createProductionFreeFieldsPage,
+    createTrackingEmergenciesFreeFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -123,6 +124,7 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     //urgences
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
+    trace_urgences_types_champs_libres: createTrackingEmergenciesFreeFieldsPage,
 
     // PRODUCTION
     production_parametrage_complet_statuts: initializeProductionStatuses,

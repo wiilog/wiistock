@@ -428,14 +428,18 @@ class SettingsController extends AbstractController {
                     "label" => "Urgences",
                     "right" => Action::SETTINGS_DISPLAY_EMERGENCIES,
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => [
-                            "label" => "Configurations",
-                            "save" => true,
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false
                         ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
                             "discard" => true,
+                        ],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
                         ],
                     ],
                 ],
@@ -1559,6 +1563,10 @@ class SettingsController extends AbstractController {
                     self::MENU_FIXED_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::TRACKING_EMERGENCY),
                     ],
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        "types" => $this->typeGenerator(CategoryType::TRACKING_EMERGENCY),
+                        "category" => CategoryType::TRACKING_EMERGENCY,
+                    ],
                 ],
             ],
             self::CATEGORY_PRODUCTION => [
@@ -2192,7 +2200,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY])) {
                 $inputId = rand(0, 1000000);
 
                 $data[] = [
@@ -2376,7 +2384,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $formService->macro("switch", "isDefault", null, true, [
@@ -2468,7 +2476,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION, CategoryType::TRACKING_EMERGENCY])) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
@@ -2569,7 +2577,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE, CategoryType::TRACKING_EMERGENCY])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type?->isDefault()) ?: "Non",

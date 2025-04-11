@@ -35,6 +35,7 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA,
             CategorieCL::SENSOR => CategoryType::SENSOR,
             CategorieCL::PRODUCTION_REQUEST => CategoryType::PRODUCTION,
+            CategorieCL::TRACKING_EMERGENCY => CategoryType::TRACKING_EMERGENCY,
         ];
         foreach ($categoriesNames as $index => $categorieName) {
             $categorie = $categorieCLRepository->findOneBy(['label' => $index]);
