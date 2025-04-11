@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Controller\FieldModesController;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
@@ -367,8 +368,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
-    private Collection $emergencies;
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)] // TODO WIIS-12642
+    private Collection $urgences;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]
     private Collection $arrivagesAcheteur;
@@ -528,7 +529,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
-        $this->emergencies = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
@@ -938,34 +938,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             // set the owning side to null (unless already changed)
             if($ordreCollecte->getUtilisateur() === $this) {
                 $ordreCollecte->setUtilisateur(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Urgence[]
-     */
-    public function getEmergencies(): Collection {
-        return $this->emergencies;
-    }
-
-    public function addEmergency(Urgence $urgence): self {
-        if(!$this->emergencies->contains($urgence)) {
-            $this->emergencies[] = $urgence;
-            $urgence->setBuyer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmergency(Urgence $urgence): self {
-        if($this->emergencies->contains($urgence)) {
-            $this->emergencies->removeElement($urgence);
-            // set the owning side to null (unless already changed)
-            if($urgence->getBuyer() === $this) {
-                $urgence->setBuyer(null);
             }
         }
 

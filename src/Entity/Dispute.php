@@ -12,7 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
-#[ORM\Index(fields: ["creationDate"], name: "IDX_WIILOG_CREATION_DATE")]
+#[ORM\Index(fields: ["creationDate"])]
 class Dispute implements AttachmentContainer {
 
     use AttachmentTrait;

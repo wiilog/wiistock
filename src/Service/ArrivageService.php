@@ -116,11 +116,6 @@ class ArrivageService {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
-        $acheteursUsernames = [];
-        foreach ($arrival->getAcheteurs()->filter(fn($acheteur) => $acheteur) as $acheteur) {
-            $acheteursUsernames[] = $acheteur->getUsername();
-        }
-
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
@@ -138,7 +133,9 @@ class ArrivageService {
             'receivers' => Stream::from($arrival->getReceivers())
                 ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))
                 ->join(", "),
-            'buyers' => implode(', ', $acheteursUsernames),
+            'buyers' => Stream::from($arrival->getAcheteurs())
+                ->filterMap(static fn(Utilisateur $buyer) => $buyer->getUsername())
+                ->join(', '),
             'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
@@ -527,7 +524,9 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)'),
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray()) : '',
+                'value' => count($buyers) > 0
+                    ? implode(', ', Stream::from($buyers)->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray())
+                    : '',
                 'show' => ['fieldName' => 'acheteurs'],
                 'isRaw' => true
             ],

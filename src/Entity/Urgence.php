@@ -32,13 +32,13 @@ class Urgence {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $commande = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'emergencies')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'urgences')]
     private ?Utilisateur $buyer = null;
 
-    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'emergencies')]
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'urgences')]
     private ?Fournisseur $provider = null;
 
-    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'emergencies')]
+    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'urgences')]
     private ?Transporteur $carrier = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
