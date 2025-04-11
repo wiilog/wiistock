@@ -23,6 +23,7 @@ class CategorieCL {
     const DELIVERY_TRANSPORT = CategoryType::DELIVERY_TRANSPORT;
     const COLLECT_TRANSPORT = CategoryType::COLLECT_TRANSPORT;
     const PRODUCTION_REQUEST = 'production';
+    const TRACKING_EMERGENCY = CategoryType::TRACKING_EMERGENCY;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
