@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -279,5 +280,40 @@ class TruckArrivalRepository extends EntityRepository
             ->getQuery()
             ->getArrayResult();
 
+    }
+
+    /**
+     * @param array{locations: Emplacement[], countNoLinkedTruckArrival: boolean} $options
+     */
+    public function countUnassociatedLines(array $options = []) {
+        $qb = $this->createQueryBuilder('truck_arrival');
+
+        $qb->select('COUNT(truck_arrival.id)');
+
+        if($options['countNoLinkedTruckArrival']) {
+            $qb->leftJoin('truck_arrival.trackingLines', 'join_lines');
+        } else {
+            $qb->innerJoin('truck_arrival.trackingLines', 'join_lines');
+        }
+
+        $qb
+            ->leftJoin('join_lines.arrivals', 'arrivals')
+            ->leftJoin('join_lines.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
+            ->andWhere('arrivals.id IS NULL')
+            ->andWhere($qb->expr()->orX(
+                "join_reserveType.disableTrackingNumber IS NULL",
+                "join_reserveType.disableTrackingNumber = 0"
+            ));
+
+        if(!empty($options['locations'])) {
+            $qb
+                ->andWhere('truck_arrival.unloadingLocation IN (:locations)')
+                ->setParameter('locations', $options['locations']);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
