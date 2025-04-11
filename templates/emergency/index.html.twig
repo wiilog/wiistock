@@ -1,0 +1,17 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ trans('Qualité & Urgences', 'Litiges', 'Litiges') }} | {{ trans('Qualité & Urgences', 'Urgences', 'Urgences') }}{% endblock %}
+{% block title_tooltip %}Qualité & Urgences | Urgences{% endblock %}
+
+{% block page_filter %}
+
+{% endblock %}
+
+{% block page_content %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('emergency-index') }}
+{% endblock %}

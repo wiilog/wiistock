@@ -26,18 +26,18 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/urgences')]
 class UrgencesController extends AbstractController
 {
-    #[Route('/', name: 'emergency_index')]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE])]
-    public function index(EntityManagerInterface $entityManager)
-    {
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-
-        return $this->render('urgence/index.html.twig', [
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
-            'newEmergency' => new Urgence(),
-            'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
-        ]);
-    }
+//    #[Route('/', name: 'emergency_index')]
+//    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE])]
+//    public function index(EntityManagerInterface $entityManager)
+//    {
+//        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+//
+//        return $this->render('urgence/index.html.twig', [
+//            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
+//            'newEmergency' => new Urgence(),
+//            'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
+//        ]);
+//    }
 
     #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]

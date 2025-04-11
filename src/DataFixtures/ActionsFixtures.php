@@ -108,6 +108,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
         ],
         Menu::QUALI => [
+            Action::DISPLAY_URGE,
             Action::DISPLAY_LITI,
             Action::CREATE,
             Action::EDIT,
