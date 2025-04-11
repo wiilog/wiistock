@@ -73,8 +73,12 @@ class CacheService {
      * Delete requested item in the cache.
      */
     public function delete(string $namespace, ?string $key = null): void {
-        $cacheKey = $this->getCacheKey($namespace, $key ?? '');
-        $this->cache->delete($cacheKey);
+        if ($key === null) {
+            $this->clear();
+        } else {
+            $cacheKey = $this->getCacheKey($namespace, $key ?? '');
+            $this->cache->delete($cacheKey);
+        }
     }
 
     /**
