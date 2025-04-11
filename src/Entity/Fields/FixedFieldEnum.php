@@ -80,6 +80,10 @@ enum FixedFieldEnum: string
     case unloadingLocation = "Emplacement de déchargement";
     case supplier = "Fournisseur";
     case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
+    case buyer = "Acheteur";
+    case postNumber = "N° de poste";
+    case internalArticleCode = "Code article interne";
+    case supplierArticleCode = "Code article fournisseur";
 
     public static function fromCase(string $case): string|null {
         try {

@@ -30,6 +30,7 @@ class CategoryType {
     const SESSION_HISTORY = 'Historique de session';
     const IMPORT = 'import';
     const PRODUCTION = 'production';
+    const TRACKING_EMERGENCY = 'urgences trace';
     const STOCK_EMERGENCY = 'urgences stock';
 
     public const ALL = [

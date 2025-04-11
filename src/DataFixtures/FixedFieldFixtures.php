@@ -3,7 +3,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
@@ -161,7 +160,17 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true],
                 ['code' => FixedFieldEnum::attachments->name, 'label' => FixedFieldEnum::attachments->value, 'displayedCreate' => true, 'displayedEdit' => true],
                 ['code' => FixedFieldEnum::expectedEmergencyLocation->name, 'label' => FixedFieldEnum::expectedEmergencyLocation->value, 'displayedCreate' => true, 'displayedEdit' => true],
-            ]
+            ],
+            FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY => [
+                ['code' => FixedFieldEnum::buyer->name, 'label' => FixedFieldEnum::buyer->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::supplier->name, 'label' => FixedFieldEnum::supplier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::orderNumber->name, 'label' => FixedFieldEnum::orderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::postNumber->name, 'label' => FixedFieldEnum::postNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::internalArticleCode->name, 'label' => FixedFieldEnum::internalArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false],
+                ['code' => FixedFieldEnum::supplierArticleCode->name, 'label' => FixedFieldEnum::supplierArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false],
+            ],
         ];
 
         $fieldsParamStandardRepository = $manager->getRepository(FixedFieldStandard::class);
@@ -244,9 +253,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         foreach($fixedFieldByType as $fieldEntity => $listFieldCodes) {
-            $categoryType = $fieldEntity == FixedFieldStandard::ENTITY_CODE_DISPATCH ? CategoryType::DEMANDE_DISPATCH : null;
-
-            $typeRepository->findByCategoryLabels([$categoryType]);
             $entityTypes = $typeRepository->findByCategoryLabels([$fieldEntity]);
             $entityTypes = new ArrayCollection($entityTypes);
             $emptyCollection = new ArrayCollection();

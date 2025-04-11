@@ -219,6 +219,7 @@ class FixedFieldStandard extends FixedField {
 
     const ENTITY_CODE_PRODUCTION = 'production';
     const ENTITY_CODE_STOCK_EMERGENCY = 'stockEmergency';
+    const ENTITY_CODE_TRACKING_EMERGENCY = 'trackingEmergency';
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $requiredCreate = null;
