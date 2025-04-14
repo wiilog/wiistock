@@ -49,7 +49,7 @@ enum FixedFieldEnum: string
     case urgent = "Urgent";
     case code = "Code";
     case possibleCustoms = "Douanes possible";
-    case orderNumber = "N° commande";
+    case orderNumber = "N° de commande";
     case destination = "Destination";
     case customerName = "Client";
     case customerPhone = "Téléphone client";
@@ -81,9 +81,12 @@ enum FixedFieldEnum: string
     case supplier = "Fournisseur";
     case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
     case buyer = "Acheteur";
-    case postNumber = "N° de poste";
+    case postNumber = "N° poste";
     case internalArticleCode = "Code article interne";
     case supplierArticleCode = "Code article fournisseur";
+    case reference = "Référence";
+    case dateStart = "Date de début";
+    case dateEnd = "Date de fin";
 
     public static function fromCase(string $case): string|null {
         try {

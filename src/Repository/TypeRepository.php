@@ -275,4 +275,19 @@ class TypeRepository extends EntityRepository {
         return QueryBuilderHelper::count($queryBuilder, 'type');
     }
 
+    public function countDefaultTypeByCategoryTypeLabels(array $categoryLabels, Type $type): int
+    {
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label IN (:category)')
+            ->andWhere('type.defaultType = 1')
+            ->andWhere('type.id != :typeId')
+            ->setParameters([
+                "category" => $categoryLabels,
+                "typeId" => $type->getId(),
+            ]);
+
+        return QueryBuilderHelper::count($queryBuilder, 'type');
+    }
+
 }

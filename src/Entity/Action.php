@@ -45,6 +45,8 @@ class Action {
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
     const TREAT_DISPUTE = 'traiter les litiges';
+
+    const EXPORT_EMERGENCIES = 'exporter les urgences';
     // menu demande
     const DISPLAY_TRANSFER_REQ = 'afficher transferts';
     const DISPLAY_DEM_LIVR = 'afficher livraisons';

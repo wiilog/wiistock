@@ -50,28 +50,6 @@
             </div>
         </div>
     </div>
-
-    {% include 'urgence/modalNewEmergency.html.twig' with {
-        'emergency': newEmergency,
-        'fieldsParam': fieldsParam,
-    } %}
-
-    {% include 'urgence/modalDeleteUrgence.html.twig' %}
-
-    {% include 'utils/modal/empty-modal.html.twig' with {
-        id: 'modalEditEmergency',
-        size: 'modal-lg',
-        header: {
-            title: trans('Traçabilité', 'Urgences', 'Modifier une urgence')
-        },
-        footer: {
-            elements: [
-                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
-            ],
-        }
-    } %}
-
 {% endblock %}
 
 {% block javascripts %}

@@ -3,8 +3,10 @@
 namespace App\Entity\Emergency;
 
 use App\Entity\Emplacement;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Traits\AttachmentTrait;
 use App\Repository\Emergency\StockEmergencyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,8 +15,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockEmergencyRepository::class)]
 #[ORM\Index(fields: ["emergencyTrigger"])]
-class StockEmergency extends Emergency {
+class StockEmergency extends Emergency implements AttachmentContainer {
 
+    use AttachmentTrait;
     #[ORM\Column(type: Types::STRING, nullable: false, enumType: EmergencyTriggerEnum::class)]
     private ?EmergencyTriggerEnum $emergencyTrigger = null;
 
@@ -28,6 +31,10 @@ class StockEmergency extends Emergency {
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $expectedLocation = null;
 
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ReferenceArticle $referenceArticle = null;
+
     /**
      * @var Collection<int, ReceptionReferenceArticle>
      */
@@ -35,6 +42,7 @@ class StockEmergency extends Emergency {
     private Collection $receptionReferenceArticles;
 
     public function __construct() {
+        $this->attachments = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
     }
 
@@ -95,6 +103,16 @@ class StockEmergency extends Emergency {
 
     public function setExpectedLocation(?Emplacement $expectedLocation): self {
         $this->expectedLocation = $expectedLocation;
+
+        return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle {
+        return $this->referenceArticle;
+    }
+
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticle = $referenceArticle;
 
         return $this;
     }
