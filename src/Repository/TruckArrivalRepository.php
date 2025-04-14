@@ -283,36 +283,41 @@ class TruckArrivalRepository extends EntityRepository
     }
 
     /**
-     * @param array{locations: Emplacement[], countNoLinkedTruckArrival: boolean} $options
+     * @param array{
+     *     locations: Emplacement[],
+     *     countNoLinkedTruckArrival: boolean,
+     * } $options
      */
-    public function countUnassociatedLines(array $options = []) {
-        $qb = $this->createQueryBuilder('truck_arrival');
+    public function countUnassociatedLines(array $options = []): int {
+        $queryBuilder = $this->createQueryBuilder('truck_arrival');
 
-        $qb->select('COUNT(truck_arrival.id)');
+        $queryBuilder->select('COUNT(truck_arrival.id)');
 
         if($options['countNoLinkedTruckArrival']) {
-            $qb->leftJoin('truck_arrival.trackingLines', 'join_lines');
+            // we count truck arrival lines AND truck arrival without any line as 1
+            $queryBuilder->leftJoin('truck_arrival.trackingLines', 'join_lines');
         } else {
-            $qb->innerJoin('truck_arrival.trackingLines', 'join_lines');
+            // we only count truck arrival lines
+            $queryBuilder->innerJoin('truck_arrival.trackingLines', 'join_lines');
         }
 
-        $qb
-            ->leftJoin('join_lines.arrivals', 'arrivals')
+        $queryBuilder
+            ->leftJoin('join_lines.arrivals', 'arrival')
             ->leftJoin('join_lines.reserve', 'join_reserve')
             ->leftJoin('join_reserve.reserveType', 'join_reserveType')
-            ->andWhere('arrivals.id IS NULL')
-            ->andWhere($qb->expr()->orX(
+            ->andWhere('arrival.id IS NULL')
+            ->andWhere($queryBuilder->expr()->orX(
                 "join_reserveType.disableTrackingNumber IS NULL",
-                "join_reserveType.disableTrackingNumber = 0"
+                "join_reserveType.disableTrackingNumber = false"
             ));
 
         if(!empty($options['locations'])) {
-            $qb
+            $queryBuilder
                 ->andWhere('truck_arrival.unloadingLocation IN (:locations)')
                 ->setParameter('locations', $options['locations']);
         }
 
-        return $qb
+        return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
     }
