@@ -4,7 +4,9 @@ namespace App\Service\Dashboard\DashboardComponentGenerator;
 
 use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
+use App\Entity\Emplacement;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
@@ -25,15 +27,21 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
                             Dashboard\Component    $component): void {
         $config = $component->getConfig();
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $lineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers'] ?? []);
 
         $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $meter->setSubtitle($this->formatService->carriers($carriers) ?: '-');
         $meter->setCount(0);
         if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
-            $unassociatedLines = $lineRepository->getUnassociatedLines();
-            $meter->setCount(count($unassociatedLines));
+            $locations = !empty($config['locations']) ? $locationRepository->findBy(["id" => $config['locations']]) : [];
+
+            $unassociatedLines = $truckArrivalRepository->countUnassociatedLines([
+                'locations' => $locations,
+                'countNoLinkedTruckArrival' => isset($config['countNoLinkedTruckArrival']) && $config['countNoLinkedTruckArrival'],
+            ]);
+            $meter->setCount($unassociatedLines);
 
             if (isset($config['displayLateLines']) && $config['displayLateLines']) {
                 $lateLines = Stream::from($unassociatedLines)

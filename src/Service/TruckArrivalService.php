@@ -54,7 +54,22 @@ class TruckArrivalService
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
+        $params = $request->request;
+        $fromDashboard = $params->getBoolean("fromDashboard");
+        $countNoLinkedTruckArrival = $params->getBoolean("countNoLinkedTruckArrival");
+        $carrierTrackingNumberNotAssigned = $params->getBoolean("carrierTrackingNumberNotAssigned");
+        $locationsFilter = $params->all("locations");
+
+        if($fromDashboard) {
+            $filters = [
+                ...($locationsFilter ? [["field" => "unloadingLocation", "value" => $locationsFilter]] : []),
+                ...($carrierTrackingNumberNotAssigned && !$countNoLinkedTruckArrival ? [["field" => "carrierTrackingNumberNotAssigned", "value" => true]] : []),
+                ...($countNoLinkedTruckArrival ? [["field" => "countNoLinkedTruckArrival", "value" => true]] : []),
+            ];
+        } else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
+        }
+
         $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->fieldModesService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) use ($entityManager) {
