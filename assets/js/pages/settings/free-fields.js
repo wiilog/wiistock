@@ -16,6 +16,7 @@ const MODE_DELIVERY_REQUEST = `delivery_request`;
 const MODE_PRODUCTION = `production`;
 const MODE_RECEPTION = `reception`;
 const MODE_TRACKING_EMERGENCY = `tracking_emergency`;
+const MODE_STOCK_EMERGENCY = `stock_emergency`;
 
 const TEXT_TYPING = `text`;
 const NUMBER_TYPING = `number`;
@@ -190,6 +191,10 @@ export function createDeliveryRequestFieldsPage($container, canEdit) {
 
 export function createProductionFreeFieldsPage($container, canEdit) {
     createFreeFieldsPage($container, canEdit, MODE_PRODUCTION);
+}
+
+export function createStockEmergenciesFreeFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_STOCK_EMERGENCY);
 }
 
 export function createTrackingEmergenciesFreeFieldsPage($container, canEdit) {

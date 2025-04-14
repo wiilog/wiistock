@@ -1,5 +1,5 @@
 import '@styles/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD } from "../../editatable";
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
@@ -22,6 +22,7 @@ import {
     createDeliveryRequestFieldsPage,
     createProductionFreeFieldsPage,
     createTrackingEmergenciesFreeFieldsPage,
+    createStockEmergenciesFreeFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -78,8 +79,8 @@ const initializers = {
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     stock_articles_alerte_stock_dormant: initializeSleepingStockSettingPage,
     //urgences
-    stock_urgence_stock_champs_fixes: initializeProductionFixedFields,
     stock_urgence_stock_champs_fixes: initializeStockEmergencyFixedFields,
+    stock_urgence_stock_types_champs_libres: createStockEmergenciesFreeFieldsPage,
     //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
