@@ -213,8 +213,11 @@ class HandlingController extends AbstractController {
         $handling = new Handling();
         $date = new DateTime('now');
 
-        $status = $statutRepository->find($data->get('status'));
-        $type = $typeRepository->find($data->get('type'));
+        //$status = $statutRepository->find($data->get('status'));
+        $status = $statutRepository->find($data->get(FixedFieldEnum::status->name));
+        //$type = $typeRepository->find($data->get('type'));
+        $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
+
         $currentUser = $this->getUser();
 
         if (!empty($currentUser->getHandlingTypeIds())
@@ -232,7 +235,7 @@ class HandlingController extends AbstractController {
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
-        $carriedOutOperationCount = $data->get('carriedOutOperationCount');
+        $carriedOutOperationCount = $data->getInt('carriedOutOperationCount');
 
         $handling
             ->setNumber($handlingNumber)
@@ -246,7 +249,7 @@ class HandlingController extends AbstractController {
             ->setDesiredDate($desiredDate)
             ->setComment($data->get('comment'))
             ->setEmergency($data->get('emergency'))
-            ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
+            ->setCarriedOutOperationCount($carriedOutOperationCount);
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
@@ -402,7 +405,6 @@ class HandlingController extends AbstractController {
                 $entityManager->remove($attachment);
             }
         }
-        $entityManager->flush();
         $entityManager->remove($handling);
         $entityManager->flush();
 
@@ -577,7 +579,6 @@ class HandlingController extends AbstractController {
 
         return $this->render('handling/editHandling.html.twig', [
             'handling' => $handling,
-            'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
             'emergencies' => $emergencies,
             'fieldsParam' => $fieldsParam,
             'receivers' => $receivers,
