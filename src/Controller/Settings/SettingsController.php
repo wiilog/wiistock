@@ -1206,7 +1206,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_STOCK => [
                 self::MENU_STOCK_EMERGENCY => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
-                        $types = $this->typeGenerator(CategoryType::STOCK_EMERGENCY, true);
+                        $types = $this->typeGenerator(CategoryType::STOCK_EMERGENCY);
                         return [
                             'types' => $types,
                             "category" => CategoryType::STOCK_EMERGENCY
