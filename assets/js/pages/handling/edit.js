@@ -13,17 +13,12 @@ $(function () {
     });
 
     initDatePickers();
-    $('#submitEditHandling').on('click', function () {
-        submitChanges($(this), handlingId);
-    });
-});
-
-function submitChanges($button) {
-    const $form = $(`.wii-form`);
-    clearFormErrors($form);
-    processSubmitAction($form, $button, $button.data(`submit`), {
+    Form.create('.wii-form').submitTo(POST,'handling_edit',{
+        routeParams: {
+            id: handlingId,
+        },
         success: data => {
             window.location = document.referrer;
         },
     });
-}
+});

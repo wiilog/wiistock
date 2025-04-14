@@ -22,20 +22,34 @@
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="type">{{ trans('Demande', 'Général', 'Statut') }}*</label>
-                        <select name="status" class="form-control data w-100 needed">
-                            <option value="">{{ trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false) }}</option>
-                            {% for status in handlingStatus %}
-                                {% if
-                                    (
-                                    status.state == constant('App\\Entity\\Statut::TREATED')
-                                    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
-                                    ) or status.state != constant('App\\Entity\\Statut::TREATED') %}
-                                    <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.labelIn(userLanguage, defaultLanguage)}}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::status') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        {% set right = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING')) %}
+                        {{ form.select(field.name, trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false), required, {
+                            items: handlingStatus
+                            | filter((status) =>
+                            (
+                            status.state == constant('App\\Entity\\Statut::TREATED')
+                            and right
+                            )
+                            or status.state != constant('App\\Entity\\Statut::TREATED')
+                            )
+                            | map((status) => {
+                                value: status.id,
+                                label: status.labelIn(userLanguage, defaultLanguage),
+                                class: 'd-none',
+                                'type-id': status.type.id
+                            }),
+                            emptyOption: {
+                                selected: true,
+                                text: trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false),
+                                value: ''
+                            }
+                        }) }}
+                        {% endif %}
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
+                        {{ form.hidden('defaultStatuses', defaultStatuses|json_encode ) }}
                         <div class="error-empty-status d-none">
                             {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],
@@ -68,16 +82,21 @@
                         <label class="data wii-body-text" value="{{ app.user.id }}">{{ app.user.username }}</label>
                     </div>
 
-                    <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
-                        <input type="text"
-                               name="desired-date"
-                               title="Date attendue"
-                               class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
-                               placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
-                               data-init="{{ preFill ? (setting_value('REMOVE_HOURS_DATETIME') ? "now"|date('Y-m-d') : "now"|date('Y-m-d H:i')) }}"
-                               autocomplete="off"/>
-                    </div>
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        {% set removeHours = setting_value('REMOVE_HOURS_DATETIME') %}
+                        {% set dateFormat = app.user.displayedDateFormat ~ (not removeHours ? ' hh:mm') %}
+                        {% set preFillDate = preFill ? (removeHours ? "now"|date('Y-m-d') : "now"|date('Y-m-d H:i')) %}
+
+                        <div class="form-group needed col-md-6 col-12">
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Date attendue'), required, preFillDate, {
+                                inputClass: removeHours ? 'date-field' : 'datetime-field',
+                                placeholder: dateFormat,
+                                autocompleteOff: true,
+                            }) }}
+                        </div>
+                    {% endif %}
 
                     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency') %}
                     {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
@@ -166,6 +185,14 @@
                         <div class="editor-container-new" data-wysiwyg>
                         </div>
                     </div>
+
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        <div class="form-group col-12">
+                            {{ form.wysiwyg(field.name, trans('Général', null, 'Modale', 'Commentaire'), required, null) }}
+                        </div>
+                    {% endif %}
                     <div class="form-group col-12">
                         {% include 'attachment/attachment.html.twig' with {
                             fieldNameClass: 'wii-field-name wii-field-name-sub',

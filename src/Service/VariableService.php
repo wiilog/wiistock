@@ -42,7 +42,7 @@ class VariableService
     public const HANDLING_TYPE = "typeservice";
 
     public const STATUS = "statut";
-    public const SUBJECT = "objet";
+    public const OBJECT = "objet";
     public const COLLECT_TYPE = "typecollecte";
     public const COLLECT_POINT = "pointdecollecte";
     public const ORIGIN = "origine";
@@ -103,7 +103,7 @@ class VariableService
         self::DESTINATION => "Mise en stock ou destruction",
         self::REQUESTER => "Utilisateur ayant créé la collecte",
         self::COLLECT_POINT => "Emplacement où collecter les références demandées",
-        self::SUBJECT => "Objet de la collecte",
+        self::OBJECT => "Objet de la collecte",
         self::VALIDATION_DATE => "Date de validation de la demande de collecte",
     ];
 
@@ -137,7 +137,7 @@ class VariableService
         self::REQUESTER => "Utilisateur ayant créé la demande de service",
         self::CREATION_DATE => "Date de création de la demande de service",
         self::EXPECTED_DATE => "Date attendue de la demande de service",
-        self::SUBJECT => "Objet de la demande de service",
+        self::OBJECT => "Objet de la demande de service",
         self::OPERATIONS_COUNT => "Nombre d'opérations à réaliser",
     ];
 
@@ -171,7 +171,7 @@ class VariableService
                 self::DESTINATION => $entity->getDemandeCollecte()->isStock() ? "Mise en stock" : "Destruction",
                 self::REQUESTER => FormatHelper::user($entity->getDemandeCollecte()->getDemandeur()),
                 self::COLLECT_POINT => FormatHelper::location($entity->getDemandeCollecte()->getPointCollecte()),
-                self::SUBJECT => $entity->getDemandeCollecte()->getObjet(),
+                self::OBJECT => $entity->getDemandeCollecte()->getObjet(),
                 self::VALIDATION_DATE => FormatHelper::datetime($entity->getDate()),
             ];
         } else if ($entity instanceof Dispatch) {
@@ -205,7 +205,7 @@ class VariableService
                 self::REQUESTER => FormatHelper::user($entity->getRequester()),
                 self::CREATION_DATE => FormatHelper::datetime($entity->getCreationDate()),
                 self::EXPECTED_DATE => FormatHelper::datetime($entity->getDesiredDate()),
-                self::SUBJECT => $entity->getObject(),
+                self::OBJECT => $entity->getObject(),
                 self::OPERATIONS_COUNT => $entity->getCarriedOutOperationCount(),
             ];
         } else if ($entity instanceof TransferOrder) {
