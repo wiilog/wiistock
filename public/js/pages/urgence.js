@@ -59,27 +59,27 @@ function initPage() {
 
     let tableEmergencies = initDataTable('tableEmergencies', tableUrgenceConfig);
 
-    let $modalNewUrgence = $('#modalNewEmergency');
-    Form
-        .create($modalNewUrgence, {clearOnOpen: true})
-        .submitTo(AJAX.POST, 'emergency_new', {
-            success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
-            tables: tableEmergencies
-        })
+    // let $modalNewUrgence = $('#modalNewEmergency');
+    // Form
+    //     .create($modalNewUrgence, {clearOnOpen: true})
+    //     .submitTo(AJAX.POST, 'emergency_new', {
+    //         success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
+    //         tables: tableEmergencies
+    //     })
 
 
-    let modalDeleteUrgence = $('#modalDeleteUrgence');
-    let submitDeleteUrgence = $('#submitDeleteUrgence');
-    let urlDeleteUrgence = Routing.generate('emergency_delete', true);
-    InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableEmergencies]});
-
-    let $modalModifyUrgence = $('#modalEditEmergency');
-    Form
-        .create($modalModifyUrgence)
-        .submitTo(AJAX.POST, 'emergency_edit', {
-            success: (data) => callbackUrgenceAction(data, $modalModifyUrgence, true),
-            tables: tableEmergencies
-        })
+    // let modalDeleteUrgence = $('#modalDeleteUrgence');
+    // let submitDeleteUrgence = $('#submitDeleteUrgence');
+    // let urlDeleteUrgence = Routing.generate('emergency_delete', true);
+    // InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableEmergencies]});
+    //
+    // let $modalModifyUrgence = $('#modalEditEmergency');
+    // Form
+    //     .create($modalModifyUrgence)
+    //     .submitTo(AJAX.POST, 'emergency_edit', {
+    //         success: (data) => callbackUrgenceAction(data, $modalModifyUrgence, true),
+    //         tables: tableEmergencies
+    //     })
 
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';

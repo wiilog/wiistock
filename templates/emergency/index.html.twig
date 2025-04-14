@@ -8,7 +8,44 @@
 {% endblock %}
 
 {% block page_content %}
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE_EMERGENCY')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EXPORT_EMERGENCIES')) %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% include('utils/action-buttons/header-buttons.html.twig') with {
+                    actions: [
+                        {
+                            hasRight: hasRightToCreate,
+                            title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                            "data-toggle": "modal",
+                            "data-target": "#modalNewEmergency",
+                        },
+                        },
+                        {
+                            hasRight: hasRightToExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon: "fa fa-file-csv",
+                            attributes: {
+                            "onclick": "saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)",
+                        },
+                        }
+                    ],
+                } %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableEmergencies" class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
 
+    {% include 'emergency/modalNewEmergency.html.twig' with modalNewEmergencyConfig %}
+    {% include 'emergency/modalEditEmergency.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

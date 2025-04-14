@@ -1,0 +1,225 @@
+{% import 'form.html.twig' as form %}
+
+{% set isEdit = emergency is not null %}
+{% set isTrackingEmergency = emergency is instanceof('App\\Entity\\Emergency\\TrackingEmergency') %}
+{% import 'utils/fixed-field-by-type.html.twig' as macros %}
+
+{% set displayAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
+{% set requiredAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
+
+<div class="row">
+    <div class="col-md-4 col-12 mb-2">
+        {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::type').name, trans('Demande', 'Général', constant('App\\Entity\\Fields\\FixedFieldEnum::type').value, false), true, {
+            type: '',
+            disabled: isEdit,
+            items: isEdit
+                ? [{
+                    value: emergency.type.id,
+                    label: emergency.type|format_helper('type'),
+                    selected: true,
+                    'category-type': emergency.type.category.label,
+                }]
+                : types,
+        }) }}
+    </div>
+</div>
+
+<div class="stock-emergency-container d-none">
+    <div class="row">
+        <div class="col-5 mb-2">
+            {{ form.switch('emergencyTrigger', "Déclencheur d'urgence", true, [
+                {label: constant('App\\Entity\\Fields\\FixedFieldEnum::reference').value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value, checked: isEdit and not isTrackingEmergency ? emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value : true, disabled: isEdit},
+                {label: constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, checked: isEdit and not isTrackingEmergency and emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, disabled: isEdit},
+            ]) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.switch('endEmergencyCriteria', "Critère de fin d'urgence", true, [
+                {label: 'Quantité restante', value: constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::REMAINING_QUANTITY").value, checked: isEdit and not isTrackingEmergency ? emergency.endEmergencyCriteria.value == constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::REMAINING_QUANTITY").value : true, disabled: isEdit},
+                {label: 'Durée de validité', value: constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::END_DATE").value, checked: isEdit and not isTrackingEmergency and emergency.endEmergencyCriteria.value == constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::END_DATE").value, disabled: isEdit},
+                {label: 'Manuelle', value: constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::MANUAL").value, checked: isEdit and not isTrackingEmergency and emergency.endEmergencyCriteria.value == constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::MANUAL").value, disabled: isEdit},
+            ]) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::reference').name, constant('App\\Entity\\Fields\\FixedFieldEnum::reference').value, true, {
+                type: 'reference',
+                disabled: isEdit,
+                items: isEdit and emergency.referenceArticle ? [{
+                    label: emergency.referenceArticle.reference,
+                    value: emergency.referenceArticle.id,
+                    selected: true
+                }] : [],
+            }) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.input(constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::REMAINING_QUANTITY").value, 'Quantité', true, emergency.expectedQuantity ?? null, {
+                type: 'number',
+                disabled: isEdit,
+                min: 1,
+            }) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').value, false), true, {
+                type: 'provider',
+                disabled: isEdit,
+                items: isEdit and emergency.supplier ? [{
+                    label: emergency.supplier.nom,
+                    value: emergency.supplier.id,
+                    selected: true
+                }] : [],
+            }) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.input(constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::MANUAL").value, trans('Qualité & Urgences', 'Urgences', 'Date de début', false), true, isEdit ? emergency.dateEnd|date('Y-m-d\\TH:i') : null, {
+                type: 'datetime-local',
+                inputClass: "needs-default",
+                attributes: {
+                    "data-init": "now"|date("Y-m-d\\T00:00"),
+                }
+            }) }}
+        </div>
+    </div>
+</div>
+<div class="date-container">
+    <div class="row">
+        <div class="col-6 mb-2">
+            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart').value, false), true, isEdit ? emergency.dateStart|date('Y-m-d\\TH:i') : null, {
+                type: 'datetime-local',
+                inputClass: "needs-default",
+                attributes: {
+                    "data-init": "now"|date("Y-m-d\\T00:00"),
+                }
+            } ) }}
+        </div>
+        <div class="col-6 mb-2">
+            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::dateEnd').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::dateEnd').value, false), true, isEdit ? emergency.dateEnd|date('Y-m-d\\TH:i') : null, {
+                type: 'datetime-local',
+                inputClass: "needs-default",
+                attributes: {
+                    "data-init": "now"|date("Y-m-d\\T23:59"),
+                }
+            } ) }}
+        </div>
+    </div>
+</div>
+<div class="stock-emergency-container d-none">
+    <div class="row">
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.command ?? null) }}
+            </div>
+        {% endif %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.carrierTrackingNumber ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction)%}
+                {{ form.wysiwyg(fieldCode.name, trans('Général', null, 'Modale', fieldCode.value), requiredOnform, emergency.comment ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.attachment(fieldCode.value, requiredOnform, emergency.atachments ?? null) }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+<div class="tracking-emergency-container d-none">
+    <div class="row">
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.command ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::postNumber') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.postNumber ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::buyer') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                    type: 'user',
+                    items: isEdit and emergency.buyer ? [{
+                        label: emergency.buyer.username,
+                        value: emergency.buyer.id,
+                        selected: true
+                    }] : [],
+                }) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::supplier') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                    type: 'provider',
+                    items: isEdit and emergency.supplier ? [{
+                        label: emergency.supplier.nom,
+                        value: emergency.supplier.id,
+                        selected: true
+                    }] : [],
+                }) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrier') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                    type: 'carrier',
+                    items: isEdit and emergency.carrier ? [{
+                        label: emergency.carrier.label,
+                        value: emergency.carrier.id,
+                        selected: true
+                    }] : [],
+                }) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.carrierTrackingNumber ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::internalArticleCode') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.internalArticleCode ?? null) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::supplierArticleCode') %}
+        {% if fieldsParam|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode.name) }} class="col-6 mb-2">
+                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode.name, requiredAction) %}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.supplierArticleCode ?? null) }}
+            </div>
+        {% endif %}
+    </div>
+</div>

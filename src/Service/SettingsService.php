@@ -933,9 +933,16 @@ class SettingsService {
 
             if(isset($data["isDefault"])) {
                 if($data["isDefault"]) {
-                    $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
-                    if($alreadyByDefaultType) {
-                        $alreadyByDefaultType->setDefault(false);
+                    if(in_array($type->getCategory()->getLabel(), [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY])) {
+                        $alreadyByDefaultType = $typeRepository->countDefaultTypeByCategoryTypeLabels([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY], $type);
+                        if($alreadyByDefaultType > 0) {
+                            throw new FormException("Vous ne pouvez avoir qu'un seul type par défaut pour les urgences de stock ou de trace");
+                        }
+                    } else {
+                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
+                        if($alreadyByDefaultType) {
+                            $alreadyByDefaultType->setDefault(false);
+                        }
                     }
                 }
 
