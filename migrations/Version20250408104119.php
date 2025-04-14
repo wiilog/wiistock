@@ -5,15 +5,10 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategoryType;
-use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Setting;
-use App\Entity\Type;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 final class Version20250408104119 extends AbstractMigration {
     public function getDescription(): string {
@@ -27,6 +22,17 @@ final class Version20250408104119 extends AbstractMigration {
             "displayed_create" => "fixed_field_by_type_displayed_create",
             "displayed_edit" => "fixed_field_by_type_displayed_edit",
             "kept_in_memory" => "fixed_field_by_type_kept_in_memory",
+        ];
+
+        $fieldsCodeReplacementArray = [
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER => FixedFieldEnum::buyer->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER => FixedFieldEnum::supplier->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER => FixedFieldEnum::orderNumber->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER => FixedFieldEnum::postNumber->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER => FixedFieldEnum::carrierTrackingNumber->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER => FixedFieldEnum::carrier->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE => FixedFieldEnum::internalArticleCode->name,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE => FixedFieldEnum::supplierArticleCode->name,
         ];
 
         // security in case the table does not exist (never happened normally)
@@ -53,11 +59,17 @@ final class Version20250408104119 extends AbstractMigration {
         ]);
 
         foreach ($fieldsStandards as $fieldsStandard) {
+            $fieldCode = $fieldsCodeReplacementArray[$fieldsStandard['field_code']] ?? null;
+
+            if (!$fieldCode) {
+                continue;
+            }
+
             // create a new fixed field by type for each fixed field standard
             $this->addSql('INSERT INTO fixed_field_by_type (entity_code, field_code, field_label, elements, elements_type) VALUES (:entity_code, :field_code, :field_label, :elements, :elements_type)',
                 [
                     'entity_code' => FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY,
-                    'field_code' => $fieldsStandard['field_code'],
+                    'field_code' => $fieldCode,
                     'field_label' => $fieldsStandard['field_label'],
                     'elements' => $fieldsStandard['elements'],
                     'elements_type' => $fieldsStandard['elements_type'],
@@ -77,7 +89,7 @@ final class Version20250408104119 extends AbstractMigration {
                             [
                                 'type_id' => $type['id'],
                                 'entity_code' => FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY,
-                                'field_code' => $fieldsStandard['field_code'],
+                                'field_code' => $fieldCode,
                             ]
                         );
                     }
