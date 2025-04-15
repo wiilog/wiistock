@@ -106,6 +106,12 @@ class Type {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendMailReceiver = null;
 
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $sendMailRequesterEmergency = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $sendMailBuyerEmergency = null;
+
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
 
@@ -531,6 +537,26 @@ class Type {
 
     public function setSendMailReceiver(?bool $sendMailReceiver): self {
         $this->sendMailReceiver = $sendMailReceiver;
+
+        return $this;
+    }
+
+    public function getSendMailRequesterEmergency(): ?bool {
+        return $this->sendMailRequesterEmergency;
+    }
+
+    public function setSendMailRequesterEmergency(?bool $sendMailRequesterEmergency): self {
+        $this->sendMailRequesterEmergency = $sendMailRequesterEmergency;
+
+        return $this;
+    }
+
+    public function getSendMailBuyerEmergency(): ?bool {
+        return $this->sendMailBuyerEmergency;
+    }
+
+    public function setSendMailBuyerEmergency(?bool $sendMailBuyerEmergency): self {
+        $this->sendMailBuyerEmergency = $sendMailBuyerEmergency;
 
         return $this;
     }
