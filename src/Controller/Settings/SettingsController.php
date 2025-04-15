@@ -2640,7 +2640,7 @@ class SettingsController extends AbstractController {
                 $emergencyWarning[] = $type?->getSendMailBuyerEmergency() ? EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value : null;
 
                 $data[] = [
-                    "label" => "Alert Email",
+                    "label" => "Alert Email" . $formService->macro("tooltip", "L’email sera envoyé à chaque nouvelle réception concernant l’urgence à l’acheteur et / ou demandeur de l’urgence ou de la référence"),
                     "value" => Stream::from($emergencyWarning)->filter()->join(","),
                 ];
             }
