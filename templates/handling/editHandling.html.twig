@@ -199,13 +199,12 @@
                         } %}
                     </div>
                 </div>
+
+                {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
                 <div class="content">
-                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
-                    <div>
-                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | raw }}</div>
-                    </div>
+                    {{ form.wysiwyg(field.name, trans('Général', null, 'Modale', 'Commentaire'), false, null) }}
                 </div>
+
             </div>
             <div class="wii-box">
                 <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
@@ -256,16 +255,19 @@
                         </div>
                     {% endif %}
                     <div class="col-6 d-flex flex-column">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
+                        {% set removeHours = setting_value('REMOVE_HOURS_DATETIME') %}
+                        {% set dateFormat = app.user.displayedDateFormat ~ (not removeHours ? ' hh:mm') %}
+                        {% set preFillDate = handling.desiredDate ? (removeHours ? handling.desiredDate|date('Y-m-d') : handling.desiredDate|date('Y-m-d H:i')) %}
                         <div class="box-item my-2">
-                            {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
-                            <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
-                            <input type="text"
-                                   name="desired-date"
-                                   title="Date attendue"
-                                   data-init="{{ desiredDate }}"
-                                   class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
-                                   placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
-                                   autocomplete="off"/>
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Date attendue'), true, preFillDate, {
+                                inputClass: removeHours ? 'date-field' : 'datetime-field',
+                                placeholder: dateFormat,
+                                autocompleteOff: true,
+                                additionalAttributes: [
+                                    { name: 'data-init', value: preFillDate }
+                                ]
+                            }) }}
                         </div>
                     </div>
                     <div class="col-6 d-flex flex-column">
