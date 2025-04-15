@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Emergency\Enum\EmergencyStockWarningEnum;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -17,12 +18,12 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
@@ -49,7 +50,6 @@ use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Service\IOT\AlertTemplateService;
-use App\Service\ScheduleRuleService;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateInterval;
 use DateTime;
@@ -893,6 +893,11 @@ class SettingsService {
                 if(!preg_match("/" . DateTimeService::AVERAGE_TIME_REGEX . "/", $averageTime)){
                     throw new RuntimeException("Le temps moyen doit être au format HH:MM");
                 }
+            }
+
+            if(isset($data["emergencyStockWarning"])){
+                $type->setSendMailBuyerEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
+                $type->setSendMailRequesterEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
             }
 
             $newLabel = $data["label"] ?? $type->getLabel();

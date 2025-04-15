@@ -3,6 +3,8 @@
 namespace App\Entity\Emergency;
 
 
+use App\Entity\Emergency\Enum\EmergencyDiscrEnum;
+use App\Entity\Emergency\Enum\EndEmergencyCriteriaEnum;
 use App\Entity\Fournisseur;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Transporteur;
