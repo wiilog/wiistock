@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Messenger\Dashboard;
+namespace App\Messenger\Message\DeduplicatedMessage;
 
-use App\Messenger\DeduplicatedMessageInterface;
 use App\Service\Dashboard\DashboardComponentGenerator\DashboardComponentGenerator;
 
 class FeedDashboardComponentMessage implements DeduplicatedMessageInterface {
@@ -28,7 +27,8 @@ class FeedDashboardComponentMessage implements DeduplicatedMessageInterface {
     }
 
     public function getUniqueKey(): string {
-        return $this->componentId;
+        $classCode = str_replace("\\", "_", get_class($this));
+        return "{$classCode}_{$this->componentId}";
     }
 
     public function normalize(): array {
