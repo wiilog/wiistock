@@ -213,9 +213,7 @@ class HandlingController extends AbstractController {
         $handling = new Handling();
         $date = new DateTime('now');
 
-        //$status = $statutRepository->find($data->get('status'));
         $status = $statutRepository->find($data->get(FixedFieldEnum::status->name));
-        //$type = $typeRepository->find($data->get('type'));
         $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
 
         $currentUser = $this->getUser();
@@ -228,10 +226,10 @@ class HandlingController extends AbstractController {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 
-        $containsHours = $data->get('desired-date') && str_contains($data->get('desired-date'), ':');
+        $containsHours = $data->get(FixedFieldEnum::expectedAt->name) && str_contains($data->get(FixedFieldEnum::expectedAt->name), ':');
 
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
-        $desiredDate = $data->get('desired-date') ? DateTime::createFromFormat($format, $data->get('desired-date')) : null;
+        $desiredDate = $data->get(FixedFieldEnum::expectedAt->name) ? DateTime::createFromFormat($format, $data->get(FixedFieldEnum::expectedAt->name)) : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
@@ -247,8 +245,8 @@ class HandlingController extends AbstractController {
             ->setDestination($data->get(FixedFieldEnum::unloadingZone->name) ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment($data->get('comment'))
-            ->setEmergency($data->get('emergency'))
+            ->setComment($data->get(FixedFieldEnum::comment->name) ?? '')
+            ->setEmergency($data->get(FixedFieldEnum::emergency->name) ?? '')
             ->setCarriedOutOperationCount($carriedOutOperationCount);
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
@@ -321,11 +319,11 @@ class HandlingController extends AbstractController {
                          FixedFieldService      $fixedFieldService): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, false);
-        $containsHours = $data->get('desired-date') && str_contains($data->get('desired-date'), ':');
+        $containsHours = $data->get(FixedFieldEnum::expectedAt->name) && str_contains($data->get(FixedFieldEnum::expectedAt->name), ':');
 
         $user = $this->getUser();
         $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
-        $desiredDate = $data->get('desired-date') ? DateTime::createFromFormat($format, $data->get('desired-date')) : null;
+        $desiredDate = $data->get(FixedFieldEnum::expectedAt->name) ? DateTime::createFromFormat($format, $data->get(FixedFieldEnum::expectedAt->name)) : null;
 
 
         /** @var Utilisateur $currentUser */
@@ -352,7 +350,7 @@ class HandlingController extends AbstractController {
             ->setSource($data->get(FixedFieldEnum::loadingZone->name) ?? $handling->getSource())
             ->setDestination($data->get(FixedFieldEnum::unloadingZone->name) ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
-            ->setComment($data->get('comment'))
+            ->setComment($data->get(FixedFieldEnum::comment->name))
             ->setEmergency($data->get(FixedFieldEnum::emergency->name))
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)
