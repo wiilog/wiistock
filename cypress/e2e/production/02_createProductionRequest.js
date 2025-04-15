@@ -11,7 +11,11 @@ describe('create a production request', () => {
         interceptRoute(routes.production_api);
 
         cy.login(user);
-        cy.visit('/');
+        cy.visit('/.env')
+        .then((xhr) => {
+            expect(xhr.response.statusCode).to.equal(403);
+            cy.log(xhr.response.statusCode);
+        });
     });
 
     it('Opening production request creation modal from production request page', () =>{
