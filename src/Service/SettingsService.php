@@ -897,6 +897,11 @@ class SettingsService {
                 }
             }
 
+            if(isset($data["emergencyStockWarning"])){
+                $type->setSendMailBuyerEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
+                $type->setSendMailRequesterEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
+            }
+
             $newLabel = $data["label"] ?? $type->getLabel();
             $type
                 ->setLabel($newLabel)
