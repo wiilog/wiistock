@@ -13,7 +13,7 @@ enum AccessTokenTypeEnum: string {
 
     public function getExpirationDelay(): int {
         return match ($this) {
-            self::SLEEPING_STOCK => 5 * FormatService::SECONDS_IN_DAY
+            self::SLEEPING_STOCK => 10 * FormatService::SECONDS_IN_DAY
         };
     }
 }

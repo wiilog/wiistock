@@ -259,7 +259,7 @@ class TrackingMovementController extends AbstractController {
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
                     $successData['data']['errors'][$mvt['ref_article']] = 'L\'unité logistique scannée est un groupe';
                 } else {
-                    $exceptionLoggerService->sendLog($throwable, $request);
+                    $exceptionLoggerService->sendLog($throwable);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
                 }
             }

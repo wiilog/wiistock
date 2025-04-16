@@ -3747,12 +3747,11 @@ class SettingsController extends AbstractController {
     }
 
     #[Route("/trigger-reminder-emails", name: "trigger_reminder_emails", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function triggerReminderEmails(EntityManagerInterface $manager,
-                                          PackService $packService,
-                                          ExceptionLoggerService $loggerService,
-                                          Request $request): Response {
+    public function triggerReminderEmails(EntityManagerInterface $entityManager,
+                                          PackService            $packService,
+                                          ExceptionLoggerService $loggerService): Response {
         try {
-            $packService->launchPackDeliveryReminder($manager);
+            $packService->launchPackDeliveryReminder($entityManager);
             $response = [
                 'success' => true,
                 'msg' => "Les emails de relance ont bien été envoyés",
@@ -3762,7 +3761,7 @@ class SettingsController extends AbstractController {
                 'success' => false,
                 'msg' => "Une erreur est survenue lors de l'envoi des emails de relance",
             ];
-            $loggerService->sendLog($exception, $request);
+            $loggerService->sendLog($exception);
         }
 
         return $this->json($response);

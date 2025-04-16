@@ -86,9 +86,6 @@ class IndexController extends AbstractController {
                     !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
                     $actionButtonsItems["withTemplate"],
                 );
-                if (!empty($switchesItems)) {
-                    $switchesItems[0]["checked"] = true;
-                }
                 $switches = $formService->macro(
                     "switch",
                     "template-" . $referenceArticle["id"],

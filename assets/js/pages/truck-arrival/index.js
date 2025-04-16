@@ -2,6 +2,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 import {initDataTable} from "@app/datatable";
+import {getUserFiltersByPage} from "@app/utils";
 
 global.newTruckArrival = newTruckArrival;
 
@@ -9,8 +10,10 @@ $(function () {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
     initDateTimePicker('#dateMin, #dateMax');
 
-    const filters = JSON.parse($(`#truck-arrival-filters`).val())
-    displayFiltersSup(filters);
+    const requestQuery = GetRequestQuery();
+    if (!requestQuery.dashboardcomponentid) {
+        getUserFiltersByPage(PAGE_TRUCK_ARRIVAL);
+    }
 
     initTruckArrivalTable();
     const $modalNew = $('#newTruckArrivalModal');
@@ -74,6 +77,12 @@ function initTruckArrivalTable() {
                 ajax: {
                     "url": pathTruckArrivalList,
                     "type": POST,
+                    'data': {
+                        fromDashboard: $('[name="fromDashboard"]').val(),
+                        carrierTrackingNumberNotAssigned: $('input[name=carrierTrackingNumberNotAssigned]').val(),
+                        locations: $('[name="unloadingLocation"]').val(),
+                        countNoLinkedTruckArrival: $('[name="countNoLinkedTruckArrival"]').val(),
+                    },
                 },
                 columns: [
                     {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
@@ -81,12 +90,6 @@ function initTruckArrivalTable() {
                 ],
             };
             initDataTable($table, tableTruckArrivalConfig);
-            const queryParams = GetRequestQuery();
-
-            if (queryParams.unassociated) {
-                $('input[name=carrierTrackingNumberNotAssigned]').prop('checked', true);
-                $('.filters-submit').click();
-            }
             SetRequestQuery({});
         });
 }

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
@@ -189,21 +190,5 @@ class TruckArrivalLineRepository extends EntityRepository
             ->setParameter('truckArrivalId', "$truckArrivalId");
 
         return $qb->getQuery()->getArrayResult();
-    }
-
-    public function getUnassociatedLines() {
-        $qb = $this->createQueryBuilder('line');
-
-        return $qb
-            ->andWhere('arrivals.id IS NULL')
-            ->andWhere($qb->expr()->orX(
-                "join_reserveType.disableTrackingNumber IS NULL",
-                "join_reserveType.disableTrackingNumber = 0"
-            ))
-            ->leftJoin('line.arrivals', 'arrivals')
-            ->leftJoin('line.reserve', 'join_reserve')
-            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
-            ->getQuery()
-            ->getResult();
     }
 }

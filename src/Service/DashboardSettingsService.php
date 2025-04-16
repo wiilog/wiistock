@@ -1354,7 +1354,12 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('truck_arrival_index', ['unassociated' => true]) : null;
+                $link = $redirect
+                    ? $this->router->generate('truck_arrival_index', [
+                        'unassociated' => true,
+                        'dashboardComponentId' => $config['__componentId'],
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];

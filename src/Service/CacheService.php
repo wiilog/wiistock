@@ -4,17 +4,13 @@ namespace App\Service;
 
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Helper\FileSystem;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-class CacheService
-{
-
-    private const CACHE_FOLDER = "/cache";
+class CacheService {
 
     public const COLLECTION_PERMISSIONS = "permissions";
     public const COLLECTION_TRANSLATIONS = "translations";
@@ -28,10 +24,15 @@ class CacheService
     public const COLLECTION_ENTITIES_DICTIONARY = "entities";
     public const COLLECTION_SLEEPING_STOCK_PLANS = "sleeping-stock-plans";
 
-    private FileSystem $filesystem;
+    private FilesystemAdapter $cache;
 
-    public function __construct(KernelInterface $kernel) {
-        $this->filesystem = new FileSystem($kernel->getProjectDir() . self::CACHE_FOLDER);
+    public function __construct(
+        private ExceptionLoggerService $exceptionLoggerService,
+    ) {
+        $this->cache = new FilesystemAdapter(
+            "cache",
+            3 * DateTimeService::SECONDS_IN_DAY,
+        );
     }
 
     /**
@@ -43,29 +44,14 @@ class CacheService
      */
     public function get(string    $namespace,
                         string    $key,
-                        ?callable $generateValue = null): mixed
-    {
-        $cacheExists = $this->filesystem->exists("$namespace/$key");
-
-        if ($cacheExists || $generateValue) {
-            if (!$cacheExists) {
-                $this->set($namespace, $key, $generateValue());
-            }
-
-            try {
-                $result = unserialize($this->filesystem->getContent("$namespace/$key"));
-            }
-            catch(Throwable) {
-                $result = null;
-            }
-
+                        ?callable $generateValue = null): mixed {
+        try {
+            $cacheKey = $this->getCacheKey($namespace, $key);
+            return $this->cache->get($cacheKey, $generateValue ?? static function () {});
+        } catch (Throwable $exception) {
+            $this->exceptionLoggerService->sendLog($exception);
+            return !$generateValue ? null : $generateValue();
         }
-        else {
-            $result = null;
-        }
-
-        return $result;
-
     }
 
     /**
@@ -74,44 +60,33 @@ class CacheService
     public function set(string $namespace,
                         string $key,
                         mixed  $value = null): void {
-        if (!$this->filesystem->isDir()) {
-            $this->clear();
-        }
-
-        if(!$this->filesystem->isFile("$namespace/$key")) {
-            $this->filesystem->remove("$namespace/$key");
-        }
-
-        $this->filesystem->dumpFile("$namespace/$key", serialize($value));
+        $cacheKey = $this->getCacheKey($namespace, $key);
+        $this->cache->delete($cacheKey);
+        $this->get(
+            $namespace,
+            $key,
+            fn () => $value
+        );
     }
 
     /**
      * Delete requested item in the cache.
      */
     public function delete(string $namespace, ?string $key = null): void {
-        if ($this->filesystem->exists("$namespace/$key")) {
-            $this->filesystem->remove("$namespace/$key");
+        if ($key === null) {
+            $this->clear();
+        } else {
+            $cacheKey = $this->getCacheKey($namespace, $key ?? '');
+            $this->cache->delete($cacheKey);
         }
     }
 
     /**
-     * Clear all cache directory.
-     */
+     * Clear all cache.
+    */
     public function clear(): void {
-        if ($this->filesystem->exists()) {
-            $dirFinder = new Finder();
-            $dirFinder
-                ->depth('== 0')
-                ->ignoreDotFiles(true)
-                ->in($this->filesystem->getRoot());
-
-            if ($dirFinder->hasResults()) {
-                foreach ($dirFinder as $directory) {
-                    $fs = new FileSystem($directory);
-                    $fs->remove();
-                }
-            }
-        }
+        $this->cache->clear();
+        $this->cache->prune();
     }
 
     /**
@@ -140,7 +115,7 @@ class CacheService
         }
 
         $dictionaryCacheKey = str_replace("\\", "_", $class);
-        $entityDictionary = $this->get(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey) ?: [];
+        $entityDictionary = $this->get(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey, fn() => null) ?: [];
 
         $keyInDictionary = Stream::from($keys)->join('_');
         $savedInCache = array_key_exists($keyInDictionary, $entityDictionary);
@@ -182,5 +157,11 @@ class CacheService
             Type::class => $typeRepository->findOneByCategoryLabelAndLabel(...$keys),
             default       => throw new \Exception('Unavailable $class parameter given'),
         };
+    }
+
+
+    private function getCacheKey(string $namespace,
+                                 string $key): string {
+        return $namespace . '/' . $key;
     }
 }

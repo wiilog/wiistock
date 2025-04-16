@@ -158,7 +158,7 @@ class InventoryController extends AbstractController {
             } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException) {
                 $errors[] = $anomaly['id'];
             } catch (Throwable $throwable) {
-                $exceptionLoggerService->sendLog($throwable, $request);
+                $exceptionLoggerService->sendLog($throwable);
                 throw $throwable;
             }
         }

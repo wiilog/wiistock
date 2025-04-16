@@ -32,7 +32,6 @@ yarn-error.log
 /desktop.ini
 
 /supervisord.pid
-/cache
 /config/fcm-config.json
 /certs/
 /config/packages/google_apiclient.yaml

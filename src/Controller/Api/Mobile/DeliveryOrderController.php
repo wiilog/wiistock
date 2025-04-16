@@ -115,7 +115,7 @@ class DeliveryOrderController extends AbstractController {
                     }
 
                     if (!$message) {
-                        $exceptionLoggerService->sendLog($throwable, $request);
+                        $exceptionLoggerService->sendLog($throwable);
                     }
 
                     $resData['errors'][] = [

@@ -89,7 +89,7 @@ class CollectRequestController extends AbstractController {
             $entityManager->flush();
         }
         catch (Exception $error) {
-            $exceptionLoggerService->sendLog($error, $request);
+            $exceptionLoggerService->sendLog($error);
             return new JsonResponse([
                 'success' => false,
                 'message' => 'Erreur lors de la création de la demande de collecte',
@@ -142,7 +142,7 @@ class CollectRequestController extends AbstractController {
         try {
             $entityManager->flush();
         } catch(Exception $error) {
-            $exceptionLoggerService->sendLog($error, $request);
+            $exceptionLoggerService->sendLog($error);
             return new JsonResponse([
                 'success' => false,
                 'message' => "Erreur lors de l'ajout des références dans la demande de collecte"
@@ -156,7 +156,7 @@ class CollectRequestController extends AbstractController {
             $entityManager->flush();
         }
         catch (Exception $error) {
-            $exceptionLoggerService->sendLog($error, $request);
+            $exceptionLoggerService->sendLog($error);
             return new JsonResponse([
                 'success' => false,
                 'message' => "Erreur lors de la création de l'ordre de collecte",
@@ -180,7 +180,7 @@ class CollectRequestController extends AbstractController {
             $ordreCollecteService->finishCollecte($ordreCollecte, $this->getUser(), $date, $movements);
         }
         catch(Exception $error) {
-            $exceptionLoggerService->sendLog($error, $request);
+            $exceptionLoggerService->sendLog($error);
             return new JsonResponse([
                 'success' => false,
                 'message' => 'Une référence de la collecte n\'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.'
