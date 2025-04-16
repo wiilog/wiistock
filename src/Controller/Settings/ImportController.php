@@ -211,7 +211,7 @@ class ImportController extends AbstractController
                     break;
                 case Type::LABEL_SCHEDULED_IMPORT:
                     $import
-                        ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
+                        ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CHEDULED));
                     $entityManager->flush();
                     $importModeDone = $force ? ImportService::IMPORT_MODE_FORCE_PLAN : null;
                     break;
