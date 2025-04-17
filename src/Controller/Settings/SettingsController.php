@@ -2377,7 +2377,7 @@ class SettingsController extends AbstractController {
                 $requiredMark = !in_array($categoryLabel, [CategoryType::ARRIVAGE]) ? "*" : "";
                 $data[] = [
                     "label" => "Logo$requiredMark",
-                    "value" => $formService->macro("image","logo",null,!!$requiredMark, $type?->getLogo()?->getFullPath(),[
+                    "value" => $formService->macro("image", "logo", null, !!$requiredMark, $type?->getLogo()?->getFullPath(), [
                         "deleteValue" => "",
                         "previewClass" => "minw-100px minh-80px mr-2 border-radius-2",
                     ]),
