@@ -16,7 +16,6 @@ class AppController extends AbstractController {
 
     #[Route("/accueil", name: "app_index")]
     public function index(): Response {
-throw new \Exception("AAAAA");
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
