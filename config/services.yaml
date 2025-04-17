@@ -89,14 +89,6 @@ services:
     tags:
       - { name: 'kernel.event_listener', event: 'kernel.controller_arguments', method: 'onRequest' }
 
-  App\EventListener\ExceptionLoggerListener:
-    tags:
-      - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 1 }
-
-  App\EventListener\FormExceptionListener:
-    tags:
-      - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }
-
   App\EventListener\LogoutListener:
     tags:
       - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LogoutEvent', dispatcher: security.event_dispatcher.main }

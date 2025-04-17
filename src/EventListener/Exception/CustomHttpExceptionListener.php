@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Twig\Environment as Twig_Environment;
 
 
-#[AsEventListener]
+#[AsEventListener(priority: 1)]
 class CustomHttpExceptionListener {
 
     public function __construct(
