@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {exportFile} from "@app/utils";
 
 global.callbackSaveFilter = callbackSaveFilter;
 
@@ -56,6 +57,14 @@ $(function() {
     });
 
     initFilterStatusMutiple();
+
+    $(`.export-button`).on(`click`, function () {
+        exportFile(`get_handlings_csv`, {}, {
+            needsAllFilters: false,
+            needsDateFormatting: true,
+            $button: $(this),
+        });
+    });
 });
 
 function initNewHandlingEditor(modal) {

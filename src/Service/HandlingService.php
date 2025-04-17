@@ -318,7 +318,9 @@ class HandlingService {
 
         foreach ($handling->getFreeFields() as $freeFieldId => $value) {
             $field = $freeFieldRepository->find($freeFieldId);
-            $row[] = $formatService->freeField($handling->getFreeFields()[$freeFieldId] ?? "", $field, $user);
+            if ($field) {
+                $row[] = $formatService->freeField($handling->getFreeFields()[$freeFieldId] ?? "", $field, $user);
+            }
         }
         $CSVExportService->putLine($output, $row);
     }
