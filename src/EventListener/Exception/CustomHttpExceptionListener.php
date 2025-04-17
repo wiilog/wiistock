@@ -25,7 +25,7 @@ class CustomHttpExceptionListener {
         }
 
         $template = match (get_class($event->getThrowable())) {
-            UnauthorizedSleepingStockException::class => 'errors/unauthorized-sleeping-stock.html.twig',
+            UnauthorizedSleepingStockException::class => 'custom_exception/unauthorized-sleeping-stock.html.twig',
             default => null,
         };
 
