@@ -8,6 +8,7 @@ use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use App\Service\RoleService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
@@ -23,17 +24,21 @@ class RoleController extends AbstractController {
 
     #[Route('/api', name: 'settings_role_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES])]
-    public function api(EntityManagerInterface $entityManager): Response {
+    public function api(EntityManagerInterface $entityManager, FormatService $formatService): Response {
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $roles = $roleRepository->findAllExceptNoAccess();
+
+        $roleRepository = $entityManager->getRepository(Role::class);
+        $rolesToSendEmail = $roleRepository->findByActionParams(Menu::GENERAL, Action::RECEIVE_EMAIL_ON_NEW_USER);
+
 
         return $this->json([
             'data' => Stream::from($roles)
                 ->map(fn(Role $role) => [
                     'name' => $role->getLabel() ?: "Non défini",
-                    'quantityType' => FormatHelper::quantityTypeLabel($role->getQuantityType()),
-                    'isMailSendAccountCreation' => FormatHelper::bool($role->getIsMailSendAccountCreation()),
+                    'quantityType' => $formatService->quantityTypeLabel($role->getQuantityType()),
+                    'isMailSendAccountCreation' => $formatService->bool(in_array($role, $rolesToSendEmail)),
                     'actions' => $this->renderView('settings/utilisateurs/roles/actions.html.twig', [
                         'role' => $role
                     ]),

@@ -61,6 +61,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_SHIPPING = 'expéditions';
 
     public const MENUS = [
+        Menu::GENERAL => [
+          Action::SHOW_NOTIFICATIONS,
+          Action::SHOW_CART,
+          Action::SHOW_LANGUAGES,
+          Action::RECEIVE_EMAIL_ON_NEW_USER,
+        ],
         Menu::TRACA => [
             self::SUB_MENU_GENERAL => [
                 Action::CREATE,

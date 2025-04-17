@@ -318,6 +318,7 @@ class HandlingService {
         $handlingFreeFields = $handling->getFreeFields();
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $field) {
             $row[] = $formatService->freeField($handlingFreeFields[$freeFieldId] ?? "", $field, $user);
+
         }
         $CSVExportService->putLine($output, $row);
     }

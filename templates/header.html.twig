@@ -105,28 +105,32 @@
                         hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DISPLAY_PRODUCTION_REQUEST'))
                         and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::CREATE_PRODUCTION_REQUEST'))
                         ) %}
-                    <div class="col-auto pr-0 mr-0">
-                        <a class="header-icon cart" href="{{ path('cart_index') }}">
-                            {% set referencesQuantity = app.user.cart.references|length %}
-                            {% set articlesQuantity = app.user.cart.articles|length %}
-                            {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}
-                            <div class="icon-figure small {{ not (referencesQuantity != 0 or articlesQuantity != 0 or logisticUnitsQuantity != 0) ? 'd-none' }}">
-                                {{ referencesQuantity != 0
-                                    ? referencesQuantity
-                                    : logisticUnitsQuantity != 0
-                                        ? logisticUnitsQuantity
-                                        : articlesQuantity
-                                }}
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-auto ml-0">
-                        <a class="header-icon notifications white" href="{{ path('notifications_index') }}">
-                            <div class="icon-figure notification-figure small {{ not app.user.unreadNotifications or app.user.unreadNotifications.count == 0  ? 'd-none' }}">
-                                {{ app.user.unreadNotifications.count }}
-                            </div>
-                        </a>
-                    </div>
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_CART')) %}
+                        <div class="col-auto pr-0 mr-0">
+                            <a class="header-icon cart" href="{{ path('cart_index') }}">
+                                {% set referencesQuantity = app.user.cart.references|length %}
+                                {% set articlesQuantity = app.user.cart.articles|length %}
+                                {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}
+                                <div class="icon-figure small {{ not (referencesQuantity != 0 or articlesQuantity != 0 or logisticUnitsQuantity != 0) ? 'd-none' }}">
+                                    {{ referencesQuantity != 0
+                                        ? referencesQuantity
+                                        : logisticUnitsQuantity != 0
+                                            ? logisticUnitsQuantity
+                                            : articlesQuantity
+                                    }}
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_NOTIFICATIONS')) %}
+                        <div class="col-auto ml-0">
+                            <a class="header-icon notifications white" href="{{ path('notifications_index') }}">
+                                <div class="icon-figure notification-figure small {{ not app.user.unreadNotifications or app.user.unreadNotifications.count == 0  ? 'd-none' }}">
+                                    {{ app.user.unreadNotifications.count }}
+                                </div>
+                            </a>
+                        </div>
+                    {% endif%}
                     {% if hasDeliveryRights
                         or hasCollectRights
                         or hasHandlingRights
@@ -283,36 +287,37 @@
                         </div>
                     {% endif %}
 
-
-                    <div>
-                        <div class="col col-lg-auto language-date pointer d-flex align-items-center user-select-none ml-3 dropdown dropdown-toggle"
-                             data-toggle="dropdown"
-                             aria-haspopup="true"
-                             aria-expanded="false">
-                            <img class="language-picture" src="{{ app.user.language.flag }}" alt="flag image">
-                            <button class="language-date-btn flex-fill ml-1">
-                                <span class="fa fa-angle-down"></span>
-                            </button>
-                        </div>
-                            <div class="language-date-menu dropdown-menu dropdown-menu-right keep-open mt-1 p-0">
-                                    <div class="language dropdown-item-sub mt-2 pl-3">
-                                        {{ form.radio('user_language', null , false,  language_service.getLanguages, {
-                                            iconClass : 'flag',
-                                            labelClass : 'header'
-                                        }) }}
-                                    </div>
-                                    <div class="date dropdown-item-sub p-1">
-                                        <label class="label-date">{{ trans( 'Général', null, 'Header', 'Format de date') }}</label>
-                                        {{ form.select('user_dateFormat', null, false, {
-                                            items: dateFormat.dateFormat,
-                                            type: null,
-                                            search: false,
-                                            value: dateFormat.value,
-                                            noEmptyOption: true,
-                                        }) }}
-                                    </div>
+                    {% if hasRight(constant('App\\Entity\\Menu::GENERAL'), constant('App\\Entity\\Action::SHOW_LANGUAGES')) %}
+                        <div>
+                            <div class="col col-lg-auto language-date pointer d-flex align-items-center user-select-none ml-3 dropdown dropdown-toggle"
+                                 data-toggle="dropdown"
+                                 aria-haspopup="true"
+                                 aria-expanded="false">
+                                <img class="language-picture" src="{{ app.user.language.flag }}" alt="flag image">
+                                <button class="language-date-btn flex-fill ml-1">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
                             </div>
-                    </div>
+                                <div class="language-date-menu dropdown-menu dropdown-menu-right keep-open mt-1 p-0">
+                                        <div class="language dropdown-item-sub mt-2 pl-3">
+                                            {{ form.radio('user_language', null , false,  language_service.getLanguages, {
+                                                iconClass : 'flag',
+                                                labelClass : 'header'
+                                            }) }}
+                                        </div>
+                                        <div class="date dropdown-item-sub p-1">
+                                            <label class="label-date">{{ trans( 'Général', null, 'Header', 'Format de date') }}</label>
+                                            {{ form.select('user_dateFormat', null, false, {
+                                                items: dateFormat.dateFormat,
+                                                type: null,
+                                                search: false,
+                                                value: dateFormat.value,
+                                                noEmptyOption: true,
+                                            }) }}
+                                        </div>
+                                </div>
+                        </div>
+                    {% endif %}
 
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
