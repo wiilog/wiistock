@@ -192,7 +192,7 @@ class TransporteurController extends AbstractController
         if (!$carrier->getAttachments()->isEmpty()) {
             foreach ($carrier->getAttachments() as $attachment) {
                 $carrier->removeAttachment($attachment);
-                $attachmentService->deleteAttachment($attachment);
+                $attachmentService->deleteAttachmentPath($attachment);
                 $entityManager->remove($attachment);
             }
         }
