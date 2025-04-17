@@ -68,12 +68,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_HANDLING => [
-                ['code' => FixedFieldStandard::FIELD_CODE_LOADING_ZONE, 'label' => FixedFieldStandard::FIELD_LABEL_LOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, 'label' => FixedFieldStandard::FIELD_LABEL_UNLOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
-                ['code' => FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
-                ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true]
+                ['code' => FixedFieldEnum::loadingZone->name, 'label' => FixedFieldEnum::loadingZone->name, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::unloadingZone->name, 'label' => FixedFieldEnum::unloadingZone->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
+                ['code' => FixedFieldEnum::carriedOutOperationCount->name, 'label' => FixedFieldEnum::carriedOutOperationCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::receivers->name, 'label' => FixedFieldEnum::receivers->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
+                ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::status->name, 'label' => FixedFieldEnum::status->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::type->name, 'label' => FixedFieldEnum::type->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
             ],
 
             FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [

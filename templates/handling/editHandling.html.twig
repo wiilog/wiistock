@@ -48,15 +48,15 @@
                         </div>
                     </div>
                 </div>
-                {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+                {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency') %}
                 {% set emergency = handling.emergency %}
-                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
+                {% if (fieldsParam|isFieldRequired(field.name, 'displayedCreate') or fieldsParam|isFieldRequired(field.name, 'displayedEdit')) and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
                         <strong>{{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="{{ not ((fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedeEdit')) and emergency) ?  'bordered' }}">
+                <div class="{{ not ((fieldsParam|isFieldRequired(field.name, 'displayedCreate') or fieldsParam|isFieldRequired(field.name, 'displayedeEdit')) and emergency) ?  'bordered' }}">
                     <div class="content row ">
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item mt-2">
@@ -68,27 +68,27 @@
                         </div>
 
 
-                        {% set objectCode = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
-                        {% if fieldsParam|isFieldRequired(objectCode.name, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(objectCode.name, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item mt-2">
-                                    {{ form.input(objectCode.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, handling.subject) }}
+                                    {{ form.input(field.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, handling.object) }}
                                 </div>
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), required, {
+                                {{ form.select(field.name, trans( 'Demande', 'Général', 'Urgence'), required, {
                                     items: emergencies,
                                     required: false,
                                     emptyOption : { value : null , text : trans( 'Demande', 'Général', 'Non urgent', false), selected : emergency ? false : true},
                                 }) }}
                             </div>
-                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% elseif fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans( 'Demande', 'Général', 'Urgence') }}</span>
@@ -98,18 +98,18 @@
                                 </div>
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receivers') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('receivers', trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires'), required, {
+                                {{ form.select(field.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires'), required, {
                                     items: receivers,
                                     type: 'user',
                                     multiple :true,
                                     inputClass: 'receivers-picker',
                                 }) }}
                             </div>
-                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% elseif fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires') }}</span>
@@ -125,17 +125,17 @@
                                 </div>
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOADING_ZONE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::loadingZone') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('source', trans('Demande', 'Services', 'Modale et détails', 'Chargement'), required, handling.source, {
+                                {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Chargement'), required, handling.source, {
                                     attributes: {
                                         'data-short-label': 'Chargement',
                                     },
                                 }) }}
                             </div>
-                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% elseif fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Chargement') }}</span>
@@ -145,17 +145,17 @@
                                 </div>
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::unloadingZone') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.destination, {
+                                {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.destination, {
                                     attributes: {
                                         'data-short-label': 'Déchargement',
                                     },
                                 }) }}
                             </div>
-                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% elseif fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Déchargement')}}</span>
@@ -165,16 +165,16 @@
                                 </div>
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::carriedOutOperationCount') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(field.name, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.number('carriedOutOperationCount', trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), required, handling.carriedOutOperationCount, {
+                                {{ form.number(field.name, trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), required, handling.carriedOutOperationCount, {
                                     labelClass: 'w-100',
                                     min: 0
                                 }) }}
                             </div>
-                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% elseif fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)')}}</span>
@@ -199,13 +199,12 @@
                         } %}
                     </div>
                 </div>
+
+                {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
                 <div class="content">
-                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
-                    <div>
-                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | raw }}</div>
-                    </div>
+                    {{ form.wysiwyg(field.name, trans('Général', null, 'Modale', 'Commentaire'), false, null) }}
                 </div>
+
             </div>
             <div class="wii-box">
                 <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
@@ -256,16 +255,19 @@
                         </div>
                     {% endif %}
                     <div class="col-6 d-flex flex-column">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
+                        {% set removeHours = setting_value('REMOVE_HOURS_DATETIME') %}
+                        {% set dateFormat = app.user.displayedDateFormat ~ (not removeHours ? ' hh:mm') %}
+                        {% set preFillDate = handling.desiredDate ? (removeHours ? handling.desiredDate|date('Y-m-d') : handling.desiredDate|date('Y-m-d H:i')) %}
                         <div class="box-item my-2">
-                            {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
-                            <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
-                            <input type="text"
-                                   name="desired-date"
-                                   title="Date attendue"
-                                   data-init="{{ desiredDate }}"
-                                   class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
-                                   placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
-                                   autocomplete="off"/>
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Date attendue'), true, preFillDate, {
+                                inputClass: removeHours ? 'date-field' : 'datetime-field',
+                                placeholder: dateFormat,
+                                autocompleteOff: true,
+                                additionalAttributes: [
+                                    { name: 'data-init', value: preFillDate }
+                                ]
+                            }) }}
                         </div>
                     </div>
                     <div class="col-6 d-flex flex-column">
@@ -285,11 +287,9 @@
                 </div>
             </div>
             <div class="w-100 d-flex flex-row-reverse">
-                <button id="submitEditHandling"
-                        name=''
-                        type="button"
-                        class="btn btn-success data mt-2"
-                        data-submit="{{ submit_url }}">
+                <button
+                        type="submit"
+                        class="btn btn-success data mt-2">
                     {{ trans('Général', null, 'Modale', 'Enregistrer') }}
                 </button>
                 <a href="javascript:window.location = document.referrer">
@@ -300,12 +300,12 @@
 
             </div>
         </div>
-        <input hidden value='1' name="isAttachmentForm">
-        <input hidden value='{{ handling.id }}' name="id">
+        {{ form.hidden('id', handling.id) }}
+        {{ form.hidden('isAttachmentForm', '1') }}
     </div>
 </div>
 {% include "handling/modalDeleteHandling.html.twig" %}
-<input hidden value="{{ handling.id }}" name="handlingId">
+    {{ form.hidden('handlingId', handling.id) }}
 {% endblock %}
 
 {% block javascripts %}

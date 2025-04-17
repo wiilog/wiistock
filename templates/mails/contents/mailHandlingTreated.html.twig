@@ -25,7 +25,7 @@
         </div>
     {% endif %}
     <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet', false) }} :
-        <strong>{{ handling.subject }}</strong>
+        <strong>{{ handling.object }}</strong>
     </div>
 
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_BOURGUIGNON')) %}
