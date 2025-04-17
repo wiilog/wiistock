@@ -41,11 +41,19 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
                 'locations' => $locations,
                 'countNoLinkedTruckArrival' => isset($config['countNoLinkedTruckArrival']) && $config['countNoLinkedTruckArrival'],
             ]);
-            $meter->setCount($unassociatedLines);
+            $meter->setCount(count($unassociatedLines));
 
             if (isset($config['displayLateLines']) && $config['displayLateLines']) {
                 $lateLines = Stream::from($unassociatedLines)
-                    ->filter((fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager)))
+                    ->filterMap(function($truckArrivalArray) use ($entityManager, $truckArrivalRepository) {
+                        $truckArrival = isset($truckArrivalArray["id"]) ? $truckArrivalRepository->find($truckArrivalArray["id"]) : null;
+                        $truckArrivalLateLines = $truckArrival
+                            ? Stream::from($truckArrival->getTrackingLines())
+                                ->filter(fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager))
+                            : [];
+
+                        return $truckArrivalLateLines->count() > 0 ? $truckArrivalLateLines : null;
+                    })
                     ->count();
                 $meter
                     ->setSubCounts([

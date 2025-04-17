@@ -288,10 +288,10 @@ class TruckArrivalRepository extends EntityRepository
      *     countNoLinkedTruckArrival: boolean,
      * } $options
      */
-    public function countUnassociatedLines(array $options = []): int {
+    public function countUnassociatedLines(array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('truck_arrival');
 
-        $queryBuilder->select('COUNT(truck_arrival.id)');
+        $queryBuilder->select('truck_arrival.id');
 
         if($options['countNoLinkedTruckArrival']) {
             // we count truck arrival lines AND truck arrival without any line as 1
@@ -319,6 +319,6 @@ class TruckArrivalRepository extends EntityRepository
 
         return $queryBuilder
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
     }
 }
