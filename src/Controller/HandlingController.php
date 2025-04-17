@@ -476,6 +476,7 @@ class HandlingController extends AbstractController {
             $globalTitle = 'export-services-' . $today . '.csv';
 
             return $CSVExportService->streamResponse(function($output) use (
+                $freeFieldsConfig,
                 $handlings,
                 $handlingsRepository,
                 $entityManager,
@@ -485,9 +486,8 @@ class HandlingController extends AbstractController {
                 $handlingService,
                 $formatService
             ) {
-
                 foreach ($handlings as $handling) {
-                    $handlingService->putHandlingLine($entityManager, $CSVExportService, $output, $handling, $formatService);
+                    $handlingService->putHandlingLine($entityManager, $CSVExportService, $output, $handling, $formatService, $freeFieldsConfig);
                 }
             },
                 $globalTitle,
