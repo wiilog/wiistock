@@ -56,4 +56,21 @@ class RoleRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByActionParams($menuLabel, $actionLabel, $subMenu = null) {
+        $queryBuilder = $this->createQueryBuilder('role')
+            ->innerJoin('role.actions', 'action')
+            ->join("action.menu", "menu")
+            ->where("action.label = :action")
+            ->andWhere("menu.label = :menu")
+            ->setParameter("action", $actionLabel)
+            ->setParameter("menu", $menuLabel);
+
+        if($subMenu) {
+            $queryBuilder->andWhere("action.subMenu = :sub_menu")
+                ->setParameter("sub_menu", $subMenu);
+        }
+        return $queryBuilder->getQuery()
+            ->getResult();
+    }
 }

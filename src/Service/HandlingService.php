@@ -289,8 +289,8 @@ class HandlingService {
                                     CSVExportService       $CSVExportService,
                                                            $output,
                                     Handling               $handling,
-                                    FormatService          $formatService) {
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+                                    FormatService          $formatService,
+                                    array                  $freeFieldsConfig): void {
         $includeDesiredTime = !$this->settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
         $user = $this->userService->getUser();
         $receiversStr = Stream::from($handling->getReceivers())
@@ -314,13 +314,12 @@ class HandlingService {
         $row[] = $handling->getCarriedOutOperationCount() ?? "";
         $row[] = $handling->getTreatedByHandling() ? $formatService->user($handling->getTreatedByHandling()) : "";
         $row[] = $receiversStr ?? "";
-        //                    $row[] = $treatmentDelayStr;
 
-        foreach ($handling->getFreeFields() as $freeFieldId => $value) {
-            $field = $freeFieldRepository->find($freeFieldId);
-            $row[] = $formatService->freeField($handling->getFreeFields()[$freeFieldId] ?? "", $field, $user);
+        $handlingFreeFields = $handling->getFreeFields();
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $field) {
+            $row[] = $formatService->freeField($handlingFreeFields[$freeFieldId] ?? "", $field, $user);
+
         }
         $CSVExportService->putLine($output, $row);
     }
-
 }

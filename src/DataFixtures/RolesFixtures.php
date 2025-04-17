@@ -40,7 +40,6 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
                 $role = new Role();
                 $role
                     ->setLabel($roleLabel)
-                    ->setIsMailSendAccountCreation(false)
                     ->setQuantityType(ReferenceArticle::QUANTITY_TYPE_REFERENCE);
 
                 $manager->persist($role);

@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: MenuRepository::class)]
 class Menu {
 
+    const GENERAL = 'général';
     const DASHBOARDS = 'dashboard';
     const TRACA = 'traçabilité';
     const QUALI = 'qualité & urgences';

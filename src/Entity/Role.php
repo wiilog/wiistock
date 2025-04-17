@@ -35,9 +35,6 @@ class Role {
     #[ORM\OneToMany(mappedBy: 'role', targetEntity: Utilisateur::class)]
     private Collection $users;
 
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $isMailSendAccountCreation = false;
-
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
@@ -132,16 +129,6 @@ class Role {
                 $user->setRole(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getIsMailSendAccountCreation(): ?bool {
-        return $this->isMailSendAccountCreation;
-    }
-
-    public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self {
-        $this->isMailSendAccountCreation = $isMailSendAccountCreation;
 
         return $this;
     }
