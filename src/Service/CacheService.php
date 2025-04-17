@@ -47,7 +47,7 @@ class CacheService {
                         ?callable $generateValue = null): mixed {
         try {
             $cacheKey = $this->getCacheKey($namespace, $key);
-            return $this->cache->get($cacheKey, $generateValue ?? static function () {});
+            return $this->cache->get($cacheKey, $generateValue ?? static fn () => null);
         } catch (Throwable $exception) {
             $this->exceptionLoggerService->sendLog($exception);
             return !$generateValue ? null : $generateValue();
