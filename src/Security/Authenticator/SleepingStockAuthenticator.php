@@ -4,6 +4,7 @@ namespace App\Security\Authenticator;
 
 use App\Entity\Role;
 use App\Entity\Security\AccessToken;
+use App\Exceptions\CustomHttpException\UnauthorizedSleepingStockException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,7 +60,7 @@ class SleepingStockAuthenticator extends AbstractAuthenticator {
             || !$user->getRole()
             || $user->getRole()->getLabel() === Role::NO_ACCESS_USER
             || $accessToken->getExpireAt() && $accessToken->getExpireAt() < $now) {
-            throw new UnauthorizedHttpException('Invalid access token');
+            throw new UnauthorizedSleepingStockException('Invalid access token');
         }
 
         return new SelfValidatingPassport(new UserBadge($userIdentifier));
