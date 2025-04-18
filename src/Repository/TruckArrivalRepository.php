@@ -9,6 +9,7 @@ use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -288,11 +289,43 @@ class TruckArrivalRepository extends EntityRepository
      *     countNoLinkedTruckArrival: boolean,
      * } $options
      */
-    public function countUnassociatedLines(array $options = []): array {
+    public function findUnassociatedLines(array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('truck_arrival');
 
         $queryBuilder->select('truck_arrival.id');
 
+        $queryBuilder = $this->buildUnassociatedLineQueryBuilder($queryBuilder, $options);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param array{
+     *     locations: Emplacement[],
+     *     countNoLinkedTruckArrival: boolean,
+     * } $options
+     */
+    public function countUnassociatedLines(array $options = []): int {
+        $queryBuilder = $this->createQueryBuilder('truck_arrival');
+
+        $queryBuilder->select('COUNT(truck_arrival.id)');
+
+        $queryBuilder = $this->buildUnassociatedLineQueryBuilder($queryBuilder, $options);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param array{
+     *     locations: Emplacement[],
+     *     countNoLinkedTruckArrival: boolean,
+     * } $options
+     */
+    public function buildUnassociatedLineQueryBuilder(QueryBuilder $queryBuilder, array $options = []): QueryBuilder {
         if($options['countNoLinkedTruckArrival']) {
             // we count truck arrival lines AND truck arrival without any line as 1
             $queryBuilder->leftJoin('truck_arrival.trackingLines', 'join_lines');
@@ -317,8 +350,6 @@ class TruckArrivalRepository extends EntityRepository
                 ->setParameter('locations', $options['locations']);
         }
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return $queryBuilder;
     }
 }
