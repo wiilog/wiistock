@@ -105,6 +105,7 @@ class DataExportService {
             'statut',
             'commentaire',
             'emplacement',
+            'Emplacement de traçabilité',
             'code barre',
             'date dernier inventaire',
             'date de disponibilité constatée',
