@@ -394,7 +394,7 @@ class TriggerActionController extends AbstractController
                 "success" => false,
                 "msg" => "Ce capteur n'existe pas",
             ]);
-        } else if(isset($sensorWrapper) || (isset($sensor) && $typeLabel === Sensor::ACTION && in_array($sensor->getProfile()->getName(), IOTService::BUTTON_MULTIPLE_PROFILES))){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::ACTION && in_array($sensor->getProfile()->getName(), IOTService::BUTTON_MULTIPLE_PROFILES)){
             $html = $this->renderView('trigger_action/modalButtonMultiple.html.twig', [
                 "profile" => $sensor ? $sensor->getProfile()->getName() : "",
                 "templateTypes" => [
