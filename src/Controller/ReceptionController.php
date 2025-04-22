@@ -83,6 +83,8 @@ class ReceptionController extends AbstractController {
     #[Required]
     public NotificationService $notificationService;
 
+    private const MAX_NB_ARTICLE_IN_PACKING_MODAL = 250;
+
     #[Route('/new', name: 'reception_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::ORDRE, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
@@ -1511,7 +1513,7 @@ class ReceptionController extends AbstractController {
         );
     }
 
-    #[Route("/avec-conditionnement/{reception}", name: "reception_new_with_packing", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/avec-conditionnement/{reception}", name: "reception_new_with_packing", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function newWithPacking(Request                    $request,
                                    MailerService              $mailerService,
                                    TransferRequestService     $transferRequestService,
@@ -1549,6 +1551,16 @@ class ReceptionController extends AbstractController {
 
         $totalQuantities = [];
         $cache = ['receptionReferenceArticles' => [],];
+
+        $totalReceivedQuantity = Stream::from($articles)
+            ->reduce(
+                static fn(int $count, array $articleArray) => $count + max($articleArray['quantityToReceive'] * $articleArray['quantite'],0),
+                0
+            );
+        $maxNbArticleInPackingModal = self::MAX_NB_ARTICLE_IN_PACKING_MODAL;
+        if ($totalReceivedQuantity > $maxNbArticleInPackingModal) {
+            throw new FormException("Vous ne pouvez pas réceptionner plus de $maxNbArticleInPackingModal articles en une fois. Veuillez faire une seconde réception de ces articles.");
+        }
 
         //checking values and retrieves entities
         foreach($articles as &$articleArray) {

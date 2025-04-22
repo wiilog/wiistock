@@ -21,6 +21,9 @@ let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
 let receptionId = undefined;
+let nbArticleInPackingModal = 0;
+
+const MAX_NB_ARTICLE_IN_PACKING_MODAL = 250;
 
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
@@ -72,6 +75,9 @@ $(function () {
         const $currentArticleLine = $(this).closest(`.article-line`);
         const $modal = $currentArticleLine.closest(`.modal`);
         const $articlesContainer = $currentArticleLine.closest(`.articles-container`);
+
+        const numberToDelete = Number($currentArticleLine.find(`input[name=articleQuantity]`).val());
+        nbArticleInPackingModal -= numberToDelete;
 
         $currentArticleLine.remove();
         if($articlesContainer.find(`.article-line`).length === 0) {
@@ -751,6 +757,7 @@ function onReferenceToReceiveChange() {
 
 function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {
     const $modal = $element.is(`.modal`) ? $element : $element.closest(`.modal`);
+    nbArticleInPackingModal = 0;
     $modal.find(`.articles-container, .error-msg`).empty();
     $modal.find(`.wii-section-title, .create-request-container, .modal-footer, .demande-form, .transfer-form`).addClass(`d-none`);
     if(hideSubFields) {
@@ -901,10 +908,17 @@ function loadPackingArticlesTemplate($button) {
 
     if (data) {
         const params = JSON.stringify(data.asObject());
+        const quantity = Number(data.get('quantity')) * Number(data.get('quantityToReceive'));
+        if (quantity + nbArticleInPackingModal > MAX_NB_ARTICLE_IN_PACKING_MODAL) {
+            Flash.add(ERROR, "Vous ne pouvez pas réceptionner plus de " + MAX_NB_ARTICLE_IN_PACKING_MODAL + " articles en une fois. Veuillez faire une seconde réception de ces articles.");
+            return;
+        }
+
         wrapLoadingOnActionButton($button, () => (
             AJAX.route(GET, `get_packing_articles_template`, {params})
                 .json()
                 .then(({template}) => {
+                    nbArticleInPackingModal += quantity;
                     const $articlesContainer = $modal.find(`.articles-container`);
                     $articlesContainer.append(template);
                     $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
@@ -918,12 +932,18 @@ function loadPackingArticlesTemplate($button) {
 }
 
 function submitPackingForm({reception, data, $modalNewLigneReception}) {
+    if (nbArticleInPackingModal > MAX_NB_ARTICLE_IN_PACKING_MODAL) {
+        Flash.add(ERROR, "Vous ne pouvez pas réceptionner plus de " + MAX_NB_ARTICLE_IN_PACKING_MODAL + " articles en une fois. Veuillez faire une seconde réception de ces articles.");
+        return;
+    }
+
     return new Promise((resolve) => {
         AJAX
             .route(POST, `reception_new_with_packing`, { reception })
             .json(data)
             .then(({success, articleIds, msg}) => {
                 if (success) {
+                    nbArticleInPackingModal = 0;
                     let templates;
                     try {
                         templates = JSON.parse($('#tagTemplates').val());
