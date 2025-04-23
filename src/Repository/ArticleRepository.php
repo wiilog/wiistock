@@ -153,6 +153,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('statut.nom as statusName')
             ->addSelect('article.commentaire')
             ->addSelect('emplacement.label as empLabel')
+            ->addSelect('trackingLocation.label as trackingLocationLabel')
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
             ->addSelect('article.lastAvailableDate')
@@ -182,6 +183,8 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
             ->leftJoin('currentLogisticUnit.project', 'project')
+            ->leftJoin('currentLogisticUnit.lastAction', 'lastAction')
+            ->leftJoin('lastAction.emplacement', 'trackingLocation')
             ->leftJoin('article.nativeCountry', 'nativeCountry');
 
         if (isset($dateMin) && isset($dateMax)) {
@@ -429,6 +432,19 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "trackingLocation":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.trackingPack', 'trackingPack')
+                                    ->leftJoin('trackingPack.lastAction', 'lastAction')
+                                    ->leftJoin('lastAction.emplacement', 'e_search')
+                                    ->andWhere('e_search.label LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
                             case "articleReference":
                             case "reference":
                                 $subqb = $this->createQueryBuilder("article")
@@ -566,6 +582,13 @@ class ArticleRepository extends EntityRepository {
                             $queryBuilder
                                 ->leftJoin("article.emplacement", "order_location")
                                 ->orderBy("order_location.label", $order);
+                            break;
+                        case "trackingLocation":
+                            $queryBuilder
+                                ->leftJoin('article.trackingPack', 'order_trackingPack')
+                                ->leftJoin('order_trackingPack.lastAction', 'order_lastAction')
+                                ->leftJoin('order_lastAction.emplacement', 'order_lastAction_emplacement')
+                                ->orderBy("order_lastAction_emplacement.label", $order);;
                             break;
                         case "articleReference":
                             $queryBuilder

@@ -16,7 +16,6 @@ class AppController extends AbstractController {
 
     #[Route("/accueil", name: "app_index")]
     public function index(): Response {
-
         /** @var Utilisateur $user */
         $user = $this->getUser();
 

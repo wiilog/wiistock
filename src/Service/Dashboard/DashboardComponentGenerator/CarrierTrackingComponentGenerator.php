@@ -37,15 +37,26 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
         if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
             $locations = !empty($config['locations']) ? $locationRepository->findBy(["id" => $config['locations']]) : [];
 
-            $unassociatedLines = $truckArrivalRepository->countUnassociatedLines([
+            $options = [
                 'locations' => $locations,
                 'countNoLinkedTruckArrival' => isset($config['countNoLinkedTruckArrival']) && $config['countNoLinkedTruckArrival'],
-            ]);
-            $meter->setCount($unassociatedLines);
+            ];
+
+            $meter->setCount($truckArrivalRepository->countUnassociatedLines($options));
 
             if (isset($config['displayLateLines']) && $config['displayLateLines']) {
+                $unassociatedLines = $truckArrivalRepository->findUnassociatedLines($options);
+
                 $lateLines = Stream::from($unassociatedLines)
-                    ->filter((fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager)))
+                    ->filterMap(function($truckArrivalArray) use ($entityManager, $truckArrivalRepository) {
+                        $truckArrival = isset($truckArrivalArray["id"]) ? $truckArrivalRepository->find($truckArrivalArray["id"]) : null;
+                        $truckArrivalLateLines = $truckArrival
+                            ? Stream::from($truckArrival->getTrackingLines())
+                                ->filter(fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager))
+                            : [];
+
+                        return $truckArrivalLateLines->count() > 0 ? $truckArrivalLateLines : null;
+                    })
                     ->count();
                 $meter
                     ->setSubCounts([

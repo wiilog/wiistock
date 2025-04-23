@@ -1,15 +1,17 @@
 <?php
 
-namespace App\EventListener;
+namespace App\EventListener\Exception;
 
 use App\Exceptions\FormException;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
+#[AsEventListener(priority: 1)]
 class FormExceptionListener {
 
-    public function onKernelException(ExceptionEvent $event) {
+    public function __invoke(ExceptionEvent $event): void {
         $exception = $event->getThrowable();
         if ($exception instanceof FormException) {
             $message = $exception->getMessage();
