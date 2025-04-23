@@ -567,7 +567,6 @@ class ReceptionController extends AbstractController {
                 if($refArticle->getIsUrgent()) {
                     $reception->setUrgentArticles(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
-                    $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
                 $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
 
@@ -1855,13 +1854,10 @@ class ReceptionController extends AbstractController {
         foreach($emergencies as $emergency) {
             $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
-            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
-                'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
-                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -1893,18 +1889,7 @@ class ReceptionController extends AbstractController {
             if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
                 $referenceArticle
                     ->setIsUrgent(false)
-                    ->setUserThatTriggeredEmergency(null)
-                    ->setEmergencyComment('');
-            } else {
-                if ($newEmergencyQuantity <= 0) {
-                    $referenceArticle
-                        ->setIsUrgent(false)
-                        ->setEmergencyQuantity(null)
-                        ->setUserThatTriggeredEmergency(null)
-                        ->setEmergencyComment('');
-                } else {
-                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
-                }
+                    ->setUserThatTriggeredEmergency(null);
             }
             $entityManager->flush();
         }

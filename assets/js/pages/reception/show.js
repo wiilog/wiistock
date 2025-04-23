@@ -425,19 +425,16 @@ function articleChanged($select) {
     let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantite, urgent, emergencyComment} = selectedReference[0];
+        const {typeQuantite, urgent} = selectedReference[0];
 
         $addArticleLigneSubmit.prop(`disabled`, false);
         $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
 
         const $emergencyContainer = $(`.emergency`);
-        const $emergencyCommentContainer =  $(`.emergency-comment`);
         if (urgent) {
             $emergencyContainer.removeClass(`d-none`);
-            $emergencyCommentContainer.text(emergencyComment);
         } else {
             $emergencyContainer.addClass(`d-none`);
-            $emergencyCommentContainer.text(``);
         }
         $modal.find(`.body-add-ref`)
             .removeClass(`d-none`)
