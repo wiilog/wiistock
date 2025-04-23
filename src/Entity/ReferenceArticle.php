@@ -166,12 +166,6 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $emergencyComment = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $emergencyQuantity = null;
-
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
     private ?Utilisateur $userThatTriggeredEmergency = null;
 
@@ -772,25 +766,6 @@ class ReferenceArticle implements AttachmentContainer {
             }
         }
 
-        return $this;
-    }
-
-    public function getEmergencyComment(): ?string {
-        return $this->emergencyComment;
-    }
-
-    public function setEmergencyComment(?string $emergencyComment): self {
-        $this->emergencyComment = $emergencyComment;
-
-        return $this;
-    }
-
-    public function getEmergencyQuantity(): ?int {
-        return $this->emergencyQuantity;
-    }
-
-    public function setEmergencyQuantity(?int $emergencyQuantity): self {
-        $this->emergencyQuantity = $emergencyQuantity;
         return $this;
     }
 

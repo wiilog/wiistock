@@ -78,7 +78,6 @@ class RefArticleDataService
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text", "searchable" => true],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
-        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
         ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
         ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
         ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
@@ -441,12 +440,9 @@ class RefArticleDataService
 
         if ($data->has('urgence')) {
             $isUrgent = $data->getBoolean('urgence');
-            $emergencyQuantity = $data->get('emergencyQuantity');
             $refArticle
                 ->setIsUrgent($isUrgent)
-                ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-                ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
-                ->setEmergencyQuantity(($isUrgent && $emergencyQuantity >= 0) ? $emergencyQuantity : null);
+                ->setUserThatTriggeredEmergency($isUrgent ? $user : null);
         }
 
 
@@ -586,7 +582,6 @@ class RefArticleDataService
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
-            "emergencyComment" => $refArticle->getEmergencyComment(),
             "visibilityGroups" => $formatService->visibilityGroup($refArticle->getVisibilityGroup()),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
