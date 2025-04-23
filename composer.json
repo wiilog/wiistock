@@ -51,6 +51,7 @@
     "symfony/framework-bundle": "6.4.*",
     "symfony/http-client": "6.4.*",
     "symfony/intl": "6.4.*",
+    "symfony/lock": "6.4.*",
     "symfony/mailer": "6.4.*",
     "symfony/mailjet-mailer": "6.4.*",
     "symfony/messenger": "6.4.*",
@@ -144,10 +145,6 @@
     {
       "type": "git",
       "url": "https://github.com/wiilog/zpl-generator.git"
-    },
-    {
-      "type": "git",
-      "url": "https://github.com/wiilog/doctrine-messenger.git"
     }
   ]
 }

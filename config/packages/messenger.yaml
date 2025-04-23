@@ -1,5 +1,9 @@
 framework:
   messenger:
+    buses:
+      messenger.bus.default:
+        middleware:
+          - App\Messenger\Middleware\DeduplicationMiddleware
 
     # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
     # failure_transport: failed
@@ -10,8 +14,20 @@ framework:
       async_tracking_delay:
         dsn: "%env(MESSENGER_DSN)%"
         options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_tracking-delay"
           queues:
             "%env(string:key:user:url:MESSENGER_DSN)%_tracking-delay":
+        retry_strategy:
+          max_retries: 0
+
+      async_waiting:
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_waiting"
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_waiting":
               arguments:
                 x-message-deduplication: true
         retry_strategy:
@@ -20,16 +36,21 @@ framework:
       async_dashboard_feeding:
         dsn: "%env(MESSENGER_DSN)%"
         options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_dashboard-feeding"
           queues:
             "%env(string:key:user:url:MESSENGER_DSN)%_dashboard-feeding":
+              arguments:
+                x-message-deduplication: true
         retry_strategy:
           max_retries: 0
 
     # Route your messages to the transports
     routing:
-      App\Messenger\TrackingDelay\CalculateTrackingDelayMessage: async_tracking_delay
-      App\Messenger\Dashboard\FeedDashboardComponentMessage: async_dashboard_feeding
-      App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\FeedDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessageWrapper: async_waiting
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage: async_tracking_delay
 
 # when@test:
 #    framework:

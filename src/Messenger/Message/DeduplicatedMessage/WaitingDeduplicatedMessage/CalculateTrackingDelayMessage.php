@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Messenger\TrackingDelay;
+namespace App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage;
 
-use App\Messenger\DeduplicatedMessageInterface;
-
-class CalculateTrackingDelayMessage implements DeduplicatedMessageInterface {
+class CalculateTrackingDelayMessage extends WaitingDeduplicatedMessage {
 
     public function __construct(
         private string $packCode,
@@ -16,7 +14,8 @@ class CalculateTrackingDelayMessage implements DeduplicatedMessageInterface {
     }
 
     public function getUniqueKey(): string {
-        return $this->packCode;
+        $classCode = str_replace("\\", "_", get_class($this));
+        return "{$classCode}_{$this->packCode}";
     }
 
     public function normalize(): array {

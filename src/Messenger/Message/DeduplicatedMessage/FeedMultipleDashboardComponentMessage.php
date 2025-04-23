@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Messenger\Dashboard;
+namespace App\Messenger\Message\DeduplicatedMessage;
 
-use App\Messenger\DeduplicatedMessageInterface;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
 use WiiCommon\Helper\Stream;
 
@@ -29,9 +28,11 @@ class FeedMultipleDashboardComponentMessage implements DeduplicatedMessageInterf
     }
 
     public function getUniqueKey(): string {
-        return Stream::from($this->componentIds)
+        $classCode = str_replace("\\", "_", get_class($this));
+        $componentIds = Stream::from($this->componentIds)
             ->sort(static fn($a, $b) => $a <=> $b)
             ->join('_');
+        return "{$classCode}_{$componentIds}";
     }
 
     public function normalize(): array {

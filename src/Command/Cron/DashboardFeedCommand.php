@@ -4,8 +4,8 @@ namespace App\Command\Cron;
 
 use App\Entity\Dashboard;
 use App\Entity\Wiilock;
-use App\Messenger\Dashboard\FeedDashboardComponentMessage;
-use App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage;
+use App\Messenger\Message\DeduplicatedMessage\FeedDashboardComponentMessage;
+use App\Messenger\Message\DeduplicatedMessage\FeedMultipleDashboardComponentMessage;
 use App\Service\Dashboard\DashboardService;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
 use App\Service\ExceptionLoggerService;

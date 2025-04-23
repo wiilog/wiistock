@@ -1,29 +1,31 @@
 <?php
 
-namespace App\Messenger\Dashboard;
+namespace App\Messenger\Handler;
 
 use App\Entity\Dashboard;
 use App\Exceptions\DashboardException;
-use App\Messenger\LoggedHandler;
-use App\Messenger\MessageInterface;
+use App\Messenger\Message\DeduplicatedMessage\FeedDashboardComponentMessage;
+use App\Messenger\Message\MessageInterface;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Throwable;
 
-#[AsMessageHandler]
+/**
+ * Handler for simple dashboard component
+ */
+#[AsMessageHandler(fromTransport: "async_dashboard_feeding")]
 class FeedDashboardComponentHandler extends LoggedHandler
 {
 
     public function __construct(
-        #[Autowire("@service_container")]
-        private ContainerInterface     $container,
-        private EntityManagerInterface $entityManager,
-        private ExceptionLoggerService $loggerService,
+        private ExceptionLoggerService                               $loggerService,
+        #[Autowire("@service_container")] private ContainerInterface $container,
+        private EntityManagerInterface                               $entityManager,
 
     ) {
         parent::__construct($this->loggerService);
