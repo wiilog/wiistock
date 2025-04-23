@@ -239,7 +239,7 @@ class IOTService {
             if ($triggerAction->getRequestTemplate()) {
                 $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+                $this->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage);
             }
             $this->treatTrackLinksOnTrigger($entityManager, $wrapper, $temperatureThresholdType);
         }
@@ -266,7 +266,7 @@ class IOTService {
             if ($triggerAction->getRequestTemplate()) {
                 $this->requestTemplateService->treatRequestTemplateTriggerType($entityManager, $triggerAction->getRequestTemplate(), $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+                $this->treatAlertTemplateTriggerType($entityManager, $triggerAction->getAlertTemplate(), $sensorMessage);
             } else if (isset($config['dropOnLocation'])) {
                 $this->treatDropOnLocationTriggerType($entityManager, $triggerAction, $sensorMessage);
 
