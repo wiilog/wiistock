@@ -53,9 +53,6 @@ class ReceptionReferenceArticle {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $emergencyTriggered = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $emergencyComment = null;
-
     #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
@@ -201,16 +198,6 @@ class ReceptionReferenceArticle {
 
     public function setEmergencyTriggered(?bool $emergencyTriggered): self {
         $this->emergencyTriggered = $emergencyTriggered;
-
-        return $this;
-    }
-
-    public function getEmergencyComment(): ?string {
-        return $this->emergencyComment;
-    }
-
-    public function setEmergencyComment(?string $emergencyComment): self {
-        $this->emergencyComment = $emergencyComment;
 
         return $this;
     }

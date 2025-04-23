@@ -97,7 +97,6 @@ class ImportService
         Import::ENTITY_REF => [
             "catInv",
             "commentaire",
-            "emergencyComment",
             "dateLastInventory",
             "emplacement",
             "libelle",
@@ -1039,9 +1038,6 @@ class ImportService
         }
         if (isset($data['commentaire'])) {
             $refArt->setCommentaire($data['commentaire']);
-        }
-        if (isset($data['emergencyComment'])) {
-            $refArt->setEmergencyComment($data['emergencyComment']);
         }
         if (isset($data['dateLastInventory'])) {
             try {

@@ -203,7 +203,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.isUrgent AS urgent')
-            ->addSelect('reference.emergencyComment AS emergencyComment')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
@@ -406,7 +405,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect("reference.{$field} as text")
             ->addSelect('reference.typeQuantite as typeQuantity')
             ->addSelect('reference.isUrgent as urgent')
-            ->addSelect('reference.emergencyComment as emergencyComment')
             ->addSelect('reference.libelle')
             ->addSelect('reference.barCode')
             ->addSelect('join_location.label AS location')
@@ -484,7 +482,6 @@ class ReferenceArticleRepository extends EntityRepository {
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
-            'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'date'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
