@@ -2418,30 +2418,25 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-
-                $buyerIsSelected = $type && $type->getSendMailBuyerEmergency();
-                $requesterIsSelected = $type && $type->getSendMailRequesterEmergency();
-                $emergencyWarningOptions = [
-                    [
-                        "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
-                        "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
-                        "selected" => $buyerIsSelected,
-                    ],
-                    [
-                        "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
-                        "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
-                        "selected" => $requesterIsSelected,
-                    ]
+                $data[] = [
+                    "label" => "Alert email",
+                    "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
+                        "type" => "",
+                        "multiple" => true,
+                        "items" => [
+                            [
+                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
+                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
+                                "selected" => $type?->getSendMailBuyerEmergency(),
+                            ],
+                            [
+                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
+                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
+                                "selected" => $type?->getSendMailRequesterEmergency(),
+                            ]
+                        ],
+                    ]),
                 ];
-                $data[] =
-                    [
-                        "label" => "Alert email",
-                        "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
-                            "type" => "",
-                            "multiple" => true,
-                            "items" => $emergencyWarningOptions,
-                        ]),
-                    ];
             }
 
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
