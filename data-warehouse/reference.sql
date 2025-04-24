@@ -67,12 +67,16 @@ SELECT reference_article.id,
        IF(reference_article.dangerous_goods = 1, 'oui', 'non')   AS marchandise_dangeureuse,
        reference_article.onu_code                                AS code_onu,
        reference_article.product_class                           AS classe_produit,
-       reference_article.ndp_code                                AS code_ndp
+       reference_article.ndp_code                                AS code_ndp,
+       reference_article.last_sleeping_stock_alert_answer        AS derniere_reponse_stockage,
+       FLOOR(sleeping_stock_plan.max_storage_time/60/60/24)      AS duree_stockage_maximale,
+       FLOOR(sleeping_stock_plan.max_stationary_time/60/60/24)   AS duree_immobilisation_maximale
 
 
 FROM reference_article
 
          LEFT JOIN type ON reference_article.type_id = type.id
+         LEFT JOIN sleeping_stock_plan ON sleeping_stock_plan.type_id = type.id
          LEFT JOIN statut ON reference_article.statut_id = statut.id
          LEFT JOIN emplacement ON reference_article.emplacement_id = emplacement.id
          LEFT JOIN inventory_category ON reference_article.category_id = inventory_category.id

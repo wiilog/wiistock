@@ -36,10 +36,10 @@ class SecuriteController extends AbstractController {
     #[Required]
     public Twig_Environment $templating;
 
-    const ALLMESSAGES = [
-        'message_1' => 'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.',
-        'message_2' => 'Votre mot de passe a bien été modifié.',
-        'message_3' => 'Un lien pour réinitialiser votre mot de passe vient d\'être envoyé sur votre adresse email si elle correspond à un compte valide.'
+    const MESSAGE_CODE_PASSWORD_CHANGED = 1;
+
+    const MESSAGES_BY_CODE = [
+        self::MESSAGE_CODE_PASSWORD_CHANGED => 'Votre mot de passe a bien été modifié.',
     ];
 
     #[Route("/", name: "default")]
@@ -47,15 +47,11 @@ class SecuriteController extends AbstractController {
         return $this->redirectToRoute('login');
     }
 
-    #[Route("/login/{success}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
+    #[Route("/login/{messageCode}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
     public function login(AuthenticationUtils $authenticationUtils,
-                          string $success = ''): Response {
+                          int                 $messageCode = 0): Response {
+        $message = $this::MESSAGES_BY_CODE[$messageCode] ?? '';
 
-        if(in_array($success, array_keys($this::ALLMESSAGES))){
-            $success = $this::ALLMESSAGES[$success];
-        }else{
-            $success = '';
-        }
         $loggedUser = $this->getUser();
         $securityContext = $this->container->get('security.authorization_checker');
         if ($loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
@@ -76,7 +72,7 @@ class SecuriteController extends AbstractController {
         return $this->render('securite/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
-            'success' => $success,
+            'success' => $message,
         ]);
     }
 
@@ -146,7 +142,7 @@ class SecuriteController extends AbstractController {
         if(!$user) {
             $response = [
                 'success' => false,
-                'msg' => 'message_1',
+                'msg' => "Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe."
             ];
         } else if($user->getStatus()) {
             $password = $data['password'];
@@ -164,7 +160,7 @@ class SecuriteController extends AbstractController {
 
                     $response = [
                         'success' => true,
-                        'msg' => 'message_2',
+                        'messageCode' => self::MESSAGE_CODE_PASSWORD_CHANGED,
                     ];
                 }
             } else {
@@ -207,7 +203,7 @@ class SecuriteController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => 'message_3',
+            'msg' => 'Un lien pour réinitialiser votre mot de passe vient d\'être envoyé sur votre adresse email si elle correspond à un compte valide.',
         ]);
     }
 

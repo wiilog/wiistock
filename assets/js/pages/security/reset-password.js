@@ -1,5 +1,6 @@
 import Form from "@app/form";
-import AJAX, {GET, POST} from "@app/ajax";
+import {POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 $(function() {
     Form
@@ -9,7 +10,7 @@ $(function() {
             `change_password_in_bdd`,
             {
                 success: (response) => {
-                    window.location.href = Routing.generate('login', {success: response.msg});
+                    window.location.href = Routing.generate('login', {messageCode: response.messageCode});
                 },
                 error: (response) => {
                     $(`.error-msg`).removeClass(`d-none`).html(response.msg);
