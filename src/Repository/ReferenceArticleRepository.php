@@ -404,7 +404,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->select('reference.id')
             ->addSelect("reference.{$field} as text")
             ->addSelect('reference.typeQuantite as typeQuantity')
-            ->addSelect('reference.isUrgent as urgent')
             ->addSelect('reference.libelle')
             ->addSelect('reference.barCode')
             ->addSelect('join_location.label AS location')

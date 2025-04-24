@@ -564,10 +564,6 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($receptionReferenceArticle);
                 $entityManager->flush();
 
-                if($refArticle->getIsUrgent()) {
-                    $reception->setUrgentArticles(true);
-                    $receptionReferenceArticle->setEmergencyTriggered(true);
-                }
                 $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
 
                 if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
@@ -845,7 +841,6 @@ class ReceptionController extends AbstractController {
                             'id' => $article->getId(),
                             'text' => $article->getBarCode(),
                             'numReception' => $article->getReceptionReferenceArticle(),
-                            'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
                         ];
                     }
                 }
@@ -1787,10 +1782,6 @@ class ReceptionController extends AbstractController {
 
                 $article->setReceptionReferenceArticle($receptionReferenceArticle);
 
-                if($referenceArticle->getIsUrgent()) {
-                    $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
-                }
-
                 $stockMovement = $mouvementStockService->createMouvementStock(
                     $currentUser,
                     null,
@@ -1885,12 +1876,6 @@ class ReceptionController extends AbstractController {
                     $destinataires
                 );
             }
-
-            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
-                $referenceArticle
-                    ->setIsUrgent(false)
-                    ->setUserThatTriggeredEmergency(null);
-            }
             $entityManager->flush();
         }
 
@@ -1958,11 +1943,6 @@ class ReceptionController extends AbstractController {
             foreach($listArticlesId as $articleId) {
                 $article = $articleRepository->find($articleId);
                 $dispute->addArticle($article);
-                $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
-                if($ligneIsUrgent) {
-                    $dispute->setEmergencyTriggered(true);
-                }
-
                 if(!$articleDataService->articleCanBeAddedInDispute($article)) {
                     return new JsonResponse([
                         'success' => false,
