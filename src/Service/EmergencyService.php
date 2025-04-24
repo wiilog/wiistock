@@ -24,14 +24,23 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
+use App\Controller\FieldModesController;
+use App\Entity\CategorieCL;
+use App\Entity\FreeField\FreeField;
+use App\Entity\Urgence;
+use App\Serializer\SerializerUsageEnum;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class EmergencyService
-{
+
+class EmergencyService {
 
     public function __construct(
-        private AttachmentService $attachmentService,
-        private FixedFieldService $fieldsParamService,
-        private FormatService     $formatService
+        private AttachmentService   $attachmentService,
+        private FixedFieldService   $fieldsParamService,
+        private FormatService       $formatService,
+        private FieldModesService   $fieldModesService,
+        private NormalizerInterface $normalizer,
     ) {}
 
     /**
@@ -109,8 +118,8 @@ class EmergencyService
                             Stream::explode(" ", $trackingFixedFieldParams[$key] ?? '')->filter(),
                             Stream::explode(" ", $stockFixedFieldParams[$key] ?? '')->filter(),
                         )
-                        ->unique()
-                        ->join(' ')
+                            ->unique()
+                            ->join(' ')
                     ])
                     ->toArray();
 
@@ -295,4 +304,71 @@ class EmergencyService
             }
         }
     }
+
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager,
+                                            ?Utilisateur $currentUser): array {
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $page = FieldModesController::PAGE_EMERGENCY_LIST;
+        $freeFields = $freeFieldRepository->findByCategoriesTypeAndCategoriesCL([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY], [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]);
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
+
+        $columns = [
+            [
+                'title' => null,
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ],
+            FixedFieldEnum::reference,
+            FixedFieldEnum::dateStart,
+            FixedFieldEnum::dateEnd,
+            ['title' => "Date de cloture", 'name' => 'closedAt'],
+            ['title' => "Date dernier déclenchement", 'name' => 'lastTriggeredAt'],
+            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber'],
+            FixedFieldEnum::createdAt,
+            FixedFieldEnum::orderNumber,
+            FixedFieldEnum::postNumber,
+            FixedFieldEnum::buyer,
+            FixedFieldEnum::supplier,
+            FixedFieldEnum::carrier,
+            FixedFieldEnum::carrierTrackingNumber,
+            FixedFieldEnum::type,
+            FixedFieldEnum::internalArticleCode,
+            FixedFieldEnum::supplierArticleCode,
+        ];
+
+        $columns = Stream::from($columns)
+            ->map(function ( array|FixedFieldEnum $field): array {
+                if ($field instanceof FixedFieldEnum) {
+                    $field = [
+                        'title' => $field->value,
+                        'name' => $field->name,
+                    ];
+                }
+                return $field;
+            })
+            ->toArray();
+
+        dump($this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes));
+
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes);
+    }
+
+    public function getDataForDatatable(EntityManagerInterface $entityManager, ParameterBag $request): array {
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
+
+        $queryResult = $emergencyRepository->findByParamsAndFilters($request, []);
+
+        return [
+            'data' => $this->normalizer->normalize($queryResult['data'], null, ["usage" => SerializerUsageEnum::LIST_DATATABLE]),
+            'recordsTotal' => $queryResult['total'],
+            'recordsFiltered' => $queryResult['count'],
+        ];
+
+    }
+
 }

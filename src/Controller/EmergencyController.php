@@ -5,35 +5,37 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
+use App\Entity\CategoryType;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Menu;
 use App\Entity\Type;
 use App\Service\AttachmentService;
 use App\Service\EmergencyService;
 use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\SpecificService;
+use App\Entity\Menu;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Utilisateur;
 
 #[Route('/emergency', name: 'emergency_')]
 class EmergencyController extends AbstractController
 {
 
-    #[Route('/', name: 'index')]
+    #[Route('/', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function index(EntityManagerInterface $entityManager,
                           EmergencyService       $emergencyService): Response
     {
         return $this->render('emergency/index.html.twig', [
+            "initial_visible_columns" => $this->apiColumns($emergencyService, $entityManager)->getContent(),
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
         ]);
     }
@@ -89,5 +91,25 @@ class EmergencyController extends AbstractController
             "success" => true,
             "message" => "L'urgence a été modifiée avec succès.",
         ]);
+    }
+
+    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_URGE])]
+    public function apiColumns(EmergencyService $service,
+                               EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+        return new JsonResponse($columns);
+    }
+
+    #[Route("/api-list", name: "api_list", options: ['expose' => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_URGE])]
+    public function apiList(EntityManagerInterface $entityManager,
+                            Request                $request,
+                            EmergencyService       $emergencyService): JsonResponse {
+        $data = $emergencyService->getDataForDatatable($entityManager, $request->request);
+
+        return new JsonResponse($data);
     }
 }

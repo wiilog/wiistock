@@ -250,6 +250,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'limitTreatmentDate' => [],
     ];
 
+    const DEFAULT_EMERGENCY_FIELDS_MODES = [
+        // date début
+        // date fin
+        'closedAt' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastTriggeredAt' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastEntityNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::orderNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::postNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::buyer->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::supplier->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::carrier->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::carrierTrackingNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::type->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::internalArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::supplierArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+
     const DEFAULT_FIELDS_MODES = [
         'reference' => self::DEFAULT_REFERENCE_FIELDS_MODES,
         'article' => self::DEFAULT_ARTICLE_FIELDS_MODES,
@@ -268,6 +286,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
         FieldModesController::PAGE_PACK_LIST => self::DEFAULT_PACK_LIST_FIELDS_MODES,
+        FieldModesController::PAGE_EMERGENCY_LIST => self::DEFAULT_EMERGENCY_FIELDS_MODES
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
