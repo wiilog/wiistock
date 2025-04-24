@@ -157,17 +157,12 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $limitWarning = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $isUrgent = false;
 
     /**
      * @return Collection<int, PreparationOrderReferenceLine>
      */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
-
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
-    private ?Utilisateur $userThatTriggeredEmergency = null;
 
     #[ORM\OneToOne(mappedBy: 'referenceArticle', targetEntity: Pack::class)]
     private ?Pack $trackingPack = null;
@@ -731,16 +726,6 @@ class ReferenceArticle implements AttachmentContainer {
         return $this;
     }
 
-    public function getIsUrgent(): ?bool {
-        return $this->isUrgent;
-    }
-
-    public function setIsUrgent(?bool $isUrgent): self {
-        $this->isUrgent = $isUrgent;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, PreparationOrderReferenceLine>
      */
@@ -822,16 +807,6 @@ class ReferenceArticle implements AttachmentContainer {
         if($this->managers->contains($manager)) {
             $this->managers->removeElement($manager);
         }
-
-        return $this;
-    }
-
-    public function getUserThatTriggeredEmergency(): ?Utilisateur {
-        return $this->userThatTriggeredEmergency;
-    }
-
-    public function setUserThatTriggeredEmergency(?Utilisateur $userThatTriggeredEmergency): self {
-        $this->userThatTriggeredEmergency = $userThatTriggeredEmergency;
 
         return $this;
     }
