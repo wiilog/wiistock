@@ -1,5 +1,6 @@
 import Form from "@app/form";
-import AJAX, {GET, POST} from "@app/ajax";
+import {POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 $(function() {
     Form
