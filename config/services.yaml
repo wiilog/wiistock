@@ -83,6 +83,7 @@ services:
 
   App\EventListener\AttachmentListener:
     tags:
+      - { name: 'doctrine.orm.entity_listener', event: 'preRemove', lazy: true, entity: 'App\Entity\Attachment' }
       - { name: 'doctrine.orm.entity_listener', event: 'postRemove', lazy: true, entity: 'App\Entity\Attachment' }
 
   App\EventListener\AnnotationListener:

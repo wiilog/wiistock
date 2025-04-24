@@ -132,6 +132,7 @@ class TransporteurController extends AbstractController
             $transporteur->addAttachment($logo);
         } else if ($carrierId && !$transporteur->getAttachments()->isEmpty() && !$data['keep-logo']) {
             $attachmentToRemove = $transporteur->getAttachments()[0];
+            dump($attachmentToRemove);
             $transporteur->removeAttachment($attachmentToRemove);
             $entityManager->remove($attachmentToRemove);
         } else if($isRecurrent && !$logo && $transporteur->getAttachments()->isEmpty()){
