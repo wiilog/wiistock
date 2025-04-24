@@ -564,8 +564,9 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($receptionReferenceArticle);
                 $entityManager->flush();
 
-                $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
+                // TODO WIIS-12641
 
+                $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
                 if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
                     $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
@@ -1887,6 +1888,8 @@ class ReceptionController extends AbstractController {
             if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
                 $to[] = $demande->getReceiver();
             }
+
+            // TODO WIIS-12641
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
