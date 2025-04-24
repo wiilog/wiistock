@@ -162,7 +162,7 @@ class TruckArrivalLineRepository extends EntityRepository
                 ->setParameter('carrier_id', $option['carrierId']);
         }
 
-        if (strlen($term) == 0) {
+        if (strlen(str_replace('%', '', $term)) == 0) {
             $qb->andWhere('arrivals.id IS NULL');
         }
 
