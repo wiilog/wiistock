@@ -504,7 +504,6 @@ class RefArticleDataService
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
                 if ($image) {
-                    $this->attachmentService->deleteAttachmentPath($image);
                     $refArticle->setImage(null);
                     $entityManager->remove($image);
                 }
@@ -518,7 +517,6 @@ class RefArticleDataService
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getSheet();
                 if ($image) {
-                    $this->attachmentService->deleteAttachmentPath($image);
                     $refArticle->setSheet(null);
                     $entityManager->remove($image);
                 }
