@@ -173,7 +173,6 @@ class Import extends ScheduledTask {
             'articleFournisseurReference' => 'Référence article fournisseur',
             'typeLabel' => 'type',
             'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
-            'emergencyComment' => 'commentaire urgence',
             'quantity' => 'quantité',
             'batch' => 'Lot',
             'location' => 'Emplacement',
