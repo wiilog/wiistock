@@ -835,7 +835,7 @@ class IOTService {
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 return match (true) {
-                    str_starts_with($payload, '12') => 100 - hexdec(substr($payload, 10, 2)),
+                    str_starts_with($payload, '6d') => 100 - hexdec(substr($payload, 10, 2)),
                     str_starts_with($payload, '42') => 100 - hexdec(substr($payload, 32, 2))
                 };
             case IOTService::INEO_SENS_ACS_BTN:
