@@ -191,15 +191,7 @@ class AttachmentService {
 
         foreach ($attachmentsToRemove as $attachment) {
             $attachmentContainer->removeAttachment($attachment);
-            $this->deleteAttachmentPath($attachment);
             $entityManager->remove($attachment);
-        }
-    }
-
-    public function deleteAttachmentPath(mixed $attachment): void {
-        $path = $this->getServerPath($attachment);
-        if(file_exists($path)) {
-            unlink($path);
         }
     }
 }

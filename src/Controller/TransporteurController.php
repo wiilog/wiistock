@@ -171,7 +171,6 @@ class TransporteurController extends AbstractController
     #[Route("/supprimer", name: "transporteur_delete", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
-                           AttachmentService      $attachmentService,
                            CarrierService         $carrierService,
                            Request                $request): Response
     {
@@ -192,7 +191,6 @@ class TransporteurController extends AbstractController
         if (!$carrier->getAttachments()->isEmpty()) {
             foreach ($carrier->getAttachments() as $attachment) {
                 $carrier->removeAttachment($attachment);
-                $attachmentService->deleteAttachmentPath($attachment);
                 $entityManager->remove($attachment);
             }
         }
