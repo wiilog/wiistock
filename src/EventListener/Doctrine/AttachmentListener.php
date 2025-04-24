@@ -21,7 +21,7 @@ class AttachmentListener {
     }
 
     public function preRemove(Attachment $attachment): void {
-        // if it's a lazy entity we preload it before postRemove
+        // if it's a proxy entity (content not loaded yet) then we preload it before postRemove
         // in postRemove action the row in db is deleted, and we can't retrieve the path of the file for this attachment
         if ($attachment instanceof Proxy) {
             $attachment->__load();
