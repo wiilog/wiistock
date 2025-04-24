@@ -1,31 +1,25 @@
 <?php
 
 
-namespace App\EventListener;
+namespace App\EventListener\Doctrine;
 
 use App\Entity\Attachment;
 use App\Service\AttachmentService;
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Events;
 use Doctrine\Persistence\Proxy;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Throwable;
 
 
-class AttachmentListener implements EventSubscriber {
+#[AsEntityListener(event: Events::preRemove, method: 'preRemove', lazy: true, entity: Attachment::class)]
+#[AsEntityListener(event: Events::postRemove, method: 'postRemove', lazy: true, entity: Attachment::class)]
+class AttachmentListener {
 
     public function __construct(
         private AttachmentService $attachmentService,
     ) {
     }
 
-    public function getSubscribedEvents(): array {
-        return [
-            "preRemove",
-            "postRemove",
-        ];
-    }
-
-    #[AsEventListener(event: "preRemove")]
     public function preRemove(Attachment $attachment): void {
         // if it's a lazy entity we preload it before postRemove
         // in postRemove action the row in db is deleted, and we can't retrieve the path of the file for this attachment
@@ -34,7 +28,6 @@ class AttachmentListener implements EventSubscriber {
         }
     }
 
-    #[AsEventListener(event: "postRemove")]
     public function postRemove(Attachment $attachment): void {
         try {
             $path = $this->attachmentService->getServerPath($attachment);
