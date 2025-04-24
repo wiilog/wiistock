@@ -18,6 +18,7 @@ class FieldModesController extends AbstractController {
     public const PAGE_PRODUCTION_REQUEST_LIST = "productionRequest";
     public const PAGE_PRODUCTION_REQUEST_PLANNING = "productionRequestPlanning";
     public const PAGE_PACK_LIST = "packList";
+    public const PAGE_EMERGENCY_LIST = "emergency";
 
     private const PAGES = [
         "reference",

@@ -105,3 +105,31 @@ function initializeModals($tableEmergencies) {
             tables: $tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
         });
 }
+
+function initTable() {
+    let tableEmergencyConfig = {
+        pageLength: 10,
+        processing: true,
+        serverSide: true,
+        paging: true,
+        //order: [['number', "desc"]],
+        ajax: {
+            url: Routing.generate('emergency_api_list', true),
+            type: POST,
+        },
+        drawConfig: {
+            needsResize: true,
+            hidePaging: false,
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+            //needsColor: true,
+            //color: 'danger',
+            //dataToCheck: 'emergency',
+        },
+        //columns: columns,
+        page: 'emergency',
+    };
+
+    return initDataTable('tableEmergency', tableEmergencyConfig);
+}
