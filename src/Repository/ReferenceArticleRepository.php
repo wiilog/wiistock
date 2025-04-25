@@ -53,7 +53,6 @@ class ReferenceArticleRepository extends EntityRepository {
         'securityThreshold' => 'limitSecurity',
         'warningThreshold' => 'limitWarning',
         'unitPrice' => 'prixUnitaire',
-        'emergency' => 'isUrgent',
         'mobileSync' => 'needsMobileSync',
         'lastInventory' => 'dateLastInventory',
         'comment' => 'commentaire',
@@ -202,7 +201,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.barCode AS barCode')
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
-            ->addSelect('reference.isUrgent AS urgent')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
@@ -484,7 +482,6 @@ class ReferenceArticleRepository extends EntityRepository {
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'date'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
-            'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
             'Créée le' => ['field' => 'createdAt', 'typage' => 'date'],
@@ -595,11 +592,6 @@ class ReferenceArticleRepository extends EntityRepository {
                             case 'number':
                                 $queryBuilder
                                     ->andWhere("ra.$field = :value$index")
-                                    ->setParameter("value$index", $filter['value']);
-                                break;
-                            case 'boolean':
-                                $queryBuilder
-                                    ->andWhere("ra.isUrgent = :value$index")
                                     ->setParameter("value$index", $filter['value']);
                                 break;
                             case 'list':

@@ -1108,7 +1108,6 @@ class ImportService
 
             $refArt
                 ->setStatut($status)
-                ->setIsUrgent(false)
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setType($type);
         } else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {

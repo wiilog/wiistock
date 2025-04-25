@@ -144,17 +144,6 @@
             </div>
         </div>
     {% endif %}
-
-    <div class="form-group col-4 mt-8">
-        <div class="article {{ dnone }}">
-            <label for="urgence" class="wii-field-text">Urgence</label><br>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" onchange="toggleEmergency($(this))" name="urgence"
-                       value="{{ articleRef.isUrgent }}" {{ articleRef.isUrgent ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </div>
 </div>
 
 <div class="row mt-4 mb-3">

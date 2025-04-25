@@ -564,7 +564,14 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($receptionReferenceArticle);
                 $entityManager->flush();
 
+                /*
                 // TODO WIIS-12641
+                if($refArticle->getIsUrgent()) {
+                    $reception->setUrgentArticles(true);
+                    $receptionReferenceArticle->setEmergencyTriggered(true);
+                    $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
+                }
+                */
 
                 $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
                 if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
@@ -1843,13 +1850,18 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
+        // TODO WIIS-12641: extract in other function ?
+        // clean code
         foreach($emergencies as $emergency) {
             $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
+            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
+                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -1888,9 +1900,26 @@ class ReceptionController extends AbstractController {
             if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
                 $to[] = $demande->getReceiver();
             }
-
+            /*
             // TODO WIIS-12641
 
+            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setUserThatTriggeredEmergency(null)
+                    ->setEmergencyComment('');
+            } else {
+                if ($newEmergencyQuantity <= 0) {
+                    $referenceArticle
+                        ->setIsUrgent(false)
+                        ->setEmergencyQuantity(null)
+                        ->setUserThatTriggeredEmergency(null)
+                        ->setEmergencyComment('');
+                } else {
+                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
+                }
+            }
+            */
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 $entityManager,
@@ -1946,6 +1975,13 @@ class ReceptionController extends AbstractController {
             foreach($listArticlesId as $articleId) {
                 $article = $articleRepository->find($articleId);
                 $dispute->addArticle($article);
+                /*
+                // TODO WIIS-12641
+                $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                if($ligneIsUrgent) {
+                    $dispute->setEmergencyTriggered(true);
+                }
+                */
                 if(!$articleDataService->articleCanBeAddedInDispute($article)) {
                     return new JsonResponse([
                         'success' => false,
