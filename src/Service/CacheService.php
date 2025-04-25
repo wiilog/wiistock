@@ -6,11 +6,13 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
 class CacheService {
+
+    private const CACHE_KEY_KEYS = "__wiilog_cache_keys";
+    private const CACHE_KEY_SEPARATOR = '/';
 
     public const COLLECTION_PERMISSIONS = "permissions";
     public const COLLECTION_TRANSLATIONS = "translations";
@@ -47,6 +49,7 @@ class CacheService {
                         ?callable $generateValue = null): mixed {
         try {
             $cacheKey = $this->getCacheKey($namespace, $key);
+            $this->saveCacheKey($cacheKey);
             return $this->cache->get($cacheKey, $generateValue ?? static fn () => null);
         } catch (Throwable $exception) {
             $this->exceptionLoggerService->sendLog($exception);
@@ -60,24 +63,30 @@ class CacheService {
     public function set(string $namespace,
                         string $key,
                         mixed  $value = null): void {
-        $cacheKey = $this->getCacheKey($namespace, $key);
-        $this->cache->delete($cacheKey);
-        $this->get(
-            $namespace,
-            $key,
-            fn () => $value
-        );
+        $this->delete($namespace, $key);
+        $this->get($namespace, $key, static fn () => $value);
     }
 
     /**
      * Delete requested item in the cache.
      */
     public function delete(string $namespace, ?string $key = null): void {
-        if ($key === null) {
-            $this->clear();
-        } else {
-            $cacheKey = $this->getCacheKey($namespace, $key ?? '');
+        if ($key) {
+            $cacheKey = $this->getCacheKey($namespace, $key);
             $this->cache->delete($cacheKey);
+        }
+        // we remove all keys in given namespace
+        else {
+            $cacheKeySeparator = self::CACHE_KEY_SEPARATOR;
+
+            // required "\\" in regex
+            $cacheKeysToDelete = Stream::from($this->cache->get(self::CACHE_KEY_KEYS, static fn() => []))
+                ->filter(static fn(string $key) => preg_match("/^$namespace\\$cacheKeySeparator.+/", $key))
+                ->toArray();
+            foreach ($cacheKeysToDelete as $cacheKey) {
+                $this->cache->delete($cacheKey);
+            }
+            $this->deleteCacheKeys($cacheKeysToDelete);
         }
     }
 
@@ -162,6 +171,26 @@ class CacheService {
 
     private function getCacheKey(string $namespace,
                                  string $key): string {
-        return $namespace . '/' . $key;
+        return $namespace . self::CACHE_KEY_SEPARATOR . $key;
+    }
+
+    private function saveCacheKey(string $cacheKey): void {
+        $cacheKeys = $this->cache->get(self::CACHE_KEY_KEYS, static fn() => []);
+        if (!in_array($cacheKey, $cacheKeys)) {
+            $cacheKeys[] = $cacheKey;
+            $this->cache->delete(self::CACHE_KEY_KEYS);
+
+            // save new cache keys collection
+            $this->cache->get(self::CACHE_KEY_KEYS, static fn() => $cacheKeys);
+        }
+    }
+
+    private function deleteCacheKeys(array $cacheKeysToRemove): void {
+        $cacheKeys = $this->cache->get(self::CACHE_KEY_KEYS, static fn() => []);
+
+        $this->cache->delete(self::CACHE_KEY_KEYS);
+
+        // save new cache keys collection
+        $this->cache->get(self::CACHE_KEY_KEYS, static fn() => array_diff($cacheKeys, $cacheKeysToRemove));
     }
 }

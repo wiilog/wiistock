@@ -1447,9 +1447,7 @@ class SettingsService {
                                        array                  $updated): void {
         $this->getTimestamp(true);
 
-        foreach ($updated as $setting) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, $setting);
-        }
+        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS);
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig($entityManager);

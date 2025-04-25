@@ -35,7 +35,6 @@ class IndexController extends AbstractController {
                           UserService              $userService,
                           FormatService            $formatService,
                           CacheService             $cacheService,
-                          SleepingStockPlanService $sleepingStockPlanService,
                           FormService              $formService): Response {
         $sleepingStockRequestInformationRepository = $entityManager->getRepository(SleepingStockRequestInformation::class);
         $movementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -45,7 +44,6 @@ class IndexController extends AbstractController {
             $user,
             self::MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM,
         );
-
 
         /**
          * @var $actionButtonsItems array{

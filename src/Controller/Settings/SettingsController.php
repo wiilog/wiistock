@@ -1873,8 +1873,11 @@ class SettingsController extends AbstractController {
 
     #[Route("/enregistrer/champ-fixe/{field}", name: "settings_save_field_param", options: ["expose" => true], methods: ["POST"])]
     #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function saveFieldParam(CacheService $cacheService, Request $request, EntityManagerInterface $manager, int $field): Response {
-        $entity = match($request->request->get('fixedFieldType')) {
+    public function saveFieldParam(CacheService           $cacheService,
+                                   Request                $request,
+                                   EntityManagerInterface $manager,
+                                   int                    $field): Response {
+        $entity = match ($request->request->get('fixedFieldType')) {
             FixedFieldByType::FIELD_TYPE => FixedFieldByType::class,
             SubLineFixedField::FIELD_TYPE => SubLineFixedField::class,
             default => FixedFieldStandard::class
@@ -1933,7 +1936,6 @@ class SettingsController extends AbstractController {
             }
 
             if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
-                $cacheService->delete(CacheService::COLLECTION_SETTINGS,Setting::RECEIVER_EQUALS_REQUESTER);
                 $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
             }
         } else if($field->getElementsType() == FixedFieldStandard::ELEMENTS_TYPE) {
@@ -1963,6 +1965,8 @@ class SettingsController extends AbstractController {
             }
         }
         $manager->flush();
+
+        $cacheService->delete(CacheService::COLLECTION_SETTINGS);
 
         return $this->json([
             "success" => true,

@@ -12,33 +12,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public CacheService $cacheService;
-
-    #[Required]
-    public EntityManagerInterface $manager;
-
-    #[Required]
-    public TokenStorageInterface $tokenStorage;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public UserService $userService;
-
     private array $translations = [];
+
+    public function __construct(
+        private KernelInterface        $kernel,
+        private CacheService           $cacheService,
+        private EntityManagerInterface $manager,
+        private TokenStorageInterface  $tokenStorage,
+        private LanguageService        $languageService,
+        private FormatService          $formatService,
+    ) {
+    }
 
     /**
      * Translates the given input
