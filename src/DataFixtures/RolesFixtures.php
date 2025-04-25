@@ -5,7 +5,8 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\RoleService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -60,8 +61,8 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
 
         $roles = $roleRepository->findAll();
         foreach($roles as $role) {
-            $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$role->getId()}");
-            $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheNamespaceEnum::PERMISSIONS, "{$menuPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheNamespaceEnum::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}");
         }
     }
 

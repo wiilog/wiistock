@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Cache;
 
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Service\DateTimeService;
+use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Throwable;
@@ -13,18 +15,6 @@ class CacheService {
 
     private const CACHE_KEY_KEYS = "__wiilog_cache_keys";
     private const CACHE_KEY_SEPARATOR = '/';
-
-    public const COLLECTION_PERMISSIONS = "permissions";
-    public const COLLECTION_TRANSLATIONS = "translations";
-    public const COLLECTION_LANGUAGES = "languages";
-    public const COLLECTION_EXPORTS = "exports";
-    public const COLLECTION_IMPORTS = "imports";
-    public const COLLECTION_PURCHASE_REQUEST_PLANS = "purchase-request-plans";
-    public const COLLECTION_INVENTORY_MISSION_PLANS = "inventory-mission-plans";
-    public const COLLECTION_SETTINGS = "settings";
-    public const COLLECTION_WORK_PERIOD = "work-period";
-    public const COLLECTION_ENTITIES_DICTIONARY = "entities";
-    public const COLLECTION_SLEEPING_STOCK_PLANS = "sleeping-stock-plans";
 
     private FilesystemAdapter $cache;
 
@@ -44,11 +34,11 @@ class CacheService {
      * @param ?callable(): mixed $generateValue
      * @return mixed
      */
-    public function get(string    $namespace,
-                        string    $key,
-                        ?callable $generateValue = null): mixed {
+    public function get(CacheNamespaceEnum $namespace,
+                        string             $key,
+                        ?callable          $generateValue = null): mixed {
         try {
-            $cacheKey = $this->getCacheKey($namespace, $key);
+            $cacheKey = $this->getCacheKey($namespace->value, $key);
             $this->saveCacheKey($cacheKey);
             return $this->cache->get($cacheKey, $generateValue ?? static fn () => null);
         } catch (Throwable $exception) {
@@ -60,9 +50,9 @@ class CacheService {
     /**
      * Set the given value to the requested item in the cache.
      */
-    public function set(string $namespace,
-                        string $key,
-                        mixed  $value = null): void {
+    public function set(CacheNamespaceEnum $namespace,
+                        string             $key,
+                        mixed              $value = null): void {
         $this->delete($namespace, $key);
         $this->get($namespace, $key, static fn () => $value);
     }
@@ -70,9 +60,10 @@ class CacheService {
     /**
      * Delete requested item in the cache.
      */
-    public function delete(string $namespace, ?string $key = null): void {
+    public function delete(CacheNamespaceEnum $namespace,
+                           ?string            $key = null): void {
         if ($key) {
-            $cacheKey = $this->getCacheKey($namespace, $key);
+            $cacheKey = $this->getCacheKey($namespace->value, $key);
             $this->cache->delete($cacheKey);
         }
         // we remove all keys in given namespace
@@ -81,7 +72,7 @@ class CacheService {
 
             // required "\\" in regex
             $cacheKeysToDelete = Stream::from($this->cache->get(self::CACHE_KEY_KEYS, static fn() => []))
-                ->filter(static fn(string $key) => preg_match("/^$namespace\\$cacheKeySeparator.+/", $key))
+                ->filter(static fn(string $key) => preg_match("/^{$namespace->value}\\$cacheKeySeparator.+/", $key))
                 ->toArray();
             foreach ($cacheKeysToDelete as $cacheKey) {
                 $this->cache->delete($cacheKey);
@@ -124,7 +115,7 @@ class CacheService {
         }
 
         $dictionaryCacheKey = str_replace("\\", "_", $class);
-        $entityDictionary = $this->get(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey, fn() => null) ?: [];
+        $entityDictionary = $this->get(CacheNamespaceEnum::ENTITIES_DICTIONARY, $dictionaryCacheKey, fn() => null) ?: [];
 
         $keyInDictionary = Stream::from($keys)->join('_');
         $savedInCache = array_key_exists($keyInDictionary, $entityDictionary);
@@ -134,7 +125,7 @@ class CacheService {
             $entity = $this->getEntityInDatabase($entityManager, $class, ...$keys);
 
             $entityDictionary[$keyInDictionary] = $entity?->getId();
-            $this->set(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey, $entityDictionary);
+            $this->set(CacheNamespaceEnum::ENTITIES_DICTIONARY, $dictionaryCacheKey, $entityDictionary);
 
             return $entity;
         }

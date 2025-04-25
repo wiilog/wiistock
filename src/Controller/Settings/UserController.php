@@ -2,6 +2,9 @@
 
 namespace App\Controller\Settings;
 
+use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
+use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
@@ -9,19 +12,20 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PasswordService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,9 +34,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
-use App\Annotation\HasPermission;
-use App\Entity\Menu;
-use App\Entity\Action;
 
 #[Route('/parametrage/users')]
 class UserController extends AbstractController {
@@ -356,7 +357,7 @@ class UserController extends AbstractController {
 
         $entityManager->persist($user);
         $entityManager->flush();
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES, 'languagesSelector'.$user->getId());
 
         $dataResponse = ['success' => true];
 
@@ -629,7 +630,7 @@ class UserController extends AbstractController {
             ->setLanguage($newLanguage);
 
         $manager->flush();
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES, 'languagesSelector'.$user->getId());
 
         return $this->json([
             "success" => true,

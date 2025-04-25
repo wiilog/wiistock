@@ -4,7 +4,8 @@ namespace App\Service\WorkPeriod;
 
 use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -27,7 +28,7 @@ class WorkPeriodService {
         }
 
         $value = $this->cacheService->get(
-            CacheService::COLLECTION_WORK_PERIOD,
+            CacheNamespaceEnum::WORK_PERIOD,
             $cacheKey,
             fn () => $this->getDatabaseValue($entityManager, $item)
         );
@@ -137,6 +138,6 @@ class WorkPeriodService {
 
     public function clearCaches(): void {
         $this->cache = [];
-        $this->cacheService->delete(CacheService::COLLECTION_WORK_PERIOD);
+        $this->cacheService->delete(CacheNamespaceEnum::WORK_PERIOD);
     }
 }

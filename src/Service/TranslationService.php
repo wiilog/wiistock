@@ -8,6 +8,8 @@ use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -220,11 +222,11 @@ class TranslationService {
 
     public function generateCache(?string $slug = null, ?bool $force = false) {
         if($force) {
-            $this->cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $this->cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
         }
 
         if($slug) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::COLLECTION_TRANSLATIONS, $slug, function() use($slug) {
+            $this->translations[$slug] = $this->cacheService->get(CacheNamespaceEnum::TRANSLATIONS, $slug, function() use($slug) {
                 $this->loadTranslations($slug);
                 return $this->translations[$slug];
             });

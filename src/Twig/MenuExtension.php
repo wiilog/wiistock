@@ -3,12 +3,13 @@
 namespace App\Twig;
 
 use App\Entity\Menu;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\RoleService;
 use App\Service\UserService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -35,7 +36,7 @@ class MenuExtension extends AbstractExtension
         $user = $this->userService->getUser();
         $role = $user->getRole();
         $menuPrefix = RoleService::MENU_CACHE_PREFIX;
-        return $this->cache->get(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$role->getId()}", function() use ($user) {
+        return $this->cache->get(CacheNamespaceEnum::PERMISSIONS, "{$menuPrefix}.{$role->getId()}", function() use ($user) {
             $menuWithRight = [];
             $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
 

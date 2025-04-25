@@ -2,14 +2,12 @@
 
 namespace App\Tests\Service;
 
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
 use DateInterval;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Flex\Cache;
 
 class DateTimeServiceTest extends KernelTestCase
 {

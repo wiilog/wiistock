@@ -22,13 +22,13 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -56,7 +56,8 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\RequestTemplate\RequestTemplateRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
@@ -930,8 +931,8 @@ class SettingsController extends AbstractController {
             $defaultLanguage->setSelected(true);
             $manager->flush();
 
-            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+            $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -977,8 +978,8 @@ class SettingsController extends AbstractController {
             $manager->remove($language);
             $manager->flush();
 
-            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+            $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -1052,8 +1053,8 @@ class SettingsController extends AbstractController {
 
         $entityManager->flush();
 
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-        $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+        $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
         $settingsService->getTimestamp(true);
 
@@ -1966,7 +1967,7 @@ class SettingsController extends AbstractController {
         }
         $manager->flush();
 
-        $cacheService->delete(CacheService::COLLECTION_SETTINGS);
+        $cacheService->delete(CacheNamespaceEnum::SETTINGS);
 
         return $this->json([
             "success" => true,

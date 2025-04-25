@@ -8,12 +8,12 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\SleepingStockRequestInformation;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\FormatService;
 use App\Service\FormService;
 use App\Service\RequestTemplateLineService;
 use App\Service\RequestTemplateService;
-use App\Service\SleepingStockPlanService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -52,7 +52,7 @@ class IndexController extends AbstractController {
          * }
          */
         $actionButtonsItems = $cacheService->get(
-            CacheService::COLLECTION_SETTINGS,
+            CacheNamespaceEnum::SETTINGS,
             SleepingStockRequestInformation::class,
             static function () use ($sleepingStockRequestInformationRepository): array {
                 return Stream::from($sleepingStockRequestInformationRepository->findAll())
