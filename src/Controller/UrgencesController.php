@@ -26,19 +26,6 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/urgences')]
 class UrgencesController extends AbstractController
 {
-//    #[Route('/', name: 'emergency_index')]
-//    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE])]
-//    public function index(EntityManagerInterface $entityManager)
-//    {
-//        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-//
-//        return $this->render('urgence/index.html.twig', [
-//            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
-//            'newEmergency' => new Urgence(),
-//            'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
-//        ]);
-//    }
-
     #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, UrgenceService $emergencyService): Response
@@ -52,48 +39,6 @@ class UrgencesController extends AbstractController
         $data = $emergencyService->getDataForDatatable($request->request, $filters ?: []);
         return new JsonResponse($data);
     }
-
-//    #[Route('/creer', name: 'emergency_new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
-//    #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
-//    public function new(Request                $request,
-//                        EntityManagerInterface $entityManager,
-//                        SpecificService        $specificService,
-//                        UrgenceService         $urgenceService,
-//                        FixedFieldService      $fieldsParamService,
-//                        FormatService          $formatService): Response {
-//        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, true)->all();
-//
-//        $urgenceRepository = $entityManager->getRepository(Urgence::class);
-//
-//        $urgence = new Urgence();
-//
-//        $urgenceService->updateUrgence($entityManager, $urgence, $data, $formatService);
-//
-//        $response = [];
-//
-//        $isPetitSaleCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_PETIT_SALE)
-//            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CHOU_FARCI);
-//
-//        $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
-//            $urgence->getDateStart(),
-//            $urgence->getDateEnd(),
-//            $urgence->getProvider(),
-//            $urgence->getCommande(),
-//            $isPetitSaleCurrentClient ? $urgence->getPostNb() : null
-//        );
-//
-//        if ($sameUrgentCounter > 0) {
-//            $response['success'] = false;
-//            $response['msg'] = $this->getErrorMessageForDuplicate($isPetitSaleCurrentClient);
-//        }
-//        else {
-//            $entityManager->persist($urgence);
-//            $entityManager->flush();
-//            $response['success'] = true;
-//            $response['msg'] = "L'urgence a été créée avec succès.";
-//        }
-//        return new JsonResponse($response);
-//    }
 
     #[Route('/supprimer', name: 'emergency_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
@@ -114,72 +59,6 @@ class UrgencesController extends AbstractController
 
         throw new BadRequestHttpException();
     }
-
-//    #[Route('/api-modifier', name: 'emergency_edit_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
-//    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-//    public function editApi(Request $request,
-//                            EntityManagerInterface $entityManager): Response
-//    {
-//        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-//
-//        if ($data = json_decode($request->getContent(), true)) {
-//            $urgenceRepository = $entityManager->getRepository(Urgence::class);
-//            $urgence = $urgenceRepository->find($data['id']);
-//            $json = $this->renderView('urgence/formEmergency.html.twig', [
-//                'emergency' => $urgence,
-//                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
-//                'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
-//            ]);
-//
-//            return new JsonResponse($json);
-//        }
-//        throw new BadRequestHttpException();
-//    }
-//    #[route('/modifier', name: 'emergency_edit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
-//    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-//    public function edit(Request                $request,
-//                         SpecificService        $specificService,
-//                         EntityManagerInterface $entityManager,
-//                         UrgenceService         $urgenceService,
-//                         FixedFieldService      $fieldsParamService,
-//                         FormatService          $formatService): Response
-//    {
-//        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, false)->all();
-//        $urgenceRepository = $entityManager->getRepository(Urgence::class);
-//        $urgence = $urgenceRepository->find($data['id']);
-//        $response = [];
-//
-//        if ($urgence) {
-//            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_PETIT_SALE)
-//                || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CHOU_FARCI);
-//
-//            $urgenceService->updateUrgence($entityManager, $urgence, $data, $formatService);
-//            $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
-//                $urgence->getDateStart(),
-//                $urgence->getDateEnd(),
-//                $urgence->getProvider(),
-//                $urgence->getCommande(),
-//                $isSEDCurrentClient ? $urgence->getPostNb() : null,
-//                [$urgence->getId()]
-//            );
-//
-//            if ($sameUrgentCounter > 0) {
-//                $response['success'] = false;
-//                $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
-//            }
-//            else {
-//                $entityManager->flush();
-//                $response['success'] = true;
-//                $response['msg'] = "L'urgence a été modifiée avec succès.";
-//            }
-//        }
-//        else {
-//            $response['success'] = false;
-//            $response['msg'] = "Une erreur est survenue lors de la modification de l'urgence.";
-//        }
-//
-//        return new JsonResponse($response);
-//    }
 
     #[Route('/verification', name: 'emergency_check_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
 	public function checkUrgenceCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
