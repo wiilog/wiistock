@@ -17,6 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -86,6 +87,8 @@ class EmergencyService
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
+        $this->checkForDuplicateEmergency($entityManager, $request->request);
+
         $type = $typeRepository->find($request->request->get(FixedFieldEnum::type->name));
 
         $isStockEmergency = $type->getCategory()->getLabel() === CategoryType::STOCK_EMERGENCY;
@@ -105,8 +108,6 @@ class EmergencyService
         $emergency
             ->setType($type)
             ->setCreatedAt(new DateTime());
-
-        // array_key_exists() needed if creation fieldParams config != edit fieldParams config
 
         if($data->get(FixedFieldEnum::dateStart->name) || $data->get(EndEmergencyCriteriaEnum::MANUAL->value)) {
             $dateStart = $this->formatService->parseDatetime($data->get(FixedFieldEnum::dateStart->name) ?? $data->get(EndEmergencyCriteriaEnum::MANUAL->value));
@@ -183,5 +184,20 @@ class EmergencyService
         }
 
         return $emergency;
+    }
+
+    public function checkForDuplicateEmergency(EntityManagerInterface $entityManager,
+                                               InputBag               $request) {
+        $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
+
+        $stockEmergencyReferenceTriggerAndQuantityCriteria = $stockEmergencyRepository->findOneBy([
+            'emergencyTrigger' => EmergencyTriggerEnum::REFERENCE,
+            'endEmergencyCriteria' => EndEmergencyCriteriaEnum::REMAINING_QUANTITY,
+            'referenceArticle' => $request->get('reference'),
+        ]);
+
+        if($stockEmergencyReferenceTriggerAndQuantityCriteria) {
+            throw new FormException("Vous ne pouvez pas créer 2 urgences avec la même référence et le critère de fin d'urgence quantité");
+        }
     }
 }

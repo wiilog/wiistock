@@ -31,7 +31,7 @@ $(function() {
     Form
         .create($modalEditEmergency)
         .onOpen((event) => {
-            Modal.load('emergency_edit_api', {emergency: "7"}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
+            Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
                 onOpen: () => {
                     $modalEditEmergency
                         .find('.modal-body')
@@ -45,10 +45,9 @@ $(function() {
             });
         })
         .submitTo(AJAX.POST, 'emergency_edit', {
-            routeParams: {id: "7"},
+            routeParams: {id: ""},
             tables: tableEmergencies,
         });
-    $modalEditEmergency.modal('show');
 });
 
 function onEmergencyTypeChange($modal) {
@@ -64,6 +63,9 @@ function onEmergencyTypeChange($modal) {
     $trackingEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
     $dateContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
 
+    if(emergencyCategoryType === STOCK_EMERGENCY) {
+        onEmergencyTriggerChange($modal);
+    }
     showAndRequireInputByType($emergencyTypeSelect);
 }
 
