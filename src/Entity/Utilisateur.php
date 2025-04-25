@@ -431,9 +431,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'users')]
     private ?LocationGroup $locationGroupDropzone = null;
 
-    #[ORM\OneToMany(mappedBy: 'userThatTriggeredEmergency', targetEntity: ReferenceArticle::class)]
-    private Collection $referencesEmergenciesTriggered;
-
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $secondaryEmails = [];
 
@@ -542,7 +539,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->treatedDispatches = new ArrayCollection();
         $this->treatedHandlings = new ArrayCollection();
         $this->disputes = new ArrayCollection();
-        $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->reportedDisputes = new ArrayCollection();
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
@@ -1417,34 +1413,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     public function getDropzone() {
         return $this->locationDropzone ?? $this->locationGroupDropzone;
-    }
-
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getReferencesEmergenciesTriggered(): Collection {
-        return $this->referencesEmergenciesTriggered;
-    }
-
-    public function addReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self {
-        if(!$this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
-            $this->referencesEmergenciesTriggered[] = $referencesEmergenciesTriggered;
-            $referencesEmergenciesTriggered->setUserThatTriggeredEmergency($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self {
-        if($this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
-            $this->referencesEmergenciesTriggered->removeElement($referencesEmergenciesTriggered);
-            // set the owning side to null (unless already changed)
-            if($referencesEmergenciesTriggered->getUserThatTriggeredEmergency() === $this) {
-                $referencesEmergenciesTriggered->setUserThatTriggeredEmergency(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getSecondaryEmails(): ?array {

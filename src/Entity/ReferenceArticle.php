@@ -157,7 +157,6 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $limitWarning = null;
 
-
     /**
      * @return Collection<int, PreparationOrderReferenceLine>
      */

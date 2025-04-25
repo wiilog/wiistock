@@ -60,7 +60,6 @@ class RefArticleDataService
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
-        ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
         ["title" => "Type", "name" => "type", "type" => "list"],
         ["title" => "Statut", "name" => "status", "type" => "list"],
         ["title" => "Quantité stock", "name" => "stockQuantity", "type" => "number"],
@@ -438,14 +437,6 @@ class RefArticleDataService
                 ->setPrixUnitaire(($unitPrice !== null && $unitPrice >= 0) ? max(0, $unitPrice) : null);
         }
 
-        if ($data->has('urgence')) {
-            $isUrgent = $data->getBoolean('urgence');
-            $refArticle
-                ->setIsUrgent($isUrgent)
-                ->setUserThatTriggeredEmergency($isUrgent ? $user : null);
-        }
-
-
         $mobileSync = $data->getBoolean('mobileSync');
         if ($mobileSync) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -589,7 +580,6 @@ class RefArticleDataService
             "securityThreshold" => $refArticle->getLimitSecurity() ?? "Non défini",
             "warningThreshold" => $refArticle->getLimitWarning() ?? "Non défini",
             "unitPrice" => $refArticle->getPrixUnitaire(),
-            "emergency" => $formatService->bool($refArticle->getIsUrgent()),
             "mobileSync" => $formatService->bool($refArticle->getNeedsMobileSync()),
             'supplierLabel' => implode(",", $providerLabels),
             'supplierCode' => implode(",", $providerCodes),

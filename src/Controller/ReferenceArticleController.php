@@ -196,11 +196,6 @@ class ReferenceArticleController extends AbstractController
 
             $refArticle->setProperties(['visibilityGroup' => ($data['visibility-group'] ?? null) ? $visibilityGroupRepository->find(intval($data['visibility-group'] ?? null)) : null]);
 
-
-            if ($refArticle->getIsUrgent()) {
-                $refArticle->setUserThatTriggeredEmergency($loggedUser);
-            }
-
             if (!empty($data['limitSecurity'])) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
