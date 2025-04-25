@@ -52,7 +52,6 @@ class EmergencyController extends AbstractController
             ? new StockEmergency()
             : new TrackingEmergency();
 
-
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
         $entityManager->persist($emergency);

@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 class StockEmergency extends Emergency implements AttachmentContainer {
 
     use AttachmentTrait;
+
     #[ORM\Column(type: Types::STRING, nullable: false, enumType: EmergencyTriggerEnum::class)]
     private ?EmergencyTriggerEnum $emergencyTrigger = null;
 
