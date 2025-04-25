@@ -55,6 +55,7 @@ doctrine:
         DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
         CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs
         DAYNAME: DoctrineExtensions\Query\Mysql\DayName
+        GREATEST: DoctrineExtensions\Query\Mysql\Greatest
 
         # Custom DQL functions
         FIRST: App\DQL\Functions\First

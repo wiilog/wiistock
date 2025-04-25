@@ -41,6 +41,7 @@ class EmergencyService {
         private FormatService       $formatService,
         private FieldModesService   $fieldModesService,
         private NormalizerInterface $normalizer,
+        private FormatService $formatService,
     ) {}
 
     /**
@@ -323,12 +324,11 @@ class EmergencyService {
                 'orderable' => false,
                 'class' => 'noVis'
             ],
-            FixedFieldEnum::reference,
             FixedFieldEnum::dateStart,
             FixedFieldEnum::dateEnd,
             ['title' => "Date de cloture", 'name' => 'closedAt'],
             ['title' => "Date dernier déclenchement", 'name' => 'lastTriggeredAt'],
-            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber'],
+            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber', 'orderable' => false,],
             FixedFieldEnum::createdAt,
             FixedFieldEnum::orderNumber,
             FixedFieldEnum::postNumber,
@@ -353,8 +353,6 @@ class EmergencyService {
             })
             ->toArray();
 
-        dump($this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes));
-
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes);
     }
 
@@ -363,8 +361,21 @@ class EmergencyService {
 
         $queryResult = $emergencyRepository->findByParamsAndFilters($request, []);
 
+         $datum = Stream::from($queryResult["data"])
+             ->map(function (array $data): array {
+                 $data["actions"] = "TODO";
+                 $data[FixedFieldEnum::dateStart->name] = $this->formatService->date($data[FixedFieldEnum::dateStart->name]);
+                 $data[FixedFieldEnum::dateEnd->name] = $this->formatService->date($data[FixedFieldEnum::dateEnd->name]);
+                 $data["closedAt"] = $this->formatService->date($data["closedAt"]);
+                 $data["lastTriggeredAt"]= "TODO";
+                 $data[FixedFieldEnum::createdAt->name] = $this->formatService->date($data[FixedFieldEnum::createdAt->name]);
+
+                 return $data;
+             })
+             ->toArray();
+
         return [
-            'data' => $this->normalizer->normalize($queryResult['data'], null, ["usage" => SerializerUsageEnum::LIST_DATATABLE]),
+            'data' => $datum,
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];

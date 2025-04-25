@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
@@ -13,6 +14,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -27,7 +29,7 @@ use WiiCommon\Helper\Stream;
  * @method Arrivage[]    findAll()
  * @method Arrivage[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArrivageRepository extends EntityRepository {
+class  ArrivageRepository extends EntityRepository {
     private const DtToDbLabels = [
         'creationDate' => 'date',
         'arrivalNumber' => 'numeroArrivage',

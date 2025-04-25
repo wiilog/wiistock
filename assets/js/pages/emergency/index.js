@@ -112,7 +112,9 @@ function initTable() {
         processing: true,
         serverSide: true,
         paging: true,
-        //order: [['number', "desc"]],
+        order: [
+            ['createdAt', "desc"]
+        ],
         ajax: {
             url: Routing.generate('emergency_api_list', true),
             type: POST,
