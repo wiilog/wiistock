@@ -1553,10 +1553,10 @@ class ReceptionController extends AbstractController {
         $cache = ['receptionReferenceArticles' => [],];
 
         $totalReceivedQuantity = Stream::from($articles)
-            ->reduce(
-                static fn(int $count, array $articleArray) => $count + max($articleArray['quantityToReceive'] * $articleArray['quantite'],0),
-                0
-            );
+            ->map(
+                static fn(array $articleArray): int => max($articleArray['quantityToReceive'], 0),
+            )
+            ->sum();
         $maxNbArticleInPackingModal = self::MAX_NB_ARTICLE_IN_PACKING_MODAL;
         if ($totalReceivedQuantity > $maxNbArticleInPackingModal) {
             throw new FormException("Vous ne pouvez pas réceptionner plus de $maxNbArticleInPackingModal articles en une fois. Veuillez faire une seconde réception de ces articles.");
