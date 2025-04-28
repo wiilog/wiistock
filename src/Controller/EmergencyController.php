@@ -14,6 +14,7 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Type;
 use App\Service\AttachmentService;
 use App\Service\EmergencyService;
+use App\Service\UserService;
 use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\SpecificService;
@@ -32,10 +33,11 @@ class EmergencyController extends AbstractController
     #[Route('/', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function index(EntityManagerInterface $entityManager,
-                          EmergencyService       $emergencyService): Response
-    {
+                          EmergencyService       $emergencyService): Response {
+        $currentUser = $userService->getUser();
+        $columns = $emergencyService->getVisibleColumnsConfig($entityManager, $currentUser);
         return $this->render('emergency/index.html.twig', [
-            "initial_visible_columns" => $this->apiColumns($emergencyService, $entityManager)->getContent(),
+            "initial_visible_columns" => $columns,
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
         ]);
     }
@@ -91,16 +93,6 @@ class EmergencyController extends AbstractController
             "success" => true,
             "message" => "L'urgence a été modifiée avec succès.",
         ]);
-    }
-
-    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
-    #[HasPermission([Menu::QUALI, Action::DISPLAY_URGE])]
-    public function apiColumns(EmergencyService $service,
-                               EntityManagerInterface $entityManager): Response {
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        return new JsonResponse($columns);
     }
 
     #[Route("/api-list", name: "api_list", options: ['expose' => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
