@@ -78,24 +78,15 @@ class EmergencyService
         ];
     }
 
-    public function updateEmergency(EntityManagerInterface              $entityManager,
-                                    StockEmergency|TrackingEmergency    $emergency,
-                                    Request                             $request): StockEmergency|TrackingEmergency {
-        $userRepository = $entityManager->getRepository(Utilisateur::class);
+    public function updateEmergency(EntityManagerInterface    $entityManager,
+                                    Emergency                 $emergency,
+                                    Request                   $request): Emergency {
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
-        $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-
-        $this->checkForDuplicateEmergency($entityManager, $request->request);
 
         $type = $typeRepository->find($request->request->get(FixedFieldEnum::type->name));
 
         $isStockEmergency = $type->getCategory()->getLabel() === CategoryType::STOCK_EMERGENCY;
-
-        if ($request->request->getBoolean("isAttachmentForm")) {
-            $this->attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $emergency]);
-        }
 
         $data = $this->fieldsParamService->checkForErrors(
             $entityManager,
@@ -108,6 +99,10 @@ class EmergencyService
         $emergency
             ->setType($type)
             ->setCreatedAt(new DateTime());
+
+        if ($request->request->getBoolean("isAttachmentForm")) {
+            $this->attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $emergency]);
+        }
 
         if($data->get(FixedFieldEnum::dateStart->name) || $data->get(EndEmergencyCriteriaEnum::MANUAL->value)) {
             $dateStart = $this->formatService->parseDatetime($data->get(FixedFieldEnum::dateStart->name) ?? $data->get(EndEmergencyCriteriaEnum::MANUAL->value));
@@ -122,51 +117,6 @@ class EmergencyService
         $emergency->setEndEmergencyCriteria($data->get("endEmergencyCriteria")
             ? EndEmergencyCriteriaEnum::from($data->get("endEmergencyCriteria"))
             : EndEmergencyCriteriaEnum::REMAINING_QUANTITY);
-
-        if($emergency instanceof TrackingEmergency) {
-            if ($data->has(FixedFieldEnum::buyer->name)) {
-                $buyer = $data->get(FixedFieldEnum::buyer->name)
-                    ? $userRepository->find($data->get(FixedFieldEnum::buyer->name))
-                    : null;
-                $emergency->setBuyer($buyer);
-            }
-
-            if ($data->has(FixedFieldEnum::carrier->name)) {
-                $carrier = $data->get(FixedFieldEnum::carrier->name)
-                    ? $carrierRepository->find($data->get(FixedFieldEnum::carrier->name))
-                    : null;
-                $emergency->setCarrier($carrier);
-            }
-
-            if ($data->has(FixedFieldEnum::postNumber->name)) {
-                $emergency->setPostNumber($data->get(FixedFieldEnum::postNumber->name));
-            }
-
-            if ($data->has(FixedFieldEnum::internalArticleCode->name)) {
-                $emergency->setInternalArticleCode($data->get(FixedFieldEnum::internalArticleCode->name));
-            }
-
-            if ($data->has(FixedFieldEnum::supplierArticleCode->name)) {
-                $emergency->setSupplierArticleCode($data->get(FixedFieldEnum::supplierArticleCode->name));
-            }
-        } else {
-            $emergency->setEmergencyTrigger(EmergencyTriggerEnum::from($data->get("emergencyTrigger")));
-            if ($data->has(EndEmergencyCriteriaEnum::REMAINING_QUANTITY->value)) {
-                $emergency->setExpectedQuantity($data->get(EndEmergencyCriteriaEnum::REMAINING_QUANTITY->value));
-            }
-
-            if ($data->has(FixedFieldEnum::reference->name)) {
-                $referenceArticle = $data->get(FixedFieldEnum::reference->name)
-                    ? $referenceArticleRepository->find($data->get(FixedFieldEnum::reference->name))
-                    : null;
-
-              $emergency->setReferenceArticle($referenceArticle);
-            }
-
-            if ($data->has(FixedFieldEnum::comment->name)) {
-                $emergency->setComment($data->get(FixedFieldEnum::comment->name));
-            }
-        }
 
         if ($data->has(FixedFieldEnum::supplier->name)) {
             $provider = $data->get(FixedFieldEnum::supplier->name)
@@ -183,11 +133,78 @@ class EmergencyService
             $emergency->setCarrierTrackingNumber($data->get(FixedFieldEnum::carrierTrackingNumber->name));
         }
 
+        if($emergency instanceof TrackingEmergency) {
+            $this->updateTrackingEmergency($entityManager, $emergency, $data);
+
+            $this->checkForDuplicateTrackingEmergency($entityManager, $request->request, $emergency);
+        } else if($emergency instanceof StockEmergency) {
+            $this->updateStockEmergency($entityManager, $emergency, $data);
+
+            $this->checkForDuplicateStockEmergency($entityManager, $request->request);
+        }
+
         return $emergency;
     }
 
-    public function checkForDuplicateEmergency(EntityManagerInterface $entityManager,
-                                               InputBag               $request) {
+    public function updateTrackingEmergency(EntityManagerInterface $entityManager,
+                                            Emergency              $emergency,
+                                            InputBag               $data): void {
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+
+        if ($data->has(FixedFieldEnum::buyer->name)) {
+            $buyer = $data->get(FixedFieldEnum::buyer->name)
+                ? $userRepository->find($data->get(FixedFieldEnum::buyer->name))
+                : null;
+            $emergency->setBuyer($buyer);
+        }
+
+        if ($data->has(FixedFieldEnum::carrier->name)) {
+            $carrier = $data->get(FixedFieldEnum::carrier->name)
+                ? $carrierRepository->find($data->get(FixedFieldEnum::carrier->name))
+                : null;
+            $emergency->setCarrier($carrier);
+        }
+
+        if ($data->has(FixedFieldEnum::postNumber->name)) {
+            $emergency->setPostNumber($data->get(FixedFieldEnum::postNumber->name));
+        }
+
+        if ($data->has(FixedFieldEnum::internalArticleCode->name)) {
+            $emergency->setInternalArticleCode($data->get(FixedFieldEnum::internalArticleCode->name));
+        }
+
+        if ($data->has(FixedFieldEnum::supplierArticleCode->name)) {
+            $emergency->setSupplierArticleCode($data->get(FixedFieldEnum::supplierArticleCode->name));
+        }
+    }
+
+    public function updateStockEmergency(EntityManagerInterface $entityManager,
+                                         Emergency              $emergency,
+                                         InputBag               $data): void
+    {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+        $emergency->setEmergencyTrigger(EmergencyTriggerEnum::from($data->get("emergencyTrigger")));
+        if ($data->has(EndEmergencyCriteriaEnum::REMAINING_QUANTITY->value)) {
+            $emergency->setExpectedQuantity($data->get(EndEmergencyCriteriaEnum::REMAINING_QUANTITY->value));
+        }
+
+        if ($data->has(FixedFieldEnum::reference->name)) {
+            $referenceArticle = $data->get(FixedFieldEnum::reference->name)
+                ? $referenceArticleRepository->find($data->get(FixedFieldEnum::reference->name))
+                : null;
+
+            $emergency->setReferenceArticle($referenceArticle);
+        }
+
+        if ($data->has(FixedFieldEnum::comment->name)) {
+            $emergency->setComment($data->get(FixedFieldEnum::comment->name));
+        }
+    }
+
+    public function checkForDuplicateStockEmergency(EntityManagerInterface $entityManager,
+                                                    InputBag               $request): void {
         $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
         $stockEmergencyReferenceTriggerAndQuantityCriteria = $stockEmergencyRepository->findOneBy([
@@ -198,6 +215,24 @@ class EmergencyService
 
         if($stockEmergencyReferenceTriggerAndQuantityCriteria) {
             throw new FormException("Vous ne pouvez pas créer 2 urgences avec la même référence et le critère de fin d'urgence quantité");
+        }
+    }
+
+    public function checkForDuplicateTrackingEmergency(EntityManagerInterface $entityManager,
+                                                       InputBag               $request,
+                                                       Emergency              $emergency): void {
+        $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
+
+        $countMatchingTrackingEmergency = $trackingEmergencyRepository->countMatchingTrackingEmergency(
+            $emergency->getDateStart(),
+            $emergency->getDateEnd(),
+            $emergency->getSupplier(),
+            $emergency->getCommand(),
+            $emergency->getPostNumber(),
+        );
+
+        if($countMatchingTrackingEmergency) {
+            throw new FormException("Vous ne pouvez pas créer 2 urgences identiques");
         }
     }
 }

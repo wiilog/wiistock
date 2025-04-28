@@ -24,21 +24,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/urgence')]
+#[Route('/emergency', name: 'emergency_')]
 class EmergencyController extends AbstractController
 {
 
-    #[Route('/', name: 'emergency_index')]
-    #[HasPermission([Menu::QUALI, Action::DISPLAY_URGE])]
+    #[Route('/', name: 'index')]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function index(EntityManagerInterface $entityManager,
-                          EmergencyService $emergencyService)
+                          EmergencyService       $emergencyService): Response
     {
         return $this->render('emergency/index.html.twig', [
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
         ]);
     }
 
-    #[Route('/creer', name: 'emergency_new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/new', name: 'new', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
     public function new(Request                 $request,
                         EntityManagerInterface  $entityManager,
@@ -57,40 +57,37 @@ class EmergencyController extends AbstractController
         $entityManager->persist($emergency);
         $entityManager->flush();
 
-        return new JsonResponse([
+        return $this->json([
             "success" => true,
-            "msg" => "L'urgence a été créée avec succès.",
+            "message" => "L'urgence a été créée avec succès.",
         ]);
     }
 
-    #[Route('/modifier-api/{emergency}', name: 'emergency_edit_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route('/modifier-api/{emergency}', name: 'edit_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function editApi(EntityManagerInterface             $entityManager,
-                            EmergencyService                   $emergencyService,
-                            Emergency   $emergency): JsonResponse {
+    public function editApi(EntityManagerInterface    $entityManager,
+                            EmergencyService          $emergencyService,
+                            Emergency                 $emergency): JsonResponse {
 
-        return new JsonResponse([
+        return $this->json([
             'html' => $this->renderView('emergency/form.html.twig', [...$emergencyService->getEmergencyConfig($entityManager, $emergency)]),
         ]);
     }
 
-    #[Route('/modifier', name: 'emergency_edit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{emergency}/edit', name: 'edit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function edit(Request                 $request,
-                        EntityManagerInterface  $entityManager,
-                        EmergencyService        $emergencyService): JsonResponse {
-        $emergencyRepository = $entityManager->getRepository(Emergency::class);
-
-        $emergency = $emergencyRepository->find($request->query->get('id'));
+    public function edit(Emergency                $emergency,
+                         Request                  $request,
+                         EntityManagerInterface   $entityManager,
+                         EmergencyService         $emergencyService): JsonResponse {
 
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
-        $entityManager->persist($emergency);
         $entityManager->flush();
 
-        return new JsonResponse([
+        return $this->json([
             "success" => true,
-            "msg" => "L'urgence a été modifiée avec succès.",
+            "message" => "L'urgence a été modifiée avec succès.",
         ]);
     }
 }

@@ -22,7 +22,7 @@ class Action {
     const DISPLAY_ASSO = 'afficher associations BR';
     const DISPLAY_ENCO = 'afficher encours';
     const DISPLAY_PACK = 'afficher unité logistique';
-    const DISPLAY_URGE = 'afficher urgences';
+    const DISPLAY_EMERGENCY = 'afficher urgences';
     const LIST_ALL = 'lister tous les arrivages';
     const ADD_PACK = 'ajouter unité logistique';
     const EDIT_PACK = 'modifier unité logistique';

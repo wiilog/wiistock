@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class UrgencesController extends AbstractController
 {
     #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_EMERGENCY], mode: HasPermission::IN_JSON)]
     public function api(Request $request, UrgenceService $emergencyService): Response
     {
         $unassociated = $request->query->get('unassociated');
