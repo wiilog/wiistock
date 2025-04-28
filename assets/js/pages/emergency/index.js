@@ -2,6 +2,7 @@ import {showAndRequireInputByType} from "@app/utils";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
+import FixedFieldEnum from "@generated/fixed-field-enum";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
@@ -113,7 +114,7 @@ function initTable() {
         serverSide: true,
         paging: true,
         order: [
-            ['createdAt', "desc"]
+            [FixedFieldEnum.dateStart.name, "desc"]
         ],
         ajax: {
             url: Routing.generate('emergency_api_list', true),

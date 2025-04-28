@@ -13,6 +13,7 @@ use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Menu;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Transporteur;
@@ -24,14 +25,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
-use App\Controller\FieldModesController;
-use App\Entity\CategorieCL;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Urgence;
 use App\Serializer\SerializerUsageEnum;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-
+use Twig\Environment as Twig_Environment;
 
 class EmergencyService {
 
@@ -41,7 +41,10 @@ class EmergencyService {
         private FormatService       $formatService,
         private FieldModesService   $fieldModesService,
         private NormalizerInterface $normalizer,
-        private FormatService $formatService,
+        private FormatService       $formatService,
+        private UserService         $userService,
+        private RouterInterface     $router,
+        private Twig_Environment    $templating,
     ) {}
 
     /**
@@ -363,11 +366,25 @@ class EmergencyService {
 
          $datum = Stream::from($queryResult["data"])
              ->map(function (array $data): array {
-                 $data["actions"] = "TODO";
+                 $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                     'actions' => [
+                         [
+                             "title" => "Modifier",
+                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::EDIT,),
+                             "actionOnClick" => true,
+                             "icon" => "fas fa-pencil-alt",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                                 "data-target" => "#modalEditEmergency",
+                                 "data-toggle" => "modal",
+                             ],
+                         ],
+                     ],
+                 ]);
                  $data[FixedFieldEnum::dateStart->name] = $this->formatService->date($data[FixedFieldEnum::dateStart->name]);
                  $data[FixedFieldEnum::dateEnd->name] = $this->formatService->date($data[FixedFieldEnum::dateEnd->name]);
                  $data["closedAt"] = $this->formatService->date($data["closedAt"]);
-                 $data["lastTriggeredAt"]= "TODO";
+                 $data["lastTriggeredAt"]= "TODO"; // TODO WIIS-12695
                  $data[FixedFieldEnum::createdAt->name] = $this->formatService->date($data[FixedFieldEnum::createdAt->name]);
 
                  return $data;
