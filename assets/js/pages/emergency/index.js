@@ -14,7 +14,8 @@ const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
 const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
-    initializeModals();
+    const table = initializeTable();
+    initializeModals(table);
 });
 
 function onEmergencyTypeChange($modal) {
@@ -108,8 +109,8 @@ function initializeModals($tableEmergencies) {
         });
 }
 
-function initTable() {
-    let tableEmergencyConfig = {
+function initializeTable() {
+    return initDataTable('tableEmergency', {
         pageLength: 10,
         processing: true,
         serverSide: true,
@@ -130,7 +131,5 @@ function initTable() {
         },
         //columns: columns,
         page: 'emergency',
-    };
-
-    return initDataTable('tableEmergency', tableEmergencyConfig);
+    });
 }

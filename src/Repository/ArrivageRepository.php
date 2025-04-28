@@ -3,21 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
-use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Statut;
-use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
-use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
