@@ -3,6 +3,7 @@ import {POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import FixedFieldEnum from "@generated/fixed-field-enum";
+import {initDataTable} from "@app/datatable";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
@@ -126,9 +127,6 @@ function initTable() {
         },
         rowConfig: {
             needsRowClickAction: true,
-            //needsColor: true,
-            //color: 'danger',
-            //dataToCheck: 'emergency',
         },
         //columns: columns,
         page: 'emergency',

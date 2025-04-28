@@ -27,8 +27,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Utilisateur;
 
 #[Route('/emergency', name: 'emergency_')]
-class EmergencyController extends AbstractController
-{
+class EmergencyController extends AbstractController {
 
     #[Route('/', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]

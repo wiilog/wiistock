@@ -251,8 +251,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     ];
 
     const DEFAULT_EMERGENCY_FIELDS_MODES = [
-        // date début
-        // date fin
+        FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::dateEnd->name => [FieldModesService::FIELD_MODE_VISIBLE],
         'closedAt' => [FieldModesService::FIELD_MODE_VISIBLE],
         'lastTriggeredAt' => [FieldModesService::FIELD_MODE_VISIBLE],
         'lastEntityNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
