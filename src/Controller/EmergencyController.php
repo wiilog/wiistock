@@ -40,9 +40,9 @@ class EmergencyController extends AbstractController
 
     #[Route('/new', name: 'new', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function new(Request                 $request,
-                        EntityManagerInterface  $entityManager,
-                        EmergencyService        $emergencyService): JsonResponse {
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        EmergencyService       $emergencyService): JsonResponse {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $type = $typeRepository->find($request->request->get(FixedFieldEnum::type->name));
@@ -65,9 +65,9 @@ class EmergencyController extends AbstractController
 
     #[Route('/modifier-api/{emergency}', name: 'edit_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function editApi(EntityManagerInterface    $entityManager,
-                            EmergencyService          $emergencyService,
-                            Emergency                 $emergency): JsonResponse {
+    public function editApi(EntityManagerInterface $entityManager,
+                            EmergencyService       $emergencyService,
+                            Emergency              $emergency): JsonResponse {
 
         return $this->json([
             'html' => $this->renderView('emergency/form.html.twig', [...$emergencyService->getEmergencyConfig($entityManager, $emergency)]),
@@ -76,10 +76,10 @@ class EmergencyController extends AbstractController
 
     #[Route('/{emergency}/edit', name: 'edit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function edit(Emergency                $emergency,
-                         Request                  $request,
-                         EntityManagerInterface   $entityManager,
-                         EmergencyService         $emergencyService): JsonResponse {
+    public function edit(Emergency              $emergency,
+                         Request                $request,
+                         EntityManagerInterface $entityManager,
+                         EmergencyService       $emergencyService): JsonResponse {
 
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
