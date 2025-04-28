@@ -9,6 +9,7 @@ use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
+use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -27,10 +28,29 @@ use WiiCommon\Helper\Stream;
 class EmergencyService
 {
 
-    public function __construct(private AttachmentService $attachmentService,
-                                private FixedFieldService $fieldsParamService,
-                                private FormatService     $formatService) {}
+    public function __construct(
+        private AttachmentService $attachmentService,
+        private FixedFieldService $fieldsParamService,
+        private FormatService     $formatService
+    ) {}
 
+    /**
+     * @return array{
+     *     types: array{
+     *       label?: string,
+     *       value?: int,
+     *       selected?: boolean,
+     *       'category-type'?: string,
+     *     },
+     *     fieldParams: array<string, array{
+     *       requiredCreate?: string,
+     *       displayedCreate?: string,
+     *       requiredEdit?: string,
+     *       displayedEdit?: string,
+     *     }>,
+     *     emergency: Emergency|null,
+     * }
+     */
     public function getEmergencyConfig(EntityManagerInterface $entityManager,
                                        Emergency              $emergency = null): array {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
@@ -48,25 +68,57 @@ class EmergencyService
             FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT,
             FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT,
         ]);
-        $fieldsParam = Stream::from($trackingEmergencyFieldsParam)
-            ->map(static function(?array $fieldsParamValue, string $fieldsParamKey) use (&$stockEmergencyFieldsParam) {
-                if(isset($stockEmergencyFieldsParam[$fieldsParamKey]) && $fieldsParamValue) {
-                    $returnValue = Stream::from($fieldsParamValue)
-                        ->map(static function(?string $value, string $key) use ($stockEmergencyFieldsParam, $fieldsParamKey) {
-                            if(isset($stockEmergencyFieldsParam[$fieldsParamKey][$key]) && $value) {
-                                return $stockEmergencyFieldsParam[$fieldsParamKey][$key] ." $value";
-                            } else {
-                                return $value;
-                            }
-                        })
-                        ->toArray();
-                    unset($stockEmergencyFieldsParam[$fieldsParamKey]);
-                    return $returnValue;
-                } else {
-                    return $fieldsParamValue;
-                }
+
+
+        /**
+         * We associate fieldCode to a fieldParam array for each stock or tracking emergency fixed fields
+         * @var array<string, array{
+         *     requiredCreate?: string,
+         *     displayedCreate?: string,
+         *     requiredEdit?: string,
+         *     displayedEdit?: string,
+         * }> $fieldParams
+         */
+        $fieldParams = Stream::from(
+            Stream::keys($trackingEmergencyFieldsParam),
+            Stream::keys($stockEmergencyFieldsParam),
+        )
+            ->unique()
+            // for each unique field code then we generate an array of field param
+            // like: buyer, supplier, orderNumber
+            ->keymap(static function(string $fieldCode) use ($trackingEmergencyFieldsParam, $stockEmergencyFieldsParam) {
+                $trackingFixedFieldParams = $trackingEmergencyFieldsParam[$fieldCode] ?? [];
+                $stockFixedFieldParams = $stockEmergencyFieldsParam[$fieldCode] ?? [];
+
+                /**
+                 * @var array{
+                 *     requiredCreate?: string,
+                 *     displayedCreate?: string,
+                 *     requiredEdit?: string,
+                 *     displayedEdit?: string,
+                 * } $currentFieldParams With value list of type ids separated with space char
+                 */
+                $currentFieldParams = Stream::from(
+                    Stream::keys($trackingFixedFieldParams),
+                    Stream::keys($stockFixedFieldParams),
+                )
+                    ->unique()
+                    ->keymap(fn(string $key) => [
+                        $key,
+                        Stream::from(
+                            Stream::explode(" ", $trackingFixedFieldParams[$key] ?? '')->filter(),
+                            Stream::explode(" ", $stockFixedFieldParams[$key] ?? '')->filter(),
+                        )
+                        ->unique()
+                        ->join(' ')
+                    ])
+                    ->toArray();
+
+                return [
+                    $fieldCode,
+                    $currentFieldParams,
+                ];
             })
-            ->concat($stockEmergencyFieldsParam)
             ->toArray();
 
         $emergencyTypes = $typeRepository->findByCategoryLabels([CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY], null, [
@@ -84,7 +136,7 @@ class EmergencyService
 
         return [
             'types' => $types,
-            'fieldsParam' => $fieldsParam,
+            'fieldParams' => $fieldParams,
             'emergency' => $emergency ?? null,
         ];
     }
