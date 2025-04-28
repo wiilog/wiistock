@@ -3,13 +3,15 @@
 namespace App\Service;
 
 
+use App\Controller\FieldModesController;
+use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -26,11 +28,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use App\Entity\FreeField\FreeField;
-use App\Entity\Urgence;
-use App\Serializer\SerializerUsageEnum;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment as Twig_Environment;
 
 class EmergencyService {
@@ -40,10 +38,7 @@ class EmergencyService {
         private FixedFieldService   $fieldsParamService,
         private FormatService       $formatService,
         private FieldModesService   $fieldModesService,
-        private NormalizerInterface $normalizer,
-        private FormatService       $formatService,
         private UserService         $userService,
-        private RouterInterface     $router,
         private Twig_Environment    $templating,
     ) {}
 
@@ -316,7 +311,10 @@ class EmergencyService {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $page = FieldModesController::PAGE_EMERGENCY_LIST;
-        $freeFields = $freeFieldRepository->findByCategoriesTypeAndCategoriesCL([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY], [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]);
+        $freeFields = $freeFieldRepository->findByCategoriesTypeAndCategoriesCL(
+            [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY],
+            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]
+        );
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [

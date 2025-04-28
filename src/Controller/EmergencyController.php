@@ -10,21 +10,15 @@ use App\Entity\CategoryType;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Type;
-use App\Service\AttachmentService;
 use App\Service\EmergencyService;
-use App\Service\UserService;
-use App\Service\FixedFieldService;
-use App\Service\FormatService;
-use App\Service\SpecificService;
 use App\Entity\Menu;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Entity\Utilisateur;
 
 #[Route('/emergency', name: 'emergency_')]
 class EmergencyController extends AbstractController {
@@ -32,6 +26,7 @@ class EmergencyController extends AbstractController {
     #[Route('/', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function index(EntityManagerInterface $entityManager,
+                          UserService            $userService,
                           EmergencyService       $emergencyService): Response {
         $currentUser = $userService->getUser();
         $columns = $emergencyService->getVisibleColumnsConfig($entityManager, $currentUser);
@@ -95,7 +90,7 @@ class EmergencyController extends AbstractController {
     }
 
     #[Route("/api-list", name: "api_list", options: ['expose' => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
-    #[HasPermission([Menu::QUALI, Action::DISPLAY_URGE])]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function apiList(EntityManagerInterface $entityManager,
                             Request                $request,
                             EmergencyService       $emergencyService): JsonResponse {
