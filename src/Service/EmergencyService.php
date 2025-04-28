@@ -31,12 +31,23 @@ class EmergencyService
                                 private FixedFieldService $fieldsParamService,
                                 private FormatService     $formatService) {}
 
-    public function getEmergencyConfig(EntityManagerInterface $entityManager, Emergency $emergency = null) {
+    public function getEmergencyConfig(EntityManagerInterface $entityManager,
+                                       Emergency              $emergency = null): array {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $trackingEmergencyFieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE, FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT, FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]);
-        $stockEmergencyFieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_STOCK_EMERGENCY, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE, FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT, FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]);
+        $trackingEmergencyFieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY, [
+            FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE,
+            FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE,
+            FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT,
+            FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT,
+        ]);
+        $stockEmergencyFieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_STOCK_EMERGENCY, [
+            FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE,
+            FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE,
+            FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT,
+            FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT,
+        ]);
         $fieldsParam = Stream::from($trackingEmergencyFieldsParam)
             ->map(static function(?array $fieldsParamValue, string $fieldsParamKey) use (&$stockEmergencyFieldsParam) {
                 if(isset($stockEmergencyFieldsParam[$fieldsParamKey]) && $fieldsParamValue) {
@@ -78,9 +89,9 @@ class EmergencyService
         ];
     }
 
-    public function updateEmergency(EntityManagerInterface    $entityManager,
-                                    Emergency                 $emergency,
-                                    Request                   $request): Emergency {
+    public function updateEmergency(EntityManagerInterface $entityManager,
+                                    Emergency              $emergency,
+                                    Request                $request): Emergency {
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -135,20 +146,18 @@ class EmergencyService
 
         if($emergency instanceof TrackingEmergency) {
             $this->updateTrackingEmergency($entityManager, $emergency, $data);
-
-            $this->checkForDuplicateTrackingEmergency($entityManager, $request->request, $emergency);
         } else if($emergency instanceof StockEmergency) {
             $this->updateStockEmergency($entityManager, $emergency, $data);
-
-            $this->checkForDuplicateStockEmergency($entityManager, $request->request);
         }
+
+        $this->checkForDuplicates($entityManager, $emergency);
 
         return $emergency;
     }
 
-    public function updateTrackingEmergency(EntityManagerInterface $entityManager,
-                                            Emergency              $emergency,
-                                            InputBag               $data): void {
+    private function updateTrackingEmergency(EntityManagerInterface $entityManager,
+                                             TrackingEmergency      $emergency,
+                                             InputBag               $data): void {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
@@ -179,10 +188,9 @@ class EmergencyService
         }
     }
 
-    public function updateStockEmergency(EntityManagerInterface $entityManager,
-                                         Emergency              $emergency,
-                                         InputBag               $data): void
-    {
+    private function updateStockEmergency(EntityManagerInterface $entityManager,
+                                          StockEmergency         $emergency,
+                                          InputBag               $data): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         $emergency->setEmergencyTrigger(EmergencyTriggerEnum::from($data->get("emergencyTrigger")));
@@ -203,36 +211,36 @@ class EmergencyService
         }
     }
 
-    public function checkForDuplicateStockEmergency(EntityManagerInterface $entityManager,
-                                                    InputBag               $request): void {
-        $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
+    private function checkForDuplicates(EntityManagerInterface $entityManager,
+                                        Emergency              $emergency): void {
 
-        $stockEmergencyReferenceTriggerAndQuantityCriteria = $stockEmergencyRepository->findOneBy([
-            'emergencyTrigger' => EmergencyTriggerEnum::REFERENCE,
-            'endEmergencyCriteria' => EndEmergencyCriteriaEnum::REMAINING_QUANTITY,
-            'referenceArticle' => $request->get('reference'),
-        ]);
+        if ($emergency instanceof TrackingEmergency) {
+            $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
-        if($stockEmergencyReferenceTriggerAndQuantityCriteria) {
-            throw new FormException("Vous ne pouvez pas créer 2 urgences avec la même référence et le critère de fin d'urgence quantité");
+            $duplicateEmergency = $trackingEmergencyRepository->countMatching(
+                $emergency->getDateStart(),
+                $emergency->getDateEnd(),
+                $emergency->getSupplier(),
+                $emergency->getCommand(),
+                $emergency->getPostNumber(),
+            );
+
+            if($duplicateEmergency) {
+                throw new FormException("Vous ne pouvez pas créer 2 urgences identiques");
+            }
         }
-    }
+        else if ($emergency instanceof StockEmergency) {
+            $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
-    public function checkForDuplicateTrackingEmergency(EntityManagerInterface $entityManager,
-                                                       InputBag               $request,
-                                                       Emergency              $emergency): void {
-        $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
+            $duplicateEmergency = $stockEmergencyRepository->findOneBy([
+                'emergencyTrigger' => EmergencyTriggerEnum::REFERENCE,
+                'endEmergencyCriteria' => EndEmergencyCriteriaEnum::REMAINING_QUANTITY,
+                'referenceArticle' => $emergency->getReferenceArticle(),
+            ]);
 
-        $countMatchingTrackingEmergency = $trackingEmergencyRepository->countMatchingTrackingEmergency(
-            $emergency->getDateStart(),
-            $emergency->getDateEnd(),
-            $emergency->getSupplier(),
-            $emergency->getCommand(),
-            $emergency->getPostNumber(),
-        );
-
-        if($countMatchingTrackingEmergency) {
-            throw new FormException("Vous ne pouvez pas créer 2 urgences identiques");
+            if($duplicateEmergency) {
+                throw new FormException("Vous ne pouvez pas créer 2 urgences avec la même référence et le critère de fin d'urgence quantité");
+            }
         }
     }
 }
