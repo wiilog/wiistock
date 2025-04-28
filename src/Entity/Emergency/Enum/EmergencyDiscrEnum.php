@@ -1,5 +1,5 @@
 <?php
-namespace App\Entity\Emergency;
+namespace App\Entity\Emergency\Enum;
 
 
 enum EmergencyDiscrEnum: string {

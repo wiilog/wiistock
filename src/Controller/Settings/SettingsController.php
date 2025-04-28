@@ -10,6 +10,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryStationLine;
+use App\Entity\Emergency\Enum\EmergencyStockWarningEnum;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -22,13 +23,13 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -2416,6 +2417,28 @@ class SettingsController extends AbstractController {
                 ];
             }
 
+            if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $data[] = [
+                    "label" => "Alert email",
+                    "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
+                        "type" => "",
+                        "multiple" => true,
+                        "items" => [
+                            [
+                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
+                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
+                                "selected" => $type?->getSendMailBuyerEmergency(),
+                            ],
+                            [
+                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
+                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
+                                "selected" => $type?->getSendMailRequesterEmergency(),
+                            ]
+                        ],
+                    ]),
+                ];
+            }
+
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
@@ -2603,6 +2626,17 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type?->isDefault()) ?: "Non",
+                ];
+            }
+
+            if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $emergencyWarning = [];
+                $emergencyWarning[] = $type?->getSendMailRequesterEmergency() ? EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value : null;
+                $emergencyWarning[] = $type?->getSendMailBuyerEmergency() ? EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value : null;
+
+                $data[] = [
+                    "label" => "Alert Email" . $formService->macro("tooltip", "L’email sera envoyé à chaque nouvelle réception concernant l’urgence à l’acheteur et / ou demandeur de l’urgence ou de la référence"),
+                    "value" => Stream::from($emergencyWarning)->filter()->join(","),
                 ];
             }
 

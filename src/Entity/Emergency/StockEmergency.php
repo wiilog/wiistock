@@ -2,9 +2,9 @@
 
 namespace App\Entity\Emergency;
 
+use App\Entity\Emergency\Enum\EmergencyTriggerEnum;
 use App\Entity\Emplacement;
 use App\Entity\ReceptionReferenceArticle;
-use App\Entity\ReferenceArticle;
 use App\Repository\Emergency\StockEmergencyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
