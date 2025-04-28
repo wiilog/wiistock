@@ -57,6 +57,7 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
                 SpecificService::CLIENT_POTEE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_POTEE] . ' * * * *',
                 SpecificService::CLIENT_QUICHE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_QUICHE] . ' * * * *',
                 SpecificService::CLIENT_CROUSTADE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_CROUSTADE] . ' * * * *',
+                SpecificService::CLIENT_FOURME => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_FOURME] . ' * * * *',
                 'default' => '*/' . SpecificService::DEFAULT_DASHBOARD_REFRESH_RATE. ' * * * *',
             ],
             'description' => '',
