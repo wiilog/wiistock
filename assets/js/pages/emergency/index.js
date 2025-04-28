@@ -59,11 +59,14 @@ function onEmergencyTriggerChange($modal) {
     $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_MANUAL);
 }
 
-
-function initializeModals() {
+/**
+ * TODO WIIS-12629 mettre l'id de l'urgence à modifier
+ * @param {jQuery} $tableEmergencies
+ */
+function initializeModals($tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
     Form
-        .create($modalNewEmergency)
+        .create($modalNewEmergency, {clearOnOpen: true})
         .on('change', '[name="type"]', () => {
             onEmergencyTypeChange($modalNewEmergency);
         })
@@ -74,12 +77,13 @@ function initializeModals() {
             onEmergencyTypeChange($modalNewEmergency);
         })
         .submitTo(POST, 'emergency_new', {
-            tables: tableEmergencies
+            tables: [$tableEmergencies],
+            clearFields: true,
         });
 
     let $modalEditEmergency = $('#modalEditEmergency');
     Form
-        .create($modalEditEmergency)
+        .create($modalEditEmergency, {clearOnOpen: true})
         .onOpen((event) => {
             Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {//TODO WIIS-12629 mettre l'id de l'urgence à modifier
                 onOpen: () => {
@@ -96,7 +100,8 @@ function initializeModals() {
             });
         })
         .submitTo(POST, 'emergency_edit', {
+            clearFields: true,
             routeParams: {emergency: ""}, //TODO WIIS-12629 mettre l'id de l'urgence à modifier
-            tables: tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
+            tables: $tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
         });
 }

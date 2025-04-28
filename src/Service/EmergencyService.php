@@ -278,7 +278,7 @@ class EmergencyService
             );
 
             if($duplicateEmergency) {
-                throw new FormException("Vous ne pouvez pas créer 2 urgences identiques");
+                throw new FormException("Enregistrement impossible : une urgence similaire existe déjà");
             }
         }
         else if ($emergency instanceof StockEmergency) {
@@ -291,7 +291,7 @@ class EmergencyService
             ]);
 
             if($duplicateEmergency) {
-                throw new FormException("Vous ne pouvez pas créer 2 urgences avec la même référence et le critère de fin d'urgence quantité");
+                throw new FormException("Enregistrement impossible : une urgence similaire existe déjà avec la même référence et le même critère de fin d'urgence quantité");
             }
         }
     }

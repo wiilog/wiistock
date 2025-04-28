@@ -82,7 +82,11 @@
         </div>
     </div>
 </div>
-<div class="date-container">
+
+
+{# Customizable fields via field params pages #}
+
+<div class="date-container d-none">
     <div class="row">
         <div class="col-6 mb-2">
             {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart') %}
@@ -111,31 +115,27 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.command ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.command ?? null) }}
             </div>
         {% endif %}
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.carrierTrackingNumber ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.carrierTrackingNumber ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction)%}
-                {{ form.wysiwyg(fieldCode.name, trans('Général', null, 'Modale', fieldCode.value), requiredOnform, emergency.comment ?? null) }}
+                {{ form.wysiwyg(fieldCode.name, trans('Général', null, 'Modale', fieldCode.value), false, emergency.comment ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.attachment(fieldCode.value, requiredOnform, emergency.atachments ?? null) }}
+                {{ form.attachment(fieldCode.value, false, emergency.atachments ?? null) }}
             </div>
         {% endif %}
     </div>
@@ -145,24 +145,21 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.command ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.command ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::postNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.postNumber ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.postNumber ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::buyer') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'user',
                     items: isEdit and emergency.buyer ? [{
                         label: emergency.buyer.username,
@@ -176,8 +173,7 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::supplier') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'provider',
                     items: isEdit and emergency.supplier ? [{
                         label: emergency.supplier.nom,
@@ -191,8 +187,7 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrier') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, {
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'carrier',
                     items: isEdit and emergency.carrier ? [{
                         label: emergency.carrier.label,
@@ -206,24 +201,21 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.carrierTrackingNumber ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.carrierTrackingNumber ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::internalArticleCode') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.internalArticleCode ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.internalArticleCode ?? null) }}
             </div>
         {% endif %}
 
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::supplierArticleCode') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {% set requiredOnform = fieldParams|isFieldRequired(fieldCode.name, requiredAction) %}
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), requiredOnform, emergency.supplierArticleCode ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.supplierArticleCode ?? null) }}
             </div>
         {% endif %}
     </div>
