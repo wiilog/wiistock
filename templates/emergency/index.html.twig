@@ -19,19 +19,11 @@
                             hasRight: hasRightToCreate,
                             title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
                             icon: "wii-icon wii-icon-plus",
-                            attributes: {
-                            "data-toggle": "modal",
-                            "data-target": "#modalNewEmergency",
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewEmergency",
+                            },
                         },
-                        },
-                        {
-                            hasRight: hasRightToExport,
-                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
-                            icon: "fa fa-file-csv",
-                            attributes: {
-                            "onclick": "saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)",
-                        },
-                        }
                     ],
                 } %}
             </div>

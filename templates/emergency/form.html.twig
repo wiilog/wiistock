@@ -9,7 +9,8 @@
 
 <div class="row">
     <div class="col-md-4 col-12 mb-2">
-        {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::type').name, trans('Demande', 'Général', constant('App\\Entity\\Fields\\FixedFieldEnum::type').value, false), true, {
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::type') %}
+        {{ form.select(fieldCode.name, trans('Demande', 'Général', fieldCode.value, false), true, {
             type: '',
             disabled: isEdit,
             items: isEdit
@@ -25,11 +26,13 @@
 </div>
 
 <div class="stock-emergency-container d-none">
+    {% set fieldCodeReference = constant('App\\Entity\\Fields\\FixedFieldEnum::reference') %}
+    {% set fieldCodeSupplier = constant('App\\Entity\\Fields\\FixedFieldEnum::suuplier') %}
     <div class="row">
         <div class="col-5 mb-2">
             {{ form.switch('emergencyTrigger', "Déclencheur d'urgence", true, [
-                {label: constant('App\\Entity\\Fields\\FixedFieldEnum::reference').value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value, checked: isEdit and not isTrackingEmergency ? emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value : true, disabled: isEdit},
-                {label: constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, checked: isEdit and not isTrackingEmergency and emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, disabled: isEdit},
+                {label: fieldCodeReference.value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value, checked: isEdit and not isTrackingEmergency ? emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::REFERENCE").value : true, disabled: isEdit},
+                {label: fieldCodeSupplier.value, value: constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, checked: isEdit and not isTrackingEmergency and emergency.emergencyTrigger.value == constant("App\\Entity\\Emergency\\EmergencyTriggerEnum::SUPPLIER").value, disabled: isEdit},
             ]) }}
         </div>
         <div class="col-6 mb-2">
@@ -40,7 +43,7 @@
             ]) }}
         </div>
         <div class="col-6 mb-2">
-            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::reference').name, constant('App\\Entity\\Fields\\FixedFieldEnum::reference').value, true, {
+            {{ form.select(fieldCodeReference.name, fieldCodeReference.value, true, {
                 type: 'reference',
                 disabled: isEdit,
                 items: isEdit and emergency.referenceArticle ? [{
@@ -58,7 +61,7 @@
             }) }}
         </div>
         <div class="col-6 mb-2">
-            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::supplier').value, false), true, {
+            {{ form.select(fieldCodeSupplier.name, trans('Qualité & Urgences', 'Urgences', fieldCodeSupplier.value, false), true, {
                 type: 'provider',
                 disabled: isEdit,
                 items: isEdit and emergency.supplier ? [{
@@ -82,7 +85,8 @@
 <div class="date-container">
     <div class="row">
         <div class="col-6 mb-2">
-            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart').value, false), true, isEdit ? emergency.dateStart|date('Y-m-d\\TH:i') : null, {
+            {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart') %}
+            {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), true, isEdit ? emergency.dateStart|date('Y-m-d\\TH:i') : null, {
                 type: 'datetime-local',
                 inputClass: "needs-default",
                 attributes: {
@@ -91,7 +95,8 @@
             } ) }}
         </div>
         <div class="col-6 mb-2">
-            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::dateEnd').name, trans('Qualité & Urgences', 'Urgences', constant('App\\Entity\\Fields\\FixedFieldEnum::dateEnd').value, false), true, isEdit ? emergency.dateEnd|date('Y-m-d\\TH:i') : null, {
+            {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dateEnd') %}
+            {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), true, isEdit ? emergency.dateEnd|date('Y-m-d\\TH:i') : null, {
                 type: 'datetime-local',
                 inputClass: "needs-default",
                 attributes: {

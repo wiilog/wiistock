@@ -1,6 +1,8 @@
 import {showAndRequireInputByType} from "@app/utils";
+import {POST} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
 
-let tableEmergencies;
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
 const EMERGENCY_TRIGGER_SUPPLIER = 'supplier';
@@ -10,44 +12,7 @@ const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
 const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
-
-    let $modalNewEmergency = $('#modalNewEmergency');
-    Form
-        .create($modalNewEmergency)
-        .on('change', '[name="type"]', () => {
-            onEmergencyTypeChange($modalNewEmergency);
-        })
-        .on('change', '[name="emergencyTrigger"], [name="endEmergencyCriteria"]', () => {
-            onEmergencyTriggerChange($modalNewEmergency);
-        })
-        .onOpen(() => {
-            onEmergencyTypeChange($modalNewEmergency);
-        })
-        .submitTo(AJAX.POST, 'emergency_new', {
-            tables: tableEmergencies
-        });
-
-    let $modalEditEmergency = $('#modalEditEmergency');
-    Form
-        .create($modalEditEmergency)
-        .onOpen((event) => {
-            Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
-                onOpen: () => {
-                    $modalEditEmergency
-                        .find('.modal-body')
-                        .on('change', '[name="type"]', () => {
-                            onEmergencyTypeChange($modalEditEmergency);
-                        });
-
-                    $modalEditEmergency.find('[name="type"]').trigger('change');
-                    onEmergencyTriggerChange($modalEditEmergency);
-                }
-            });
-        })
-        .submitTo(AJAX.POST, 'emergency_edit', {
-            routeParams: {id: ""},
-            tables: tableEmergencies,
-        });
+    initializeModals();
 });
 
 function onEmergencyTypeChange($modal) {
@@ -92,4 +57,46 @@ function onEmergencyTriggerChange($modal) {
     $quantitySelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE || selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_REMAINING_QUANTITY);
     $dateContainer.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_END_DATE);
     $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_MANUAL);
+}
+
+
+function initializeModals() {
+    let $modalNewEmergency = $('#modalNewEmergency');
+    Form
+        .create($modalNewEmergency)
+        .on('change', '[name="type"]', () => {
+            onEmergencyTypeChange($modalNewEmergency);
+        })
+        .on('change', '[name="emergencyTrigger"], [name="endEmergencyCriteria"]', () => {
+            onEmergencyTriggerChange($modalNewEmergency);
+        })
+        .onOpen(() => {
+            onEmergencyTypeChange($modalNewEmergency);
+        })
+        .submitTo(POST, 'emergency_new', {
+            tables: tableEmergencies
+        });
+
+    let $modalEditEmergency = $('#modalEditEmergency');
+    Form
+        .create($modalEditEmergency)
+        .onOpen((event) => {
+            Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {//TODO WIIS-12629 mettre l'id de l'urgence à modifier
+                onOpen: () => {
+                    $modalEditEmergency
+                        .find('.modal-body')
+                        .off('change.emergencyType')
+                        .on('change.emergencyType', '[name="type"]', () => {
+                            onEmergencyTypeChange($modalEditEmergency);
+                        });
+
+                    onEmergencyTypeChange($modalEditEmergency);
+                    onEmergencyTriggerChange($modalEditEmergency);
+                }
+            });
+        })
+        .submitTo(POST, 'emergency_edit', {
+            routeParams: {emergency: ""}, //TODO WIIS-12629 mettre l'id de l'urgence à modifier
+            tables: tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
+        });
 }

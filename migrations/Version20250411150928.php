@@ -26,7 +26,7 @@ final class Version20250411150928 extends AbstractMigration
 
         $subMenus = [
             ActionsFixtures::SUB_MENU_EMERGENCIES => [
-                Action::DISPLAY_URGE,
+                Action::DISPLAY_EMERGENCY,
                 Action::CREATE_EMERGENCY,
             ],
             ActionsFixtures::SUB_MENU_DISPUTE => [

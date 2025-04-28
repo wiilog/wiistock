@@ -113,7 +113,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         ],
         Menu::QUALI => [
             self::SUB_MENU_EMERGENCIES => [
-                Action::DISPLAY_URGE,
+                Action::DISPLAY_EMERGENCY,
                 Action::CREATE_EMERGENCY,
                 Action::EXPORT_EMERGENCIES
             ],
