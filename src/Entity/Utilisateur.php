@@ -368,7 +368,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)] // TODO WIIS-12642
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)] // TODO WIIS-12734
     private Collection $urgences;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]

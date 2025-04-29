@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
@@ -15,8 +16,10 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Type;
+use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
@@ -27,11 +30,13 @@ use WiiCommon\Helper\Stream;
 
 class EmergencyService
 {
+    private array $__arrival_emergency_fields;
 
     public function __construct(
         private AttachmentService $attachmentService,
         private FixedFieldService $fieldsParamService,
-        private FormatService     $formatService
+        private FormatService     $formatService,
+        private SettingsService   $settingService
     ) {}
 
     /**
@@ -294,5 +299,29 @@ class EmergencyService
                 throw new FormException("Enregistrement impossible : une urgence similaire existe déjà avec la même référence et le même critère de fin d'urgence quantité");
             }
         }
+    }
+
+    /**
+     * @return TrackingEmergency[]
+     */
+    public function matchingEmergencies(EntityManagerInterface $entityManager,
+                                        Arrivage $arrival,
+                                        ?string $orderNumber,
+                                        ?string $postNumber,
+                                        bool $excludeTriggered = false) {
+        $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
+
+        if(!isset($this->__arrival_emergency_fields)) {
+            $arrivalEmergencyFields = $this->settingService->getValue($entityManager, Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+            $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
+        }
+
+        return $trackingEmergencyRepository->findMatchingEmergencies(
+            $arrival,
+            $this->__arrival_emergency_fields,
+            $orderNumber,
+            $postNumber,
+            $excludeTriggered,
+        );
     }
 }
