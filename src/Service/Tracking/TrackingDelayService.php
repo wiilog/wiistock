@@ -177,17 +177,17 @@ class TrackingDelayService {
                 "end" => $segmentEnd,
             ] = $segment;
 
-            $lastTrackingEvent = $segmentEnd?->getTrackingEvent();
+            $lastTrackingEvent = $segmentEnd->getTrackingEvent();
 
             $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $segmentStart->getDate(), $segmentEnd->getDate());
             $calculationDate->add($workedInterval);
 
-            $oldRemainingNatureDelay = $remainingNatureDelay ?? $natureTrackingDelay;
-            ["delay" => $remainingNatureDelay] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+            $startRemainingTrackingDelay = $endRemainingTrackingDelay ?? $natureTrackingDelay;
+            ["delay" => $endRemainingTrackingDelay] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
             // set remaining time before check push records in calculated records array
-            $segmentStart->setRemainingTrackingDelay($oldRemainingNatureDelay);
-            $segmentEnd->setRemainingTrackingDelay($remainingNatureDelay);
+            $segmentStart->setRemainingTrackingDelay($startRemainingTrackingDelay);
+            $segmentEnd->setRemainingTrackingDelay($endRemainingTrackingDelay);
 
             $this->pushTrackingDelayRecord($calculatedRecords, $segmentStart, $calculatedDelayInheritLast, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
             $this->pushTrackingDelayRecord($calculatedRecords, $segmentEnd, $calculatedDelayInheritLast, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
