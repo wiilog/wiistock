@@ -79,7 +79,6 @@ class EmergencyController extends AbstractController {
                          EmergencyService       $emergencyService): JsonResponse {
         $emergencyRepository = $entityManager->getRepository(Emergency::class);
         $emergency = $emergencyRepository->find($request->request->getInt(FixedFieldEnum::id->name));
-
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
         $entityManager->flush();
