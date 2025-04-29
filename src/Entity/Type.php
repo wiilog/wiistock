@@ -15,6 +15,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
+#[ORM\Index(fields: ["sendMailRequesterEmergency"])]
+#[ORM\Index(fields: ["sendMailBuyerEmergency"])]
 class Type {
 
     // type de la catégorie réception
