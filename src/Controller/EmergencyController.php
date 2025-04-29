@@ -68,16 +68,17 @@ class EmergencyController extends AbstractController {
                             Emergency              $emergency): JsonResponse {
 
         return $this->json([
-            'html' => $this->renderView('emergency/form.html.twig', [...$emergencyService->getEmergencyConfig($entityManager, $emergency)]),
+            'html' => $this->renderView('emergency/form.html.twig', $emergencyService->getEmergencyConfig($entityManager, $emergency)),
         ]);
     }
 
-    #[Route('/{emergency}/edit', name: 'edit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route('/edit', name: 'edit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
-    public function edit(Emergency              $emergency,
-                         Request                $request,
+    public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          EmergencyService       $emergencyService): JsonResponse {
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
+        $emergency = $emergencyRepository->find($request->request->getInt(FixedFieldEnum::id->name));
 
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
@@ -96,6 +97,6 @@ class EmergencyController extends AbstractController {
                             EmergencyService       $emergencyService): JsonResponse {
         $data = $emergencyService->getDataForDatatable($entityManager, $request->request);
 
-        return new JsonResponse($data);
+        return $this->json($data);
     }
 }

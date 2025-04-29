@@ -37,6 +37,7 @@ class EmergencyRepository extends EntityRepository {
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
+            ->distinct()
             ->addSelect("emergency.dateStart AS ". FixedFieldEnum::dateStart->name)
             ->addSelect("emergency.dateEnd AS ". FixedFieldEnum::dateEnd->name)
             ->addSelect("emergency.closedAt AS closedAt")
@@ -55,8 +56,7 @@ class EmergencyRepository extends EntityRepository {
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
-            ->leftJoin("emergency.type", "emergency_type")
-            ->groupBy('emergency.id');
+            ->leftJoin("emergency.type", "emergency_type");
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
 
@@ -98,5 +98,4 @@ class EmergencyRepository extends EntityRepository {
             'total' => $total
         ];
     }
-
 }

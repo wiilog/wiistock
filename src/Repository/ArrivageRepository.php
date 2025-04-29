@@ -23,7 +23,7 @@ use WiiCommon\Helper\Stream;
  * @method Arrivage[]    findAll()
  * @method Arrivage[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class  ArrivageRepository extends EntityRepository {
+class ArrivageRepository extends EntityRepository {
     private const DtToDbLabels = [
         'creationDate' => 'date',
         'arrivalNumber' => 'numeroArrivage',

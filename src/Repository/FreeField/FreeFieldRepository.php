@@ -61,7 +61,7 @@ class FreeFieldRepository extends EntityRepository {
     }
 
     /**
-     * @return FreeField[]
+     * @return array<FreeField>
      * @param array<string> $typeCategories
      * @param array<string> $freeFieldCategories
      */

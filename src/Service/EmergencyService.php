@@ -368,7 +368,7 @@ class EmergencyService {
                      'actions' => [
                          [
                              "title" => "Modifier",
-                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::EDIT,),
+                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
                              "actionOnClick" => true,
                              "icon" => "fas fa-pencil-alt",
                              "attributes" => [
