@@ -347,8 +347,20 @@ class EmergencyService {
             ->map(function ( array|FixedFieldEnum $field): array {
                 if ($field instanceof FixedFieldEnum) {
                     $field = [
-                        'title' => $field->value,
-                        'name' => $field->name,
+                        "title" => $field->value,
+                        "name" => $field->name,
+                        "searchable" => in_array($field, [
+                            FixedFieldEnum::orderNumber,
+                            FixedFieldEnum::postNumber,
+                            FixedFieldEnum::buyer,
+                            FixedFieldEnum::supplier,
+                            FixedFieldEnum::carrier,
+                            FixedFieldEnum::carrierTrackingNumber,
+                            FixedFieldEnum::type,
+                            FixedFieldEnum::type,
+                            FixedFieldEnum::internalArticleCode,
+                            FixedFieldEnum::supplierArticleCode,
+                        ], true),
                     ];
                 }
                 return $field;
@@ -361,7 +373,11 @@ class EmergencyService {
     public function getDataForDatatable(EntityManagerInterface $entityManager, ParameterBag $request): array {
         $emergencyRepository = $entityManager->getRepository(Emergency::class);
 
-        $queryResult = $emergencyRepository->findByParamsAndFilters($request, []);
+        $queryResult = $emergencyRepository->findByParamsAndFilters(
+            $request,
+            [],
+            $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
+        );
 
          $datum = Stream::from($queryResult["data"])
              ->map(function (array $data): array {
