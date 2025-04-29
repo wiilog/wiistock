@@ -18,7 +18,7 @@ class TrackingEmergencyRepository extends EntityRepository {
     public function countMatching(DateTime     $dateStart,
                                   DateTime     $dateEnd,
                                   ?Fournisseur $supplier,
-                                  ?string      $command,
+                                  ?string      $orderNumber,
                                   ?string      $postNumber): int {
 
         $queryBuilder = $this->createQueryBuilder('emergency');
@@ -33,11 +33,11 @@ class TrackingEmergencyRepository extends EntityRepository {
                 'emergency.dateEnd BETWEEN :dateStart AND :dateEnd'
             ))
             ->andWhere('emergency.supplier = :supplier')
-            ->andWhere('emergency.command = :command')
+            ->andWhere('emergency.orderNumber = :orderNumber')
             ->setParameter('dateStart', $dateStart)
             ->setParameter('dateEnd', $dateEnd)
             ->setParameter('supplier', $supplier)
-            ->setParameter('command', $command);
+            ->setParameter('orderNumber', $orderNumber);
 
         if (!empty($postNumber)) {
             $queryBuilder
@@ -55,7 +55,7 @@ class TrackingEmergencyRepository extends EntityRepository {
      */
     public function findMatchingEmergencies(Arrivage $arrival,
                                             array $fields,
-                                            ?string $commandNumber,
+                                            ?string $orderNumber,
                                             ?string $postNumber,
                                             $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('emergency')
@@ -65,8 +65,8 @@ class TrackingEmergencyRepository extends EntityRepository {
         $values = [
             'supplier' => $arrival->getFournisseur(),
             'carrier' => $arrival->getTransporteur(),
-            'command' => $commandNumber
-                ? Stream::explode(',', $commandNumber)->filter()->values()
+            'orderNumber' => $orderNumber
+                ? Stream::explode(',', $orderNumber)->filter()->values()
                 : null,
         ];
 
