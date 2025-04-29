@@ -99,7 +99,7 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker logs wiistock_cypress_owasp-modsecurity > test_logs_owasp
+                    docker logs wiistock_cypress_mysql > test_logs_owasp
                     docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
                     docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
                     docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
