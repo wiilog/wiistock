@@ -299,7 +299,7 @@ class EmergencyService {
                 'referenceArticle' => $emergency->getReferenceArticle(),
             ]);
 
-            if($duplicateEmergency) {
+            if($duplicateEmergency && $duplicateEmergency->getId() !== $emergency->getId()) {
                 throw new FormException("Enregistrement impossible : une urgence similaire existe déjà avec la même référence et le même critère de fin d'urgence quantité");
             }
         }
