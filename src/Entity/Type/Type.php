@@ -34,6 +34,8 @@ use Exception;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
+#[ORM\Index(fields: ["sendMailRequesterEmergency"])]
+#[ORM\Index(fields: ["sendMailBuyerEmergency"])]
 class Type {
 
     // type de la catégorie réception

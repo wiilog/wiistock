@@ -9,7 +9,6 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\DeliveryStationLine;
-use App\Entity\Emergency\Enum\EmergencyStockWarningEnum;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -2425,6 +2424,8 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $sendMailToBuyerValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value);
+                $sendMailToRequesterValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value);
                 $data[] = [
                     "label" => "Alerte email",
                     "value" => $formService->macro("select", "stockEmergencyAlertModes", null, false, [
