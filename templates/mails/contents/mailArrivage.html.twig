@@ -3,8 +3,8 @@
 {% block content %}
 
     {% set numeroCommandeList = (
-        (emergencies|length > 0 and emergencies[0].command)
-        ? [emergencies[0].command]
+        (emergencies|length > 0 and emergencies[0].orderNumber)
+        ? [emergencies[0].orderNumber]
         : arrival.numeroCommandeList
         )
     %}
