@@ -19,9 +19,17 @@
                             hasRight: hasRightToCreate,
                             title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
                             icon: "wii-icon wii-icon-plus",
-                                attributes: {
+                            attributes: {
                                 "data-toggle": "modal",
                                 "data-target": "#modalNewEmergency",
+                            },
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
                             },
                         },
                     ],

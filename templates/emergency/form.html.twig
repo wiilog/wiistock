@@ -7,6 +7,11 @@
 {% set displayAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
 {% set requiredAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
 
+{% if isEdit %}
+    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::id') %}
+    {{ form.hidden(field.name, emergency.id ) }}
+{% endif %}
+
 <div class="row">
     <div class="col-md-4 col-12 mb-2">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::type') %}

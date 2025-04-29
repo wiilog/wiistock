@@ -4,6 +4,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
+import Routing from "@app/fos-routing";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
@@ -88,7 +89,8 @@ function initializeModals($tableEmergencies) {
     Form
         .create($modalEditEmergency, {clearOnOpen: true})
         .onOpen((event) => {
-            Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {//TODO WIIS-12629 mettre l'id de l'urgence à modifier
+            const emergencyId = $(event.relatedTarget).data('id');
+            Modal.load('emergency_edit_api', {emergency: emergencyId}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
                 onOpen: () => {
                     $modalEditEmergency
                         .find('.modal-body')
@@ -104,8 +106,7 @@ function initializeModals($tableEmergencies) {
         })
         .submitTo(POST, 'emergency_edit', {
             clearFields: true,
-            routeParams: {emergency: ""}, //TODO WIIS-12629 mettre l'id de l'urgence à modifier
-            tables: $tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
+            tables: $tableEmergencies,
         });
 }
 
@@ -129,7 +130,6 @@ function initializeTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        //columns: columns,
         page: 'emergency',
     });
 }
