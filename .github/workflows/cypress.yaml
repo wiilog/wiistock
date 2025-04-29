@@ -1,126 +1,165 @@
 name: run-cypress
 
 on:
-    pull_request:
-        branches:
-            - "*"
+  pull_request:
+    branches:
+      - "*"
 
 concurrency:
-    group: ${{ github.head_ref }}-cypress
-    cancel-in-progress: true
+  group: ${{ github.head_ref }}-cypress
+  cancel-in-progress: true
 
 jobs:
-    cypress-run:
-        runs-on: ubuntu-latest
-        container:
-            image: docker:28.1.0-cli
-            options: --user root
-        steps:
-            -   name: Checkout wiistock-docker
-                uses: actions/checkout@v4
-                with:
-                    repository: wiilog/wiistock-docker
-                    token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-                    ref: main
+  cypress-run:
+    runs-on: ubuntu-latest
+    container:
+      image: docker:28.2.2-cli
+      options: --user root
+    steps:
+      - name: Checkout wiistock-docker
+        uses: actions/checkout@v4
+        with:
+          repository: wiilog/wiistock-docker
+          token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
+          ref: WIIS-12609
 
-            -   name: Setup environment wiistock-docker
-                run: cp .env.example .env
+      - name: Setup environment wiistock-docker
+        run: cp .env.example .env
 
-            -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
-                run: |
-                    sed -i "s/^FTP_HOST=.*/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
-                    sed -i "s/^FTP_USER=.*/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
-                    sed -i "s/^FTP_PASSWORD=.*/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
-                with:
-                    repository: wiilog/wiistock
-                    ref: ${{ github.event.pull_request.head.sha }}
-                    token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
-                    path: projects/wiistock
+      - name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
+        run: |
+          sed -i "s/^FTP_HOST=.*/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
+          sed -i "s/^FTP_USER=.*/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
+          sed -i "s/^FTP_PASSWORD=.*/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
 
-            -   name: Login to docker hub
-                run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}  #Grégoire Personal Access Token available until Jan 1, 2026
+      - name: Checkout wiistock
+        uses: actions/checkout@v4
+        with:
+          repository: wiilog/wiistock
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
+          path: projects/wiistock
 
-            -   name: Copy .env to .env.local
-                run: cp projects/wiistock/.env projects/wiistock/.env.local
+      - name: Login to docker hub
+        run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}  #Grégoire Personal Access Token available until Jan 1, 2026
 
-            -   name: Change db string URL .env.local
-                run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
+      - name: Copy .env to .env.local
+        run: cp projects/wiistock/.env projects/wiistock/.env.local
 
-            -   name: Change APP_ENV= to APP_ENV=dev
-                run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
+      - name: Change db string URL .env.local
+        run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
 
-            -   name: Add generated.yaml to wiistock
-                run: |
-                    touch projects/wiistock/config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
+      - name: Change APP_ENV= to APP_ENV=dev
+        run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
 
-            -   name: Give all right to wiistock
-                run: chmod -R 777 projects/wiistock/
+      - name: Add generated.yaml to wiistock
+        run: |
+          touch projects/wiistock/config/generated.yaml &&
+          echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
-            -   name: Build containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
+      - name: Give all right to wiistock
+        run: chmod -R 777 projects/wiistock/
 
-            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock-cypress_php:/project
+      - name: Build containers
+        run: |
+          docker compose --file docker-compose.yaml \
+                         --file docker-compose.cypress.yaml \
+                         --file docker-compose.cypress.github.yaml \
+                         --project-name wiistock-cypress \
+                         up wiistock-php wiistock-nginx mysql owasp-modsecurity \
+                         --detach \
+                         --build \
+                         --no-start
 
-            -   name: Start containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+      - name: Volume mount like for docker-in-docker run
+        run: |
+          docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template cypress_wiistock-owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+          docker cp projects/wiistock/. cypress_wiistock-php:/project
 
-            -   name: Give right to www-data user
-                run: docker exec wiistock-cypress_php chown -R www-data:www-data /project
+      - name: Start containers
+        run: |
+          docker compose --file docker-compose.yaml \
+                         --file docker-compose.cypress.yaml \
+                         --file docker-compose.cypress.github.yaml \
+                         --project-name wiistock-cypress \
+                         start wiistock-php wiistock-nginx mysql owasp-modsecurity
 
-            #            -   name: get the version of wiistock config/services.yaml and store it in the environment
-            #                run: |
-            #                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
-            #                    export VERSION=$(cat version.txt)
+      - name: Give right to www-data user
+        run: docker exec cypress_wiistock-php chown -R www-data:www-data /project
 
-            -   name: Install composer dependencies in app
-                run: docker exec wiistock-cypress_php composer install
+      #            -   name: get the version of wiistock config/services.yaml and store it in the environment
+      #                run: |
+      #                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
+      #                    export VERSION=$(cat version.txt)
 
-            -   name: Create database
-                run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
+      - name: Install composer dependencies in app
+        run: docker exec cypress_wiistock-php composer install
 
-            -   name: Create routing
-                run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
+      - name: Create database
+        run: docker exec cypress_wiistock-php php bin/console doctrine:database:create --if-not-exists
 
-            -   name: Convert enums
-                run: docker exec wiistock-cypress_php php bin/console app:update:enums
+      - name: Create routing
+        run: docker exec cypress_wiistock-php php bin/console fos:js-routing:dump
 
-            -   name: Install yarn dependencies in app
-                run: docker exec wiistock-cypress_php yarn
+      - name: Convert enums
+        run: docker exec cypress_wiistock-php php bin/console app:update:enums
 
-            -   name: Build assets in app
-                run: docker exec wiistock-cypress_php yarn build:only:production
+      - name: Install yarn dependencies in app
+        run: docker exec cypress_wiistock-php yarn
 
-            -   name: Run cypress
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
+      - name: Build assets in app
+        run: docker exec cypress_wiistock-php yarn build:only:production
 
-            -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
-                if: failure()
-                run: |
-                    docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
-                    docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
-                    docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
+      # --exit-code-from cypress: exit action with the same code as cypress
+      - name: Run cypress
+        run: |
+          docker compose --file docker-compose.yaml \
+                         --file docker-compose.cypress.yaml \
+                         --file docker-compose.cypress.github.yaml \
+                         --project-name wiistock-cypress \
+                         up cypress \
+                         --detach \
+                         --build \
+                         --no-start
 
-            -   name: Upload Cypress logs artifact # run only if cypress fail
-                if: failure()
-                uses: actions/upload-artifact@v4
-                with:
-                    name: cypress-logs
-                    path: cypress_logs
+      - name: Volume mount like for docker-in-docker run for cypress container
+        run: |
+          docker cp cypress_wiistock-php:/project /tmp/project
+          docker cp /tmp/project/. cypress_wiistock:/var/www
 
-            -   name: Upload Cypress videos artifact # run only if cypress fail
-                if: failure()
-                uses: actions/upload-artifact@v4
-                with:
-                    name: cypress-videos
-                    path: cypress_videos
+      - name: Run cypress
+        run: |
+          docker compose --file docker-compose.yaml \
+                         --file docker-compose.cypress.yaml \
+                         --file docker-compose.cypress.github.yaml \
+                         --project-name wiistock-cypress \
+                         up cypress \
+                         --exit-code-from cypress
 
-            -   name: Upload dev.log artifact # run only if cypress fail
-                if: failure()
-                uses: actions/upload-artifact@v4
-                with:
-                    name: dev-log-symfony
-                    path: dev_log
+      - name: Copy logs, videos, and dev.log from the container # run only if cypress fail
+        if: failure()
+        run: |
+          docker cp cypress_wiistock:/var/www/cypress/logs/ cypress_logs
+          docker cp cypress_wiistock:/var/www/cypress/videos/ cypress_videos
+          docker cp cypress_wiistock:/var/www/var/log/dev.log dev_log
+
+      - name: Upload Cypress logs artifact # run only if cypress fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-logs
+          path: cypress_logs
+
+      - name: Upload Cypress videos artifact # run only if cypress fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress_videos
+
+      - name: Upload dev.log artifact # run only if cypress fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-log-symfony
+          path: dev_log
