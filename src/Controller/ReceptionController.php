@@ -39,6 +39,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
@@ -1515,6 +1516,7 @@ class ReceptionController extends AbstractController {
 
     #[Route("/avec-conditionnement/{reception}", name: "reception_new_with_packing", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function newWithPacking(Request                    $request,
+                                   CacheService               $cacheService,
                                    MailerService              $mailerService,
                                    TransferRequestService     $transferRequestService,
                                    TransferOrderService       $transferOrderService,
@@ -1540,7 +1542,6 @@ class ReceptionController extends AbstractController {
         $data = $request->request->all();
 
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $createDirectDelivery = $settingsService->getValue($entityManager, Setting::DIRECT_DELIVERY);
@@ -1553,9 +1554,7 @@ class ReceptionController extends AbstractController {
         $cache = ['receptionReferenceArticles' => [],];
 
         $totalReceivedQuantity = Stream::from($articles)
-            ->map(
-                static fn(array $articleArray): int => max($articleArray['quantityToReceive'], 0),
-            )
+            ->map(static fn(array $articleArray) => max($articleArray['quantityToReceive'], 0))
             ->sum();
         $maxNbArticleInPackingModal = self::MAX_NB_ARTICLE_IN_PACKING_MODAL;
         if ($totalReceivedQuantity > $maxNbArticleInPackingModal) {
@@ -1700,8 +1699,8 @@ class ReceptionController extends AbstractController {
                 }
             }
             else if ($needCreateTransfer) {
-                $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-                $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+                $toTreatRequest = $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                $toTreatOrder = $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $origin = $emplacementRepository->find($data['origin']);
                 $destination = $emplacementRepository->find($data['storage']);
 
@@ -1737,7 +1736,7 @@ class ReceptionController extends AbstractController {
         $emergencies = [];
 
         $createdArticles = [];
-        $transferStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+        $transferStatus = $cacheService->getEntity($entityManager, Statut::class, Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
 
         foreach($articles as &$articleArray) {
             $createdLoopEntryStockMovements = [];
