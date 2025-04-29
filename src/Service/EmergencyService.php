@@ -197,7 +197,7 @@ class EmergencyService {
         }
 
         if ($data->has(FixedFieldEnum::orderNumber->name)) {
-            $emergency->setCommand($data->get(FixedFieldEnum::orderNumber->name));
+            $emergency->setOrderNumber($data->get(FixedFieldEnum::orderNumber->name));
         }
 
         if ($data->has(FixedFieldEnum::carrierTrackingNumber->name)) {
@@ -282,7 +282,7 @@ class EmergencyService {
                 $emergency->getDateStart(),
                 $emergency->getDateEnd(),
                 $emergency->getSupplier(),
-                $emergency->getCommand(),
+                $emergency->getOrderNumber(),
                 $emergency->getPostNumber(),
             );
 
@@ -383,7 +383,7 @@ class EmergencyService {
                  $data[FixedFieldEnum::dateStart->name] = $this->formatService->date($data[FixedFieldEnum::dateStart->name]);
                  $data[FixedFieldEnum::dateEnd->name] = $this->formatService->date($data[FixedFieldEnum::dateEnd->name]);
                  $data["closedAt"] = $this->formatService->date($data["closedAt"]);
-                 $data["lastTriggeredAt"]= "TODO"; // TODO WIIS-12695
+                 $data["lastTriggeredAt"] = "<span class='text-danger font-weight-bold'> TODO </span>"; //  $this->formatService->date($data["lastTriggeredAt"]); TODO WIIS-12695
                  $data[FixedFieldEnum::createdAt->name] = $this->formatService->date($data[FixedFieldEnum::createdAt->name]);
 
                  return $data;

@@ -120,7 +120,7 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.command ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.orderNumber ?? null) }}
             </div>
         {% endif %}
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}

@@ -58,7 +58,7 @@ abstract class Emergency {
     private ?DateTime $closedAt = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
-    private ?string $command = null;
+    private ?string $orderNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -110,12 +110,12 @@ abstract class Emergency {
         return $this;
     }
 
-    public function getCommand(): ?string {
-        return $this->command;
+    public function getOrderNumber(): ?string {
+        return $this->orderNumber;
     }
 
-    public function setCommand(?string $command): self {
-        $this->command = $command;
+    public function setOrderNumber(?string $orderNumber): self {
+        $this->orderNumber = $orderNumber;
 
         return $this;
     }

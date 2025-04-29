@@ -35,24 +35,33 @@ class EmergencyRepository extends EntityRepository {
             ->orderBy('reception.date', 'DESC')
             ->getDQL();
 
+        $columns = [
+            FixedFieldEnum::dateStart->name => "emergency.dateStart",
+            FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
+            "lastEntityNumber"=> "GREATEST(FIRST($lastArrivalNumberSubquery), FIRST($lastReceptionNumberSubquery))",
+            FixedFieldEnum::createdAt->name => "emergency.createdAt",
+            "lastTriggeredAt" => "emergency.createdAt",
+            "closedAt"=> "emergency.closedAt",
+            FixedFieldEnum::orderNumber->name => "emergency.orderNumber",
+            FixedFieldEnum::postNumber->name => "tracking_emergency.postNumber",
+            FixedFieldEnum::buyer->name => "emergency_buyer.username",
+            FixedFieldEnum::supplier->name => "emergency_supplier.nom",
+            FixedFieldEnum::carrier->name => "emergency_carrier.label",
+            FixedFieldEnum::carrierTrackingNumber->name => "emergency.carrierTrackingNumber",
+            FixedFieldEnum::type->name => "emergency_type.label",
+            FixedFieldEnum::internalArticleCode->name=> "tracking_emergency.internalArticleCode",
+            FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
+        ];
+
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
-            ->distinct()
-            ->addSelect("emergency.dateStart AS ". FixedFieldEnum::dateStart->name)
-            ->addSelect("emergency.dateEnd AS ". FixedFieldEnum::dateEnd->name)
-            ->addSelect("emergency.closedAt AS closedAt")
-            ->addSelect("GREATEST(FIRST($lastArrivalNumberSubquery), FIRST($lastReceptionNumberSubquery)) AS lastEntityNumber")
-            ->addSelect("emergency.createdAt AS ". FixedFieldEnum::createdAt->name)
-            ->addSelect("emergency.command AS ". FixedFieldEnum::orderNumber->name)
-            ->addSelect("tracking_emergency.postNumber AS ". FixedFieldEnum::postNumber->name)
-            ->addSelect("emergency_buyer.username AS ". FixedFieldEnum::buyer->name)
-            ->addSelect("emergency_supplier.nom AS ". FixedFieldEnum::supplier->name)
-            ->addSelect("emergency_carrier.label AS ". FixedFieldEnum::carrier->name)
-            ->addSelect("emergency.carrierTrackingNumber AS ". FixedFieldEnum::carrierTrackingNumber->name)
-            ->addSelect("emergency_type.label AS ". FixedFieldEnum::type->name)
-            ->addSelect("tracking_emergency.internalArticleCode AS " . FixedFieldEnum::internalArticleCode->name)
-            ->addSelect("tracking_emergency.supplierArticleCode AS " . FixedFieldEnum::supplierArticleCode->name)
-            ->leftJoin(TrackingEmergency::class, "tracking_emergency", "WITH", "tracking_emergency.id = emergency.id")
+            ->distinct();
+
+        foreach ($columns as $field => $column) {
+            $queryBuilder->addSelect("$column AS $field");
+        }
+
+        $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", "WITH", "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
@@ -78,6 +87,19 @@ class EmergencyRepository extends EntityRepository {
                         "tracking_emergency.supplierArticleCode LIKE :value"
                     ))
                     ->setParameter('value', '%' . $search . '%');
+            }
+        }
+
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
+            if (!empty($order)) {
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+
+                $columnToOrder = $columns[$column] ?? null;
+
+                if ($columnToOrder) {
+                    $queryBuilder->orderBy($columnToOrder, $order);
+                }
             }
         }
 
