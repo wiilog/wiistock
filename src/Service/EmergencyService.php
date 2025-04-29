@@ -278,6 +278,7 @@ class EmergencyService {
             $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
             $duplicateEmergency = $trackingEmergencyRepository->countMatching(
+                $emergency,
                 $emergency->getDateStart(),
                 $emergency->getDateEnd(),
                 $emergency->getSupplier(),

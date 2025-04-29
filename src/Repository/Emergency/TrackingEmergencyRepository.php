@@ -3,6 +3,7 @@
 namespace App\Repository\Emergency;
 
 
+use App\Entity\Emergency\Emergency;
 use App\Entity\Fournisseur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -12,7 +13,8 @@ use Doctrine\ORM\EntityRepository;
  */
 class TrackingEmergencyRepository extends EntityRepository {
 
-    public function countMatching(DateTime     $dateStart,
+    public function countMatching(Emergency    $emergency,
+                                  DateTime     $dateStart,
                                   DateTime     $dateEnd,
                                   ?Fournisseur $supplier,
                                   ?string      $command,
@@ -31,8 +33,10 @@ class TrackingEmergencyRepository extends EntityRepository {
             ))
             ->andWhere('emergency.supplier = :supplier')
             ->andWhere('emergency.command = :command')
+            ->andWhere('emergency.id != :emergencyId')
             ->setParameter('dateStart', $dateStart)
             ->setParameter('dateEnd', $dateEnd)
+            ->setParameter('emergencyId', $emergency->getId())
             ->setParameter('supplier', $supplier)
             ->setParameter('command', $command);
 
