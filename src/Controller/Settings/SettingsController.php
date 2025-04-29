@@ -10,7 +10,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryStationLine;
-use App\Entity\Emergency\Enum\EmergencyStockWarningEnum;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -48,6 +47,7 @@ use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
+use App\Entity\Type\EmergencyStockWarningEnum;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
@@ -2418,6 +2418,8 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $sendMailToBuyerValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value);
+                $sendMailToRequesterValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value);
                 $data[] = [
                     "label" => "Alert email",
                     "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
@@ -2425,13 +2427,13 @@ class SettingsController extends AbstractController {
                         "multiple" => true,
                         "items" => [
                             [
-                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
-                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value,
+                                "value" => $sendMailToBuyerValue,
+                                "label" => $sendMailToBuyerValue,
                                 "selected" => $type?->getSendMailBuyerEmergency(),
                             ],
                             [
-                                "value" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
-                                "label" => EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value,
+                                "value" => $sendMailToRequesterValue,
+                                "label" => $sendMailToRequesterValue,
                                 "selected" => $type?->getSendMailRequesterEmergency(),
                             ]
                         ],
