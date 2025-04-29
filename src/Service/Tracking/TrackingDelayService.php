@@ -170,6 +170,7 @@ class TrackingDelayService {
         $previousRecordsCursor = -1;
         $calculatedDelayInheritLast = true;
         $previousCurrentRecord = null;
+        $previousSegmentEnd = null;
 
         foreach ($segments as $segment) {
             [
@@ -194,6 +195,17 @@ class TrackingDelayService {
 
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
+                // increment limit treatment date with pause interval
+                $pauseInterval = $previousSegmentEnd
+                    ? $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $previousSegmentEnd->getDate(), $segmentStart->getDate())
+                    : null;
+                $pauseElapsedSeconds = $pauseInterval
+                    ? floor($this->dateTimeService->convertDateIntervalToMilliseconds($pauseInterval) / 1000)
+                    : 0;
+                if ($pauseElapsedSeconds) {
+                    $limitTreatmentDate->add($pauseInterval);
+                }
+
                 $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
 
                 if ($remainingNatureDelay > $elapsedSeconds) {
@@ -206,6 +218,8 @@ class TrackingDelayService {
                     $remainingNatureDelay = 0;
                 }
             }
+
+            $previousSegmentEnd = $segmentEnd;
         }
 
         // If the pack tracking delay is positive, then the limit treatment date is in the future
