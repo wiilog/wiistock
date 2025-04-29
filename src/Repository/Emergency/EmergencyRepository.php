@@ -9,13 +9,15 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use phpDocumentor\Reflection\Types\Static_;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @extends EntityRepository<EmergencyRepository>
  */
 class EmergencyRepository extends EntityRepository {
-    public function findByParamsAndFilters(ParameterBag $params, array $filters): array {
+    public function findByParamsAndFilters(ParameterBag $params, array $filters, array $visibleColumnsConfig): array {
         $entityManager = $this->getEntityManager();
         $lastArrivalNumberSubquery = $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
@@ -53,12 +55,38 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
         ];
 
+        $order = $params->all('order')[0]['dir'] ?? null;
+        $columnToOrder = $params->all('columns')[$params->all('order')[0]['column']]['data'] ?? null;
+        $searchParams = $params->all('search');
+        $search = $searchParams['value'] ?? null;
+        $presentSearchableColumns = Stream::from($visibleColumnsConfig)
+            ->filter(static fn(array $config): bool => ($config['searchable'] ?? false) && ($config['fieldVisible'] ?? false))
+            ->map(static fn(array $config): string => $config['data'])
+            ->toArray();
+        $searches = [];
+
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
             ->distinct();
+        $exprBuilder = $queryBuilder->expr();
 
         foreach ($columns as $field => $column) {
             $queryBuilder->addSelect("$column AS $field");
+
+            if ($order && $columnToOrder === $field) {
+                $queryBuilder->orderBy($column, $order);
+            }
+
+            if (!empty($search) && in_array($field, $presentSearchableColumns)) {
+                $searches[] = $exprBuilder->like("$column", ":value");
+            }
+        }
+
+        if (!empty($search)) {
+            $queryBuilder
+                ->andWhere($exprBuilder->orX(...$searches))
+                ->setParameter('value', '%' . $search . '%');
+
         }
 
         $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", "WITH", "tracking_emergency.id = emergency.id")
@@ -68,41 +96,6 @@ class EmergencyRepository extends EntityRepository {
             ->leftJoin("emergency.type", "emergency_type");
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
-
-        $searchParams = $params->all('search');
-        if (!empty($searchParams)) {
-            $search = $searchParams['value'];
-            if (!empty($search)) {
-                $exprBuilder = $queryBuilder->expr();
-                $queryBuilder
-                    ->andWhere($exprBuilder->orX(
-                        "emergency.command LIKE :value",
-                        "tracking_emergency.postNumber LIKE :value",
-                        "emergency_buyer.username LIKE :value",
-                        "emergency_supplier.nom LIKE :value",
-                        "emergency_carrier.label LIKE :value",
-                        "emergency.carrierTrackingNumber LIKE :value",
-                        "emergency_type.label LIKE :value",
-                        "tracking_emergency.internalArticleCode LIKE :value",
-                        "tracking_emergency.supplierArticleCode LIKE :value"
-                    ))
-                    ->setParameter('value', '%' . $search . '%');
-            }
-        }
-
-        if (!empty($params->all('order'))) {
-            $order = $params->all('order')[0]['dir'];
-            if (!empty($order)) {
-                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
-                $columnToOrder = $columns[$column] ?? null;
-
-                if ($columnToOrder) {
-                    $queryBuilder->orderBy($columnToOrder, $order);
-                }
-            }
-        }
-
         $filtered = QueryBuilderHelper::count($queryBuilder, 'emergency');
 
         if ($params->getInt('start')) {
