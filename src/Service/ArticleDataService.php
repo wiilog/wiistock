@@ -59,7 +59,8 @@ class ArticleDataService
         private FieldModesService      $fieldModesService,
         private CSVExportService       $CSVExportService,
         private FreeFieldService       $freeFieldService,
-        private UserService            $userService
+        private UserService            $userService,
+        private CacheService           $cacheService,
     ) {}
 
     public function getCollecteArticleOrNoByRefArticle(Collecte         $collect,
@@ -247,11 +248,10 @@ class ArticleDataService
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statusLabel = $data->get('statut') ?? Article::STATUT_ACTIF;
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel)
-            ?: $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+        $statut = $this->cacheService->getEntity($entityManager, Statut::class, Article::CATEGORIE, $statusLabel)
+            ?: $this->cacheService->getEntity($entityManager, Statut::class, Article::CATEGORIE, Article::STATUT_ACTIF);
 
         $refArticle = $data->get('refArticle');
         $refArticle = $refArticle instanceof ReferenceArticle
