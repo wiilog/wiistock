@@ -51,7 +51,7 @@
             {{ form.select(fieldCodeReference.name, fieldCodeReference.value, true, {
                 type: 'reference',
                 disabled: isEdit,
-                items: isEdit and emergency.referenceArticle ? [{
+                items: isEdit and not isTrackingEmergency and emergency.referenceArticle ? [{
                     label: emergency.referenceArticle.reference,
                     value: emergency.referenceArticle.id,
                     selected: true
@@ -69,7 +69,7 @@
             {{ form.select(fieldCodeSupplier.name, trans('Qualité & Urgences', 'Urgences', fieldCodeSupplier.value, false), true, {
                 type: 'provider',
                 disabled: isEdit,
-                items: isEdit and emergency.supplier ? [{
+                items: isEdit and not isTrackingEmergency and emergency.supplier ? [{
                     label: emergency.supplier.nom,
                     value: emergency.supplier.id,
                     selected: true
@@ -166,7 +166,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'user',
-                    items: isEdit and emergency.buyer ? [{
+                    items: isEdit and isTrackingEmergency and emergency.buyer ? [{
                         label: emergency.buyer.username,
                         value: emergency.buyer.id,
                         selected: true
@@ -180,7 +180,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'provider',
-                    items: isEdit and emergency.supplier ? [{
+                    items: isEdit and isTrackingEmergency and emergency.supplier ? [{
                         label: emergency.supplier.nom,
                         value: emergency.supplier.id,
                         selected: true
@@ -194,7 +194,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'carrier',
-                    items: isEdit and emergency.carrier ? [{
+                    items: isEdit and isTrackingEmergency and emergency.carrier ? [{
                         label: emergency.carrier.label,
                         value: emergency.carrier.id,
                         selected: true
