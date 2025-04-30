@@ -2,11 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\ApiToken\ApiToken;
 use App\Entity\Security\AccessToken;
 use App\Entity\Security\AccessTokenTypeEnum;
 use App\Entity\Security\Token;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateInterval;
 use DateTime;
