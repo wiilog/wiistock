@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Emergency\Enum\EmergencyStockWarningEnum;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -43,7 +42,7 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
@@ -896,8 +895,7 @@ class SettingsService {
             }
 
             if(isset($data["emergencyStockWarning"])){
-                $type->setSendMailBuyerEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
-                $type->setSendMailRequesterEmergency(in_array(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value, Stream::explode(",", $data["emergencyStockWarning"])->toArray()));
+                $type->setEmergencyStockWarnings(Stream::explode(",", $data["emergencyStockWarning"])->toArray());
             }
 
             $newLabel = $data["label"] ?? $type->getLabel();

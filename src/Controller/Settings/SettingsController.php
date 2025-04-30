@@ -46,8 +46,8 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
-use App\Entity\Type;
 use App\Entity\Type\EmergencyStockWarningEnum;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
@@ -2418,8 +2418,11 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $sendMailToBuyerValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value);
-                $sendMailToRequesterValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value);
+                $sendMailToBuyerLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value];
+                $sendMailToBuyerValue = EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value;
+                $sendMailToRequesterLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value];
+                $sendMailToRequesterValue = EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value;
+
                 $data[] = [
                     "label" => "Alert email",
                     "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
@@ -2428,13 +2431,13 @@ class SettingsController extends AbstractController {
                         "items" => [
                             [
                                 "value" => $sendMailToBuyerValue,
-                                "label" => $sendMailToBuyerValue,
-                                "selected" => $type?->getSendMailBuyerEmergency(),
+                                "label" => $sendMailToBuyerLabel,
+                                "selected" => in_array($sendMailToRequesterValue, $type?->getEmergencyStockWarnings()),
                             ],
                             [
                                 "value" => $sendMailToRequesterValue,
-                                "label" => $sendMailToRequesterValue,
-                                "selected" => $type?->getSendMailRequesterEmergency(),
+                                "label" => $sendMailToRequesterLabel,
+                                "selected" => in_array($sendMailToRequesterValue, $type?->getEmergencyStockWarnings()),
                             ]
                         ],
                     ]),
@@ -2632,9 +2635,10 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $emergencyWarning = [];
-                $emergencyWarning[] = $type?->getSendMailRequesterEmergency() ? EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value : null;
-                $emergencyWarning[] = $type?->getSendMailBuyerEmergency() ? EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value : null;
+                $emergencyWarning = Stream::from($type ? $type->getEmergencyStockWarnings() : [])
+                    ->map(fn(String $emergencyStockWarningEnum)
+                        => $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[$emergencyStockWarningEnum])
+                    ->toArray();
 
                 $data[] = [
                     "label" => "Alert Email" . $formService->macro("tooltip", "L’email sera envoyé à chaque nouvelle réception concernant l’urgence à l’acheteur et / ou demandeur de l’urgence ou de la référence"),
