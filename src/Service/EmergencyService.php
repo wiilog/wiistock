@@ -145,6 +145,7 @@ class EmergencyService {
 
         return [
             'types' => $types,
+            'emergencyTypes' => $emergencyTypes,
             'fieldParams' => $fieldParams,
             'emergency' => $emergency ?? null,
         ];
@@ -210,6 +211,8 @@ class EmergencyService {
         } else if($emergency instanceof StockEmergency) {
             $this->updateStockEmergency($entityManager, $emergency, $data);
         }
+
+        $this->freeFieldService->manageFreeFields($emergency, $data->all(), $entityManager);
 
         $this->checkForDuplicates($entityManager, $emergency);
 

@@ -27,10 +27,15 @@ function onEmergencyTypeChange($modal) {
     const $stockEmergencyContainer = $modal.find('.stock-emergency-container');
     const $trackingEmergencyContainer = $modal.find('.tracking-emergency-container');
     const $dateContainer = $modal.find('.date-container');
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
 
     $stockEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== STOCK_EMERGENCY);
     $trackingEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
     $dateContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
+    $freeFieldsContainer.parent().toggleClass('d-none', emergencyCategoryType === undefined);
+
+    toggleRequiredChampsLibres($emergencyTypeSelect, 'create', $freeFieldsContainer);
+    typeChoice($emergencyTypeSelect, $freeFieldsContainer);
 
     if(emergencyCategoryType === STOCK_EMERGENCY) {
         onEmergencyTriggerChange($modal);
@@ -99,6 +104,8 @@ function initializeModals($tableEmergencies) {
                         });
 
                     onEmergencyTypeChange($modalEditEmergency);
+                    toggleRequiredChampsLibres($modalEditEmergency.find('[name="type"]'), 'edit', $modalNewEmergency.find('.free-fields-container'));
+                    typeChoice($modalEditEmergency.find('[name="type"]'), $modalNewEmergency.find('.free-fields-container'));
                     onEmergencyTriggerChange($modalEditEmergency);
                 }
             });
