@@ -64,8 +64,7 @@ function onEmergencyTriggerChange($modal) {
 }
 
 /**
- * TODO WIIS-12629 mettre l'id de l'urgence à modifier
- * @param {jQuery} $tableEmergencies
+ * @param {JQueryDataTableApi|JQueryDataTableApi[]} $tableEmergencies
  */
 function initializeModals($tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
@@ -81,7 +80,7 @@ function initializeModals($tableEmergencies) {
             onEmergencyTypeChange($modalNewEmergency);
         })
         .submitTo(POST, 'emergency_new', {
-            tables: [$tableEmergencies],
+            tables: $tableEmergencies,
             clearFields: true,
         });
 
