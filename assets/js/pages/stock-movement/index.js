@@ -43,7 +43,7 @@ $(function() {
         })
 
     Form
-        .create('#modalNewMvtStock',{clearOnOpen: true})
+        .create('#modalNewMvtStock',{resetView: ['open', 'close']})
         .submitTo(POST, "mvt_stock_new", {tables: () => {return tableMvt}})
         .on('change', '[name="reference-new-mvt"]', (event) => {
             resetNewModal($modalNewMvtStock);

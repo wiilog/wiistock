@@ -37,7 +37,7 @@ $(function () {
 
     let modalNewMission = $("#modalNewMission");
     Form
-        .create(modalNewMission, { clearOnOpen : false })
+        .create(modalNewMission, { resetView: ['open', 'close'] })
         .submitTo(
             AJAX.POST,
             'mission_new',
@@ -51,7 +51,7 @@ $(function () {
 
     let modalDeleteMission = $("#modalDeleteMission");
     Form
-        .create(modalDeleteMission, { clearOnOpen : false })
+        .create(modalDeleteMission, { resetView: ['open', 'close'] })
         .submitTo(
             AJAX.POST,
             'mission_delete',
@@ -61,7 +61,7 @@ $(function () {
         );
 
     Form
-        .create($('#modalDuplicateMission'), { clearOnOpen : false })
+        .create($('#modalDuplicateMission'), { resetView: ['open', 'close'] })
         .submitTo(
             AJAX.POST,
             'mission_new',

@@ -12,7 +12,7 @@ $(function() {
 });
 
 function initializeNewModal(table) {
-    Form.create(`#modalNewProject`, {clearOnOpen: true})
+    Form.create(`#modalNewProject`, {resetView: ['open', 'close']})
         .submitTo(`POST`, `project_new`, {tables: [table]})
 }
 

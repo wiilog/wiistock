@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="stock-emergency-container d-none">
+<div class="stock-emergency-container hide-on-reset d-none">
     {% set fieldCodeReference = constant('App\\Entity\\Fields\\FixedFieldEnum::reference') %}
     {% set fieldCodeSupplier = constant('App\\Entity\\Fields\\FixedFieldEnum::supplier') %}
     <div class="row">
@@ -91,7 +91,7 @@
 
 {# Customizable fields via field params pages #}
 
-<div class="date-container d-none">
+<div class="date-container hide-on-reset d-none">
     <div class="row">
         <div class="col-6 mb-2">
             {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart') %}
@@ -115,7 +115,7 @@
         </div>
     </div>
 </div>
-<div class="stock-emergency-container d-none">
+<div class="stock-emergency-container hide-on-reset d-none">
     <div class="row">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
@@ -145,7 +145,7 @@
         {% endif %}
     </div>
 </div>
-<div class="tracking-emergency-container d-none">
+<div class="tracking-emergency-container hide-on-reset d-none">
     <div class="row">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}

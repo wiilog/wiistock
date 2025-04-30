@@ -131,7 +131,7 @@ function initTrackingMovementTable(columns) {
 function initPageModals(tableMvt) {
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
     Form
-        .create($modalEditMvtTraca, {clearOnOpen: false})
+        .create($modalEditMvtTraca)
         .onOpen(function (event) {
             const trackingMovement = $(event.relatedTarget).data('id');
             clearModal($modalEditMvtTraca);

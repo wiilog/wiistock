@@ -34,12 +34,12 @@ use Twig\Environment as Twig_Environment;
 class EmergencyService {
 
     public function __construct(
-        private AttachmentService   $attachmentService,
-        private FixedFieldService   $fieldsParamService,
-        private FormatService       $formatService,
-        private FieldModesService   $fieldModesService,
-        private UserService         $userService,
-        private Twig_Environment    $templating,
+        private AttachmentService $attachmentService,
+        private FixedFieldService $fieldsParamService,
+        private FormatService     $formatService,
+        private FieldModesService $fieldModesService,
+        private UserService       $userService,
+        private Twig_Environment  $templating,
     ) {}
 
     /**
