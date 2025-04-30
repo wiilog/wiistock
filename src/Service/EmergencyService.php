@@ -396,12 +396,20 @@ class EmergencyService {
                          ],
                      ],
                  ]);
-                 $data[FixedFieldEnum::dateStart->name] = $this->formatService->date($data[FixedFieldEnum::dateStart->name]);
-                 $data[FixedFieldEnum::dateEnd->name] = $this->formatService->date($data[FixedFieldEnum::dateEnd->name]);
-                 $data["closedAt"] = $this->formatService->date($data["closedAt"]);
-                 $data["lastTriggeredAt"] = "<span class='text-danger font-weight-bold'> TODO </span>"; //  $this->formatService->date($data["lastTriggeredAt"]); TODO WIIS-12695
-                 $data[FixedFieldEnum::createdAt->name] = $this->formatService->date($data[FixedFieldEnum::createdAt->name]);
 
+                 $dateFields = [
+                     FixedFieldEnum::dateStart->name,
+                     FixedFieldEnum::dateEnd->name,
+                     "closedAt",
+                     "lastTriggeredAt",
+                     FixedFieldEnum::createdAt->name,
+                 ];
+
+                 foreach ($dateFields as $field) {
+                     $data[$field] = !empty($data[$field])
+                         ? $this->formatService->date($data[$field])
+                         : "";
+                 }
                  return $data;
              })
              ->toArray();
