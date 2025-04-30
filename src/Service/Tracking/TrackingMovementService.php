@@ -1911,15 +1911,17 @@ class TrackingMovementService {
             && !$manualDelayStart) {
             $pack = $trackingMovement->getPack();
             $location = $trackingMovement->getEmplacement();
+            $lastOngoingDrop = $pack->getLastOngoingDrop();
 
             // the last ongoing drop is defined,
             // AND its location is same as the current movement location,
-            // AND he hasn't a tracking event
+            // AND he hasn't a tracking event OR he has a STOP tracking event (see WIIS-12750 / case 1)
             // => then we set the start event on the drop movement
             if ($location?->getId()
-                && $pack->getLastOngoingDrop()?->getEvent() === null
-                && $location?->getId() === $pack->getLastOngoingDrop()?->getEmplacement()?->getId()) {
-                $trackingToSetEvent = $pack->getLastOngoingDrop();
+                && $lastOngoingDrop
+                && in_array($lastOngoingDrop->getEvent(), [null, TrackingEvent::STOP])
+                && $location->getId() === $lastOngoingDrop->getEmplacement()?->getId()) {
+                $trackingToSetEvent = $lastOngoingDrop;
             }
 
             $trackingEvent = TrackingEvent::START;
