@@ -39,7 +39,7 @@ class CacheService {
                         ?callable          $generateValue = null): mixed {
         try {
             $cacheKey = $this->getCacheKey($namespace->value, $key);
-            $this->saveCacheKey($cacheKey);
+            $this->addCacheKey($cacheKey);
             return $this->cache->get($cacheKey, $generateValue ?? static fn () => null);
         } catch (Throwable $exception) {
             $this->exceptionLoggerService->sendLog($exception);
@@ -74,9 +74,11 @@ class CacheService {
             $cacheKeysToDelete = Stream::from($this->cache->get(self::CACHE_KEY_KEYS, static fn() => []))
                 ->filter(static fn(string $key) => preg_match("/^{$namespace->value}\\$cacheKeySeparator.+/", $key))
                 ->toArray();
+
             foreach ($cacheKeysToDelete as $cacheKey) {
                 $this->cache->delete($cacheKey);
             }
+
             $this->deleteCacheKeys($cacheKeysToDelete);
         }
     }
@@ -165,23 +167,26 @@ class CacheService {
         return $namespace . self::CACHE_KEY_SEPARATOR . $key;
     }
 
-    private function saveCacheKey(string $cacheKey): void {
+    private function addCacheKey(string $cacheKey): void {
         $cacheKeys = $this->cache->get(self::CACHE_KEY_KEYS, static fn() => []);
         if (!in_array($cacheKey, $cacheKeys)) {
             $cacheKeys[] = $cacheKey;
             $this->cache->delete(self::CACHE_KEY_KEYS);
 
-            // save new cache keys collection
+            // save new cache keys
             $this->cache->get(self::CACHE_KEY_KEYS, static fn() => $cacheKeys);
         }
     }
 
-    private function deleteCacheKeys(array $cacheKeysToRemove): void {
+    /**
+     * @param array<string> $cacheKeysToDelete
+     */
+    private function deleteCacheKeys(array $cacheKeysToDelete): void {
         $cacheKeys = $this->cache->get(self::CACHE_KEY_KEYS, static fn() => []);
 
         $this->cache->delete(self::CACHE_KEY_KEYS);
 
-        // save new cache keys collection
-        $this->cache->get(self::CACHE_KEY_KEYS, static fn() => array_diff($cacheKeys, $cacheKeysToRemove));
+        // save new cache keys
+        $this->cache->get(self::CACHE_KEY_KEYS, static fn() => array_diff($cacheKeys, $cacheKeysToDelete));
     }
 }
