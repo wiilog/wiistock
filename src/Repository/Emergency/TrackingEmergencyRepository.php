@@ -17,7 +17,7 @@ class TrackingEmergencyRepository extends EntityRepository {
                                   DateTime     $dateStart,
                                   DateTime     $dateEnd,
                                   ?Fournisseur $supplier,
-                                  ?string      $command,
+                                  ?string      $orderNumber,
                                   ?string      $postNumber): int {
 
         $queryBuilder = $this->createQueryBuilder('emergency');
@@ -32,13 +32,13 @@ class TrackingEmergencyRepository extends EntityRepository {
                 'emergency.dateEnd BETWEEN :dateStart AND :dateEnd'
             ))
             ->andWhere('emergency.supplier = :supplier')
-            ->andWhere('emergency.command = :command')
+            ->andWhere('emergency.orderNumber = :orderNumber')
             ->andWhere('emergency.id != :emergencyId')
             ->setParameter('dateStart', $dateStart)
             ->setParameter('dateEnd', $dateEnd)
             ->setParameter('emergencyId', $emergency->getId())
             ->setParameter('supplier', $supplier)
-            ->setParameter('command', $command);
+            ->setParameter('orderNumber', $orderNumber);
 
         if (!empty($postNumber)) {
             $queryBuilder
