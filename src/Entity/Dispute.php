@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Type\Type;
 use App\Repository\DisputeRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;

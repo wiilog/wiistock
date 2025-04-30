@@ -21,7 +21,8 @@ use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\EmergencyStockWarningEnum;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
@@ -82,6 +83,10 @@ class FormatService
         Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
     ];
 
+    public const EMERGENCY_STOCK_WARNING_LABELS = [
+        EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value => 'Acheteur',
+        EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value => 'Demandeur'
+    ];
     public const SECONDS_IN_DAY = 86400;
 
     #[Required]

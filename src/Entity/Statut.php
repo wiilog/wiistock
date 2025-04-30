@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
+use App\Entity\Type\Type;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\StatutRepository;

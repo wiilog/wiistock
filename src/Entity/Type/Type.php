@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\AverageRequestTime;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;

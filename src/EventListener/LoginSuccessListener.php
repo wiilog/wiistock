@@ -2,8 +2,8 @@
 
 namespace App\EventListener;
 
-use App\Entity\CategoryType;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Service\SessionHistoryRecordService;
 use DateTime;

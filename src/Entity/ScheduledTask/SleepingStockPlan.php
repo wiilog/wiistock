@@ -2,10 +2,8 @@
 
 namespace App\Entity\ScheduledTask;
 
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Repository\ScheduledTask\SleepingStockPlanRepository;
-use App\Service\FormatService;
-use DateInterval;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

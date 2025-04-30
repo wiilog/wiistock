@@ -6,7 +6,7 @@ use App\Entity\Attachment;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\MouvementStock;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ScheduledTask\ImportRepository;
 use DateTime;

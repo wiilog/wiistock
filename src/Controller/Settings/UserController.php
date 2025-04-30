@@ -2,15 +2,19 @@
 
 namespace App\Controller\Settings;
 
-use App\Entity\CategoryType;
+use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
+use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\Role;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
@@ -21,7 +25,6 @@ use App\Service\PasswordService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,9 +33,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
-use App\Annotation\HasPermission;
-use App\Entity\Menu;
-use App\Entity\Action;
 
 #[Route('/parametrage/users')]
 class UserController extends AbstractController {

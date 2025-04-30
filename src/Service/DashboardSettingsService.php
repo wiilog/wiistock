@@ -19,7 +19,7 @@ use App\Entity\Nature;
 use App\Entity\ProductionRequest;
 use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ProductionRequest\ProductionRequestService;

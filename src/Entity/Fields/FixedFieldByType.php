@@ -2,7 +2,7 @@
 
 namespace App\Entity\Fields;
 
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Repository\Fields\FixedFieldByTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

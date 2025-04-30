@@ -9,7 +9,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\FieldModesService;

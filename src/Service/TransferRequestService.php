@@ -2,12 +2,12 @@
 
 namespace App\Service;
 
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -17,7 +17,6 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\StringHelper;
 
 class TransferRequestService {
 

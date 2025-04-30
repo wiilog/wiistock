@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Type\CategoryType;
 use App\Repository\CategorieCLRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

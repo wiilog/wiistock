@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Type\Type;
 use App\Repository\AverageRequestTimeRepository;
 use Doctrine\ORM\Mapping as ORM;
 

@@ -6,7 +6,7 @@ namespace App\Service;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;

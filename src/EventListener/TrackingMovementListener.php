@@ -9,7 +9,7 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
