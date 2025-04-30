@@ -8,7 +8,9 @@ use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use phpDocumentor\Reflection\Types\Static_;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
@@ -22,20 +24,20 @@ class EmergencyRepository extends EntityRepository {
         $lastArrivalNumberSubquery = $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
             ->from(Arrivage::class, 'arrival')
-            ->where('emergency_arrival = emergency.id')
-            ->innerJoin(TrackingEmergency::class, 'emergency_arrival')
-            ->orderBy('arrival.date', 'DESC')
+            ->andwhere('emergency_arrival = emergency.id')
+            ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival')
+            ->orderBy('arrival.date', Order::Descending->value)
             ->getDQL();
 
         // TODO WIIS-12641 à voir si faut refaire avec changement d'entité ?
         $lastReceptionNumberSubquery = $entityManager->createQueryBuilder()
             ->select('reception.number')
             ->from(Reception::class, 'reception')
-            ->where('emergency_reception = emergency.id')
+            ->andWhere('emergency_reception = emergency.id')
             ->innerJoin("reception.lines", "reception_line")
             ->innerJoin("reception_line.receptionReferenceArticles", "reception_reference_article")
             ->innerJoin("reception_reference_article.stockEmergencies", "emergency_reception")
-            ->orderBy('reception.date', 'DESC')
+            ->orderBy('reception.date', Order::Descending->value)
             ->getDQL();
 
         $columns = [
@@ -68,6 +70,7 @@ class EmergencyRepository extends EntityRepository {
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
+            ->addSelect("emergency.freeFields AS freeFields")
             ->distinct();
         $exprBuilder = $queryBuilder->expr();
 
@@ -98,7 +101,7 @@ class EmergencyRepository extends EntityRepository {
                 ->setParameter('value', "%$search%");
         }
 
-        $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", "WITH", "tracking_emergency.id = emergency.id")
+        $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
