@@ -2424,8 +2424,11 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $sendMailToBuyerValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value);
-                $sendMailToRequesterValue = EmergencyStockWarningEnum::label(EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value);
+                $sendMailToBuyerLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value];
+                $sendMailToBuyerValue = EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value;
+                $sendMailToRequesterLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value];
+                $sendMailToRequesterValue = EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value;
+
                 $data[] = [
                     "label" => "Alerte email",
                     "value" => $formService->macro("select", "stockEmergencyAlertModes", null, false, [
