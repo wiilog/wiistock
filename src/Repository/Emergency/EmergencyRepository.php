@@ -70,23 +70,31 @@ class EmergencyRepository extends EntityRepository {
             ->distinct();
         $exprBuilder = $queryBuilder->expr();
 
-        foreach ($columns as $field => $column) {
-            $queryBuilder->addSelect("$column AS $field");
+        foreach ($visibleColumnsConfig as $config) {
+            $field = $config['data'] ?? null;
+            $column = $columns[$field] ?? null;
 
             if ($order && $columnToOrder === $field) {
-                $queryBuilder->orderBy($column, $order);
+                $queryBuilder
+                    ->orderBy($column, $order)
+                    ->addSelect("$column AS order_$field");
             }
 
-            if (!empty($search) && in_array($field, $presentSearchableColumns)) {
-                $searches[] = $exprBuilder->like("$column", ":value");
+            if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
+                $queryBuilder->addSelect("'' AS $field");
+            } else {
+                $queryBuilder->addSelect("$column AS $field");
+
+                if (!empty($search) && in_array($field, $presentSearchableColumns)) {
+                    $searches[] = $exprBuilder->like("$column", ":value");
+                }
             }
         }
 
         if (!empty($search)) {
             $queryBuilder
                 ->andWhere($exprBuilder->orX(...$searches))
-                ->setParameter('value', '%' . $search . '%');
-
+                ->setParameter('value', "%$search%");
         }
 
         $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", "WITH", "tracking_emergency.id = emergency.id")
