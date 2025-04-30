@@ -134,18 +134,13 @@ class EmergencyService {
             'onlyActive' => true,
         ]);
 
-        $types = Stream::from($emergencyTypes)
-            ->map(static fn(Type $type) => [
-                'label' => $type->getLabel(),
-                'value' => $type->getId(),
-                'selected' => !$emergency && $type->isDefault() || $type->getId() === $emergency?->getType()->getId(),
-                'category-type' => $type->getCategory()->getLabel(),
-            ])
-            ->toArray();
+        $defaultType = !$emergency
+            ? Stream::from($emergencyTypes)->find(static fn(Type $type) => $type->isDefault())
+            : null;
 
         return [
-            'types' => $types,
             'emergencyTypes' => $emergencyTypes,
+            'defaultType' => $defaultType,
             'fieldParams' => $fieldParams,
             'emergency' => $emergency ?? null,
         ];

@@ -17,6 +17,7 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::type') %}
         {{ form.select(fieldCode.name, trans('Demande', 'Général', fieldCode.value, false), true, {
             type: '',
+            inputClass: not isEdit and defaultType ? 'needs-default' : null,
             disabled: isEdit,
             items: isEdit
                 ? [{
@@ -25,7 +26,16 @@
                     selected: true,
                     'category-type': emergency.type.category.label,
                 }]
-                : types,
+                : emergencyTypes|map((type) => ({
+                    label: type|format_helper('type'),
+                    value: type.id,
+                    'category-type': type.category.label,
+                })),
+            attributes: not isEdit and defaultType
+                ? {
+                    'data-init': defaultType.id
+                }
+                : {}
         }) }}
     </div>
 </div>
