@@ -1,12 +1,30 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Type;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\Attachment;
+use App\Entity\AverageRequestTime;
+use App\Entity\CategoryType;
+use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
+use App\Entity\Dispute;
+use App\Entity\Emplacement;
 use App\Entity\FreeField\FreeFieldManagementRule;
+use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
+use App\Entity\Language;
+use App\Entity\Nature;
+use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\ScheduledTask\SleepingStockPlan;
+use App\Entity\Statut;
+use App\Entity\TagTemplate;
+use App\Entity\TranslationSource;
+use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,8 +33,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
-#[ORM\Index(fields: ["sendMailRequesterEmergency"])]
-#[ORM\Index(fields: ["sendMailBuyerEmergency"])]
 class Type {
 
     // type de la catégorie réception
@@ -66,10 +82,10 @@ class Type {
     /**
      * Attribute used for data warehouse, do not delete it
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: ReferenceArticle::class)]
@@ -102,17 +118,14 @@ class Type {
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, mappedBy: 'handlingTypes')]
     private Collection $handlingUsers;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendMailRequester = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendMailReceiver = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $sendMailRequesterEmergency = null;
-
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $sendMailBuyerEmergency = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $emergencyStockWarnings = [];
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
@@ -132,19 +145,19 @@ class Type {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $suggestedDropLocations = [];
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $suggestedPickLocations = [];
 
     #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 0])]
     private ?bool $notificationsEnabled = false;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $notificationsEmergencies = [];
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: RequestTemplate::class)]
@@ -156,7 +169,7 @@ class Type {
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'App\Entity\IOT\Sensor')]
     private Collection $sensors;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $color = null;
 
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
@@ -543,22 +556,15 @@ class Type {
         return $this;
     }
 
-    public function getSendMailRequesterEmergency(): ?bool {
-        return $this->sendMailRequesterEmergency;
+    /**
+     * @return array<int, String>
+     */
+    public function getEmergencyStockWarnings(): array {
+        return $this->emergencyStockWarnings;
     }
 
-    public function setSendMailRequesterEmergency(?bool $sendMailRequesterEmergency): self {
-        $this->sendMailRequesterEmergency = $sendMailRequesterEmergency;
-
-        return $this;
-    }
-
-    public function getSendMailBuyerEmergency(): ?bool {
-        return $this->sendMailBuyerEmergency;
-    }
-
-    public function setSendMailBuyerEmergency(?bool $sendMailBuyerEmergency): self {
-        $this->sendMailBuyerEmergency = $sendMailBuyerEmergency;
+    public function setEmergencyStockWarnings(array $emergencyStockWarnings): self {
+        $this->emergencyStockWarnings = $emergencyStockWarnings;
 
         return $this;
     }
