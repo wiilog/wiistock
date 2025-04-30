@@ -19,7 +19,7 @@ $(function() {
     initializeModals(table);
 });
 
-function onEmergencyTypeChange($modal) {
+function onEmergencyTypeChange($modal, requiredAction = 'create') {
     const $emergencyTypeSelect = $modal.find('[name="type"]')
     const $selectedOption = $emergencyTypeSelect.find('option:selected');
     const emergencyCategoryType = $selectedOption.data('category-type');
@@ -35,7 +35,7 @@ function onEmergencyTypeChange($modal) {
     $dateContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
     $freeFieldsGlobalContainer.toggleClass('d-none', emergencyCategoryType === undefined);
 
-    toggleRequiredChampsLibres($emergencyTypeSelect, 'create', $freeFieldsContainer);
+    toggleRequiredChampsLibres($emergencyTypeSelect, requiredAction, $freeFieldsContainer);
     typeChoice($emergencyTypeSelect, $freeFieldsContainer);
 
     if(emergencyCategoryType === STOCK_EMERGENCY) {
@@ -77,13 +77,13 @@ function initializeModals($tableEmergencies) {
     Form
         .create($modalNewEmergency, {resetView: ['open', 'close']})
         .on('change', '[name="type"]', () => {
-            onEmergencyTypeChange($modalNewEmergency);
+            onEmergencyTypeChange($modalNewEmergency, 'create');
         })
         .on('change', '[name="emergencyTrigger"], [name="endEmergencyCriteria"]', () => {
             onEmergencyTriggerChange($modalNewEmergency);
         })
         .onOpen(() => {
-            onEmergencyTypeChange($modalNewEmergency);
+            onEmergencyTypeChange($modalNewEmergency, 'create');
         })
         .submitTo(POST, 'emergency_new', {
             tables: $tableEmergencies,
@@ -97,16 +97,7 @@ function initializeModals($tableEmergencies) {
             const emergencyId = $(event.relatedTarget).data('id');
             Modal.load('emergency_edit_api', {emergency: emergencyId}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
                 onOpen: () => {
-                    $modalEditEmergency
-                        .find('.modal-body')
-                        .off('change.emergencyType')
-                        .on('change.emergencyType', '[name="type"]', () => {
-                            onEmergencyTypeChange($modalEditEmergency);
-                        });
-
-                    onEmergencyTypeChange($modalEditEmergency);
-                    toggleRequiredChampsLibres($modalEditEmergency.find('[name="type"]'), 'edit', $modalNewEmergency.find('.free-fields-container'));
-                    typeChoice($modalEditEmergency.find('[name="type"]'), $modalNewEmergency.find('.free-fields-container'));
+                    onEmergencyTypeChange($modalEditEmergency, 'edit');
                     onEmergencyTriggerChange($modalEditEmergency);
                 }
             });
