@@ -14,7 +14,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;

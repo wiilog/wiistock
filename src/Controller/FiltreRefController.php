@@ -3,17 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Service\RefArticleDataService;
 use App\Service\FieldModesService;
+use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

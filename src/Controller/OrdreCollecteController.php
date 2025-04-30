@@ -6,18 +6,17 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
-
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
@@ -29,12 +28,9 @@ use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\TagTemplateService;
-use App\Service\UserService;
-
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;

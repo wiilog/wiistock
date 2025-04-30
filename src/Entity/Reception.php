@@ -9,6 +9,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Type\Type;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use DateTimeInterface;

@@ -2,12 +2,10 @@
 
 namespace App\Repository\FreeField;
 
-use App\Entity\CategorieCL;
 use App\Entity\FreeField\FreeField;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use WiiCommon\Helper\Stream;
 
 /**

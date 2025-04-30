@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Type\Type;
 use App\Repository\KioskRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;

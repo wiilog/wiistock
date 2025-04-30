@@ -4,7 +4,7 @@ namespace App\Entity\RequestTemplate;
 
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Repository\RequestTemplate\RequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

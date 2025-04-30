@@ -7,7 +7,7 @@ use App\Entity\Nature;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportRequestRepository;
 use DateTime;

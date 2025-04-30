@@ -7,7 +7,7 @@ use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ScheduledTask\SleepingStockPlan;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
