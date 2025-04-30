@@ -8,7 +8,8 @@ import Wiistock from '@app/general';
 
 export function initializeForm($form, editForm = false) {
     const form = Form
-        .create($form, {clearOnOpen: !editForm})
+        .create($form, {
+            resetView: !editForm ? ['open', 'close'] : []})
         .addProcessor((_, errors, $form) => {
             validateNatureForm($form, errors)
         })

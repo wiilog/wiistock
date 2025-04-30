@@ -69,7 +69,7 @@ function onEmergencyTriggerChange($modal) {
 function initializeModals($tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
     Form
-        .create($modalNewEmergency, {clearOnOpen: true})
+        .create($modalNewEmergency, {resetView: ['open', 'close']})
         .on('change', '[name="type"]', () => {
             onEmergencyTypeChange($modalNewEmergency);
         })
@@ -86,7 +86,7 @@ function initializeModals($tableEmergencies) {
 
     let $modalEditEmergency = $('#modalEditEmergency');
     Form
-        .create($modalEditEmergency, {clearOnOpen: true})
+        .create($modalEditEmergency, {resetView: ['open', 'close']})
         .onOpen((event) => {
             const emergencyId = $(event.relatedTarget).data('id');
             Modal.load('emergency_edit_api', {emergency: emergencyId}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
