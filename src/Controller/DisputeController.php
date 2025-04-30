@@ -4,32 +4,26 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Dispute;
+use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\DisputeHistoryRecord;
-
 use App\Entity\Statut;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
-
 use App\Helper\FormatHelper;
-use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
 
 #[Route("/litige", name: "dispute_")]

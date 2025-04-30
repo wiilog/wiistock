@@ -4,7 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Controller\AbstractController;
 use App\Entity\FreeField\FreeField;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\SessionHistoryRecord;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\UserSession;
 use App\Helper\QueryBuilderHelper;
 use DateTime;

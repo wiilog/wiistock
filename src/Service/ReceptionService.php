@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
@@ -19,7 +18,8 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

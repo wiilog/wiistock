@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use WiiCommon\Helper\Stream;
