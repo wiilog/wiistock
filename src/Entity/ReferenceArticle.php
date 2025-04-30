@@ -211,7 +211,7 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticleImage', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -256,7 +256,7 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $dangerousGoods;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
 
     /**
@@ -1018,15 +1018,7 @@ class ReferenceArticle implements AttachmentContainer {
     }
 
     public function setImage(?Attachment $image): self {
-        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
-            $oldImage = $this->image;
-            $this->image = null;
-            $oldImage->setReferenceArticleImage(null);
-        }
         $this->image = $image;
-        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
-            $this->image->setReferenceArticleImage($this);
-        }
 
         return $this;
     }
@@ -1197,16 +1189,8 @@ class ReferenceArticle implements AttachmentContainer {
     public function getSheet(): ?Attachment {
         return $this->sheet;
     }
-    public function setSheet(?Attachment $image): self {
-        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
-            $oldImage = $this->sheet;
-            $this->sheet = null;
-            $oldImage->setReferenceArticleSheet(null);
-        }
-        $this->sheet = $image;
-        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
-            $this->sheet->setReferenceArticleSheet($this);
-        }
+    public function setSheet(?Attachment $sheet): self {
+        $this->sheet = $sheet;
 
         return $this;
     }

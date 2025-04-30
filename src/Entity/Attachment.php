@@ -6,11 +6,21 @@ use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportOrder;
+use App\EventListener\Doctrine\AttachmentListener;
 use App\Repository\AttachmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * /!\ Warning do not add association in this entity.
+ * On attachment removing, the associated file on the server will be removed in AttachmentListener
+ * The bug WIIS-12725 is due to reversed association in Attachment entity
+ *
+ * @see AttachmentListener
+ *
+ * TODO WIIS-12478: remove all association here
+ */
 #[ORM\Entity(repositoryClass: AttachmentRepository::class)]
 class Attachment {
 
@@ -59,12 +69,6 @@ class Attachment {
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(nullable: true)]
     private ?ShippingRequest $shippingRequest = null;
-
-    #[ORM\OneToOne(mappedBy: 'image', targetEntity: ReferenceArticle::class)]
-    private ?ReferenceArticle $referenceArticleImage = null;
-
-    #[ORM\OneToOne(mappedBy: 'sheet', targetEntity: ReferenceArticle::class)]
-    private ?ReferenceArticle $referenceArticleSheet = null;
 
     #[ORM\OneToOne(mappedBy: 'signature', targetEntity: TransportOrder::class)]
     private ?TransportOrder $transportOrder = null;
@@ -167,26 +171,6 @@ class Attachment {
 
     public function setImportCsv(?Import $importCsv): self {
         $this->importCsv = $importCsv;
-
-        return $this;
-    }
-
-    public function getReferenceArticleImage(): ?ReferenceArticle {
-        return $this->referenceArticleImage;
-    }
-
-    public function setReferenceArticleImage(?ReferenceArticle $referenceArticle): self {
-        $this->referenceArticleImage = $referenceArticle;
-
-        return $this;
-    }
-
-    public function getReferenceArticleSheet(): ?ReferenceArticle {
-        return $this->referenceArticleSheet;
-    }
-
-    public function setReferenceArticleSheet(?ReferenceArticle $referenceArticle): self {
-        $this->referenceArticleSheet = $referenceArticle;
 
         return $this;
     }

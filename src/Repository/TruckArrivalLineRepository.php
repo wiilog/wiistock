@@ -127,7 +127,6 @@ class TruckArrivalLineRepository extends EntityRepository
         $qb = $this->createQueryBuilder('truck_arrival_line');
 
         $strictSearch = $option['strictSearch'] ?? false;
-        $term = $strictSearch ? $term : "%$term%";
 
         $qb ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
@@ -147,7 +146,7 @@ class TruckArrivalLineRepository extends EntityRepository
             ->leftJoin('truck_arrival_line.arrivals', 'arrivals')
             ->leftJoin('truck_arrival_line.reserve', 'reserve')
             ->leftJoin('reserve.reserveType', 'reserveType')
-            ->setParameter('term', $term);
+            ->setParameter('term', $strictSearch ? $term : "%$term%");
 
 
         if (isset($option['truckArrivalId'])) {

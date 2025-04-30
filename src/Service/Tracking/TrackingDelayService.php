@@ -170,6 +170,7 @@ class TrackingDelayService {
         $previousRecordsCursor = -1;
         $calculatedDelayInheritLast = true;
         $previousCurrentRecord = null;
+        $previousSegmentEnd = null;
 
         foreach ($segments as $segment) {
             [
@@ -177,23 +178,34 @@ class TrackingDelayService {
                 "end" => $segmentEnd,
             ] = $segment;
 
-            $lastTrackingEvent = $segmentEnd?->getTrackingEvent();
+            $lastTrackingEvent = $segmentEnd->getTrackingEvent();
 
             $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $segmentStart->getDate(), $segmentEnd->getDate());
             $calculationDate->add($workedInterval);
 
-            $oldRemainingNatureDelay = $remainingNatureDelay ?? $natureTrackingDelay;
-            ["delay" => $remainingNatureDelay] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+            $startRemainingTrackingDelay = $endRemainingTrackingDelay ?? $natureTrackingDelay;
+            ["delay" => $endRemainingTrackingDelay] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
             // set remaining time before check push records in calculated records array
-            $segmentStart->setRemainingTrackingDelay($oldRemainingNatureDelay);
-            $segmentEnd->setRemainingTrackingDelay($remainingNatureDelay);
+            $segmentStart->setRemainingTrackingDelay($startRemainingTrackingDelay);
+            $segmentEnd->setRemainingTrackingDelay($endRemainingTrackingDelay);
 
             $this->pushTrackingDelayRecord($calculatedRecords, $segmentStart, $calculatedDelayInheritLast, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
             $this->pushTrackingDelayRecord($calculatedRecords, $segmentEnd, $calculatedDelayInheritLast, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
 
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
+                // increment limit treatment date with pause interval
+                $pauseInterval = $previousSegmentEnd
+                    ? $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $previousSegmentEnd->getDate(), $segmentStart->getDate())
+                    : null;
+                $pauseElapsedSeconds = $pauseInterval
+                    ? floor($this->dateTimeService->convertDateIntervalToMilliseconds($pauseInterval) / 1000)
+                    : 0;
+                if ($pauseElapsedSeconds) {
+                    $limitTreatmentDate->add($pauseInterval);
+                }
+
                 $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
 
                 if ($remainingNatureDelay > $elapsedSeconds) {
@@ -206,6 +218,8 @@ class TrackingDelayService {
                     $remainingNatureDelay = 0;
                 }
             }
+
+            $previousSegmentEnd = $segmentEnd;
         }
 
         // If the pack tracking delay is positive, then the limit treatment date is in the future
