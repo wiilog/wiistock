@@ -225,26 +225,28 @@
         {% endif %}
     </div>
 </div>
-<div class="col-12 d-none">
-    <!-- CHAMPS LIBRES -->
-    <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
-    <div class="collapsible expanded free-fields-container mb-2">
-        {% set typesForFreeFields = isEdit
-            ? [emergency.type]
-            : emergencyTypes
-        %}
+<div class="free-fields-global-container row d-none">
+    <div class="col-12">
+        <!-- CHAMPS LIBRES -->
+        <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
+        <div class="collapsible expanded free-fields-container mb-2">
+            {% set typesForFreeFields = isEdit
+                ? [emergency.type]
+                : emergencyTypes
+            %}
 
-        {% for type in typesForFreeFields %}
-            <div class="{{ typesForFreeFields|length > 1 ? ' d-none' }}"
-                 data-type="{{ type.id }}">
-                {% include 'free_field/freeFieldsEdit.html.twig' with {
-                    freeFieldManagementRules: type.freeFieldManagementRules,
-                    freeFieldValues: isEdit ? emergency.freeFields : [],
-                    colType: 'col-md-4 col-12',
-                    requiredType: requiredAction,
-                    actionType: isEdit ? 'edit' : 'new',
-                } %}
-            </div>
-        {% endfor %}
+            {% for type in typesForFreeFields %}
+                <div class="{{ typesForFreeFields|length > 1 ? ' d-none' }}"
+                     data-type="{{ type.id }}">
+                    {% include 'free_field/freeFieldsEdit.html.twig' with {
+                        freeFieldManagementRules: type.freeFieldManagementRules,
+                        freeFieldValues: isEdit ? emergency.freeFields : [],
+                        colType: 'col-md-4 col-12',
+                        requiredType: requiredAction,
+                        actionType: isEdit ? 'edit' : 'new',
+                    } %}
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>

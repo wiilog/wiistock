@@ -27,12 +27,13 @@ function onEmergencyTypeChange($modal) {
     const $stockEmergencyContainer = $modal.find('.stock-emergency-container');
     const $trackingEmergencyContainer = $modal.find('.tracking-emergency-container');
     const $dateContainer = $modal.find('.date-container');
+    const $freeFieldsGlobalContainer = $modal.find('.free-fields-global-container');
     const $freeFieldsContainer = $modal.find('.free-fields-container');
 
     $stockEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== STOCK_EMERGENCY);
     $trackingEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
     $dateContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
-    $freeFieldsContainer.parent().toggleClass('d-none', emergencyCategoryType === undefined);
+    $freeFieldsGlobalContainer.toggleClass('d-none', emergencyCategoryType === undefined);
 
     toggleRequiredChampsLibres($emergencyTypeSelect, 'create', $freeFieldsContainer);
     typeChoice($emergencyTypeSelect, $freeFieldsContainer);
