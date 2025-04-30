@@ -34,12 +34,13 @@ use Twig\Environment as Twig_Environment;
 class EmergencyService {
 
     public function __construct(
-        private AttachmentService $attachmentService,
-        private FixedFieldService $fieldsParamService,
-        private FormatService     $formatService,
-        private FieldModesService $fieldModesService,
-        private UserService       $userService,
-        private Twig_Environment  $templating,
+        private AttachmentService   $attachmentService,
+        private FixedFieldService   $fieldsParamService,
+        private FormatService       $formatService,
+        private FieldModesService   $fieldModesService,
+        private UserService         $userService,
+        private Twig_Environment    $templating,
+        private FreeFieldService    $freeFieldService,
     ) {}
 
     /**
@@ -379,8 +380,14 @@ class EmergencyService {
             $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
         );
 
+         $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+             $entityManager,
+             [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
+             [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
+         );
+
          $datum = Stream::from($queryResult["data"])
-             ->map(function (array $data): array {
+             ->map(function (array $data) use ($freeFieldsConfig): array {
                  $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                      'actions' => [
                          [
@@ -409,6 +416,12 @@ class EmergencyService {
                      $data[$field] = !empty($data[$field])
                          ? $this->formatService->date($data[$field])
                          : "";
+                 }
+
+                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
                  }
                  return $data;
              })
