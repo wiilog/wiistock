@@ -19,7 +19,11 @@ $(function() {
     initializeModals(table);
 });
 
-function onEmergencyTypeChange($modal, requiredAction = 'create') {
+/**
+ * @param {jQuery} $modal
+ * @param {"create"|"edit"} requiredAction
+ */
+function onEmergencyTypeChange($modal, requiredAction) {
     const $emergencyTypeSelect = $modal.find('[name="type"]')
     const $selectedOption = $emergencyTypeSelect.find('option:selected');
     const emergencyCategoryType = $selectedOption.data('category-type');
