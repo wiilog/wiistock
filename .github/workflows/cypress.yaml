@@ -101,6 +101,7 @@ jobs:
                 run: |
                     docker ps
                     echo "je passe ici et je peux debug"
+                    echo "${MODSEC_RULE_ENGINE}"
                     docker exec wiistock-cypress_owasp-modsecurity ls
                     echo "je passe bien ici et je suis en vie et pourtant je prends de la place"
                     docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
