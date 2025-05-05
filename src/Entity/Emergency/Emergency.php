@@ -31,6 +31,12 @@ abstract class Emergency {
 
     use FreeFieldsManagerTrait;
 
+    public const ARRIVAL_EMERGENCY_TRIGGERING_FIELDS = [
+        "supplier" => "Fournisseur",
+        "carrier" => "Transporteur",
+        "orderNumber" => "Numéro de commande",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]

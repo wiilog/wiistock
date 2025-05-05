@@ -565,11 +565,12 @@ class Arrivage implements AttachmentContainer {
     }
 
     public function addTrackingEmergency(TrackingEmergency $trackingEmergency): self {
-        if ($this->trackingEmergencies->contains($trackingEmergency)) {
-            $trackingEmergency->removeArrival($this);
+        if (!$this->trackingEmergencies->contains($trackingEmergency)) {
+            $this->trackingEmergencies[] = $trackingEmergency;
+            $trackingEmergency->addArrival($this);
         }
 
-        return $this;
+            return $this;
     }
 
     public function removeTrackingEmergency(TrackingEmergency $trackingEmergency): self {
