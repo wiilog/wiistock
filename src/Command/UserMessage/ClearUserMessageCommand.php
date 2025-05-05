@@ -3,7 +3,8 @@
 namespace App\Command\UserMessage;
 
 use App\Entity\Setting;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -32,7 +33,7 @@ class ClearUserMessageCommand extends Command {
 
         $this->entityManager->flush();
 
-        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::USER_MESSAGE_CONFIG);
+        $this->cacheService->delete(CacheNamespaceEnum::SETTINGS, Setting::USER_MESSAGE_CONFIG);
 
         return Command::SUCCESS;
     }

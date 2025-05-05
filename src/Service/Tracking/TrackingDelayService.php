@@ -11,7 +11,7 @@ use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
 use DateTime;
 use Doctrine\Common\Collections\Order;

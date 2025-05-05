@@ -13,7 +13,6 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
-
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
@@ -21,7 +20,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\NotificationService;
@@ -29,12 +28,9 @@ use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\TagTemplateService;
-use App\Service\UserService;
-
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;

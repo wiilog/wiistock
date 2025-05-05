@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Language;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -57,7 +59,7 @@ class LanguageService {
         if (!$entityManager) {
             $entityManager = $this->entityManager;
         }
-        return $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "default-language-slug", fn() => (
+        return $this->cacheService->get(CacheNamespaceEnum::LANGUAGES, "default-language-slug", fn() => (
             $this
                 ->getDefaultLanguage($entityManager)
                 ->getSlug()
@@ -69,8 +71,8 @@ class LanguageService {
         $user = $this->security->getUser();
         $userId = $user?->getId();
 
-        return $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "languagesSelector" . $userId, function () use ($user) {
-            $languages = $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "languagesNotHidden", function () {
+        return $this->cacheService->get(CacheNamespaceEnum::LANGUAGES, "languagesSelector" . $userId, function () use ($user) {
+            $languages = $this->cacheService->get(CacheNamespaceEnum::LANGUAGES, "languagesNotHidden", function () {
                 $languageRepository = $this->entityManager->getRepository(Language::class);
                 return $languageRepository->findBy(["hidden" => false]);
             });

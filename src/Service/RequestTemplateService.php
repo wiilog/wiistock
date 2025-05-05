@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
@@ -24,7 +23,7 @@ use App\Entity\RequestTemplate\RequestTemplateLineArticle;
 use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Service\UserService;
+use App\Service\Cache\CacheService;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

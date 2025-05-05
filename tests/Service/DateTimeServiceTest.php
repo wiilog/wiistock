@@ -2,20 +2,19 @@
 
 namespace App\Tests\Service;
 
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
 use DateInterval;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Flex\Cache;
 
 class DateTimeServiceTest extends KernelTestCase
 {
-    private const LOCAL_PATH_CACHE_DAY = 'work-period';
-    private const FILE_NAME_WORKED_DAY = 'workedDay';
-    private const FILE_NAME_FREE_DAY = 'workFreeDay';
+    private const WORKED_DAY_CACHE_KEY = 'workedDay';
+    private const FREE_DAY_CACHE_KEY = 'workFreeDay';
+
     private const ARRAY_WORKED_PERIOD = [
         "monday" => [
             ["08:00","18:00"],
@@ -210,8 +209,8 @@ class DateTimeServiceTest extends KernelTestCase
 
     private function createCacheWorkedPeriod(array $arrayWordedDay, array $arrayFreeDay): void
     {
-        $this->cacheService->set(self::LOCAL_PATH_CACHE_DAY, self::FILE_NAME_WORKED_DAY, $arrayWordedDay);
-        $this->cacheService->set(self::LOCAL_PATH_CACHE_DAY, self::FILE_NAME_FREE_DAY, $arrayFreeDay);
+        $this->cacheService->set(CacheNamespaceEnum::WORK_PERIOD, self::WORKED_DAY_CACHE_KEY, $arrayWordedDay);
+        $this->cacheService->set(CacheNamespaceEnum::WORK_PERIOD, self::FREE_DAY_CACHE_KEY, $arrayFreeDay);
     }
 
     private function arrayFreePeriod(): array
