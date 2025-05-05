@@ -479,17 +479,16 @@ class ArrivageController extends AbstractController
         Request                $request,
         ArrivageService        $arrivageDataService,
         EmergencyService       $emergencyService,
-        EntityManagerInterface $entityManager): Response
-    {
-        $numeroCommande = $request->request->get('numeroCommande');
-        $postNb = $request->request->get('postNb');
+        EntityManagerInterface $entityManager): Response {
+        $orderNumber = $request->request->get('numeroCommande');
+        $postNumber = $request->request->get('postNb');
 
-        $matchingEmergencies = !empty($numeroCommande)
+        $matchingEmergencies = !empty($orderNumber)
             ? $emergencyService->matchingEmergencies(
                 $entityManager,
                 $arrival,
-                $numeroCommande,
-                $postNb,
+                $orderNumber,
+                $postNumber,
                 true
             )
             : [];

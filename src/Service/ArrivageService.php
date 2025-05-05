@@ -287,7 +287,7 @@ class ArrivageService {
     }
 
     public function createArrivalAlertConfig(EntityManagerInterface $entityManager,
-                                             Arrivage               $arrivage,
+                                             Arrivage               $arrival,
                                              bool                   $askQuestion,
                                              array                  $emergencies = []): array {
         $isArrivalUrgent = count($emergencies);
@@ -310,7 +310,7 @@ class ArrivageService {
 
             $nbPosts = count($posts);
 
-            $arrivalOrderNumbersStr = Stream::from($arrivage->getNumeroCommandeList())
+            $arrivalOrderNumbersStr = Stream::from($arrival->getNumeroCommandeList())
                 ->join(',');
 
             if ($nbPosts == 0) {
@@ -359,7 +359,7 @@ class ArrivageService {
                 ?: $arrivalOrderNumbersStr
                 ?: null,
             'postNb' => $postNb ?? null,
-            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
+            'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
         ];
     }
 

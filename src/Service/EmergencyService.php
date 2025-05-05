@@ -311,13 +311,13 @@ class EmergencyService {
     }
 
     /**
-     * @return TrackingEmergency[]
+     * @return array<TrackingEmergency>
      */
     public function matchingEmergencies(EntityManagerInterface $entityManager,
                                         Arrivage               $arrival,
                                         ?string                $orderNumber,
                                         ?string                $postNumber,
-                                        bool                   $excludeTriggered = false) {
+                                        bool                   $excludeTriggered = false): array {
         $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
         if(!isset($this->__arrival_emergency_fields)) {

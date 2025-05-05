@@ -55,13 +55,13 @@ class TrackingEmergencyRepository extends EntityRepository {
     }
 
     /**
-     * @return TrackingEmergency[]
+     * @return array<TrackingEmergency>
      */
     public function findMatchingEmergencies(Arrivage $arrival,
-                                            array $fields,
-                                            ?string $orderNumber,
-                                            ?string $postNumber,
-                                            $excludeTriggered = false): array {
+                                            array    $fields,
+                                            ?string  $orderNumber,
+                                            ?string  $postNumber,
+                                                     $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('emergency')
             ->where(':date BETWEEN emergency.dateStart AND emergency.dateEnd')
             ->setParameter('date', $arrival->getDate());
