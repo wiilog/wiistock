@@ -390,7 +390,7 @@ class EmergencyService {
                      'actions' => [
                          [
                              "title" => "Modifier",
-                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "hasRight" => !($data["closedAt"] ?? false) && $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
                              "actionOnClick" => true,
                              "icon" => "fas fa-pencil-alt",
                              "attributes" => [
@@ -399,6 +399,16 @@ class EmergencyService {
                                  "data-toggle" => "modal",
                              ],
                          ],
+                         [
+                             "title" => "Cloturer",
+                             "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "icon" => "fa-regular fa-handshake",
+                             "class" => "close-emergency",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                             ],
+                         ],
+
                      ],
                  ]);
 
@@ -430,7 +440,13 @@ class EmergencyService {
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
+    }
 
+    public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void {
+        $now = new DateTime();
+        $emergency->setClosedAt($now);
+
+        $entityManager->flush();
     }
 
 }
