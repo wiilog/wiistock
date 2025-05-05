@@ -98,4 +98,16 @@ class EmergencyController extends AbstractController {
 
         return $this->json($data);
     }
+
+    #[Route("/close/{emergency}", name: "close", options: ['expose' => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
+    public function close(EntityManagerInterface $entityManager,
+                          Emergency              $emergency,
+                          EmergencyService       $emergencyService): JsonResponse {
+        $emergencyService->closeEmergency($entityManager, $emergency);
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
 }
