@@ -8,6 +8,7 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\Emergency\StockEmergencyRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -67,6 +68,8 @@ class StockEmergency extends Emergency implements AttachmentContainer {
     public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
         if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+
+            $this->setLastTriggeredAt(new DateTime());
         }
 
         return $this;

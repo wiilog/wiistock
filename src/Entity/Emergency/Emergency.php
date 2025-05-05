@@ -57,6 +57,9 @@ abstract class Emergency {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $lastTriggeredAt = null;
+
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $orderNumber = null;
 
@@ -140,12 +143,22 @@ abstract class Emergency {
         return $this;
     }
 
-    public function getClosedAt(): ?\DateTimeInterface {
+    public function getClosedAt(): ?DateTime {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?\DateTimeInterface $closedAt): self {
+    public function setClosedAt(?DateTime $closedAt): self {
         $this->closedAt = $closedAt;
+
+        return $this;
+    }
+
+    public function getLastTriggeredAt(): ?DateTime {
+        return $this->lastTriggeredAt;
+    }
+
+    public function setLastTriggeredAt(?DateTime $lastTriggeredAt): self {
+        $this->lastTriggeredAt = $lastTriggeredAt;
 
         return $this;
     }

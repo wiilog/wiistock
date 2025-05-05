@@ -4,6 +4,7 @@ namespace App\Entity\Emergency;
 
 use App\Entity\Arrivage;
 use App\Repository\Emergency\TrackingEmergencyRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -42,6 +43,8 @@ class TrackingEmergency extends Emergency {
         if (!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
             $arrival->addTrackingEmergency($this);
+
+            $this->setLastTriggeredAt(new DateTime());
         }
 
         return $this;

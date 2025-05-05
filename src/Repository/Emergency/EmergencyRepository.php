@@ -45,7 +45,7 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
             "lastEntityNumber"=> "GREATEST(FIRST($lastArrivalNumberSubquery), FIRST($lastReceptionNumberSubquery))",
             FixedFieldEnum::createdAt->name => "emergency.createdAt",
-            "lastTriggeredAt" => "emergency.createdAt",
+            "lastTriggeredAt" => "emergency.lastTriggeredAt",
             "closedAt"=> "emergency.closedAt",
             FixedFieldEnum::orderNumber->name => "emergency.orderNumber",
             FixedFieldEnum::postNumber->name => "tracking_emergency.postNumber",
