@@ -25,7 +25,7 @@ $(function () {
 
     // Initialize modals
     Form
-        .create($('#newKioskModal'), {clearOnOpen: true})
+        .create($('#newKioskModal'), {resetView: ['open', 'close']})
         .submitTo(POST,
             'kiosk_create',
             {tables: [kioskTable]})

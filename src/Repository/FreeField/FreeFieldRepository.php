@@ -60,6 +60,25 @@ class FreeFieldRepository extends EntityRepository {
             ->getResult();
     }
 
+    /**
+     * @return array<FreeField>
+     * @param array<string> $typeCategories
+     * @param array<string> $freeFieldCategories
+     */
+    public function findByCategoriesTypeAndCategoriesCL(array $typeCategories, array $freeFieldCategories): array {
+        return $this->createQueryBuilder("free_field")
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->join("free_field_management_rules.type", "join_type")
+            ->join("join_type.category", "join_type_category")
+            ->join("free_field.categorieCL", "join_free_field_category")
+            ->andWhere("join_type_category.label IN (:type)")
+            ->andWhere("join_free_field_category.label IN (:category)")
+            ->setParameter("type", $typeCategories)
+            ->setParameter("category", $freeFieldCategories)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByTypeAndCategorieCLLabel(Type|array $types, string $freeFieldCategoryLabel): mixed {
         $types = is_array($types) ? $types : [$types];
         $typeIds = Stream::from($types)->map(fn(Type $type) => $type->getId())->toArray();

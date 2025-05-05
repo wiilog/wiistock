@@ -61,10 +61,12 @@ class FreeFieldService {
         return $config;
     }
 
-    public function getListFreeFieldConfig(EntityManagerInterface $entityManager, string $freeFieldCategoryLabel, string $typeCategoryLabel): array {
+    public function getListFreeFieldConfig(EntityManagerInterface $entityManager, string|array $freeFieldCategoryLabel, string|array $typeCategoryLabel): array {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldCategoryLabel = is_array($freeFieldCategoryLabel) ? $freeFieldCategoryLabel : [$freeFieldCategoryLabel];
+        $typeCategoryLabel = is_array($typeCategoryLabel) ? $typeCategoryLabel : [$typeCategoryLabel];
 
-        return Stream::from($freeFieldsRepository->findByCategoryTypeAndCategoryCL($typeCategoryLabel, $freeFieldCategoryLabel))
+        return Stream::from($freeFieldsRepository->findByCategoriesTypeAndCategoriesCL($typeCategoryLabel, $freeFieldCategoryLabel))
             ->keymap(fn(FreeField $freeField) => [$freeField->getId(), $freeField])
             ->toArray();
     }
@@ -73,8 +75,7 @@ class FreeFieldService {
     public function manageFreeFields(mixed                  $entity,
                                      array                  $data,
                                      EntityManagerInterface $entityManager,
-                                     Utilisateur            $user = null): void
-    {
+                                     Utilisateur            $user = null): void {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
         $defaultLanguage = $this->languageService->getDefaultLanguage();

@@ -19,9 +19,17 @@
                             hasRight: hasRightToCreate,
                             title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
                             icon: "wii-icon wii-icon-plus",
-                                attributes: {
+                            attributes: {
                                 "data-toggle": "modal",
                                 "data-target": "#modalNewEmergency",
+                            },
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
                             },
                         },
                     ],
@@ -30,11 +38,28 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableEmergencies" class="table w-100">
+                <table id="tableEmergency"
+                       class="table w-100"
+                       data-initial-visible="{{ initial_visible_columns | json_encode }}">
                 </table>
             </div>
         </div>
     </div>
+
+    {% include "utils/fields-modes.html.twig" with {
+        fields: initial_visible_columns,
+        table: 'tableEmergency',
+        page: constant('App\\Controller\\FieldModesController::PAGE_EMERGENCY_LIST'),
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
+    } %}
 
     {% include 'emergency/modalNewEmergency.html.twig' with modalNewEmergencyConfig %}
     {% include 'emergency/modalEditEmergency.html.twig' %}

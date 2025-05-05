@@ -21,6 +21,7 @@ let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
 let receptionId = undefined;
+const MAX_NB_ARTICLE_IN_PACKING_MODAL = 250;
 
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
@@ -904,6 +905,14 @@ function loadPackingArticlesTemplate($button) {
 
     if (data) {
         const params = JSON.stringify(data.asObject());
+        const quantity = Number(data.get('quantityToReceive'));
+        const nbArticleInPackingModal = countArticlesInPackingModal($modal);
+
+        if (quantity + nbArticleInPackingModal > MAX_NB_ARTICLE_IN_PACKING_MODAL) {
+            Flash.add(ERROR, "Vous ne pouvez pas réceptionner plus de " + MAX_NB_ARTICLE_IN_PACKING_MODAL + " articles en une fois. Veuillez faire une seconde réception de ces articles.");
+            return;
+        }
+
         wrapLoadingOnActionButton($button, () => (
             AJAX.route(GET, `get_packing_articles_template`, {params})
                 .json()
@@ -921,6 +930,12 @@ function loadPackingArticlesTemplate($button) {
 }
 
 function submitPackingForm({reception, data, $modalNewLigneReception}) {
+    const nbArticleInPackingModal = countArticlesInPackingModal($modalNewLigneReception);
+    if (nbArticleInPackingModal > MAX_NB_ARTICLE_IN_PACKING_MODAL) {
+        Flash.add(ERROR, "Vous ne pouvez pas réceptionner plus de " + MAX_NB_ARTICLE_IN_PACKING_MODAL + " articles en une fois. Veuillez faire une seconde réception de ces articles.");
+        return;
+    }
+
     return new Promise((resolve) => {
         AJAX
             .route(POST, `reception_new_with_packing`, { reception })
@@ -973,4 +988,18 @@ function printBarcodes($container, params) {
                 error: "Il n'y a aucune étiquette à imprimer."
             })
     ));
+}
+
+function countArticlesInPackingModal($modal) {
+    return $modal
+        .find(`.article-line`)
+        .get()
+        .reduce(
+            function(accumulator, articleLine) {
+                const $articleLine = $(articleLine);
+                const quantityToReceive = Number($articleLine.find(`[name=quantityToReceive]`).val());
+                return accumulator + quantityToReceive
+             },
+            0
+        );
 }

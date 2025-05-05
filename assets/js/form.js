@@ -18,11 +18,18 @@ export default class Form {
         this.id = id;
     }
 
-    static create(selector, {clearOnOpen, submitButtonSelector} = {}) {
+    /**
+     * @param {string|jQuery} selector
+     * @param {Array<"close"|"open">|undefined} resetView
+     * @param {string|undefined} submitButtonSelector
+     * @returns {Form}
+     */
+    static create(selector, {resetView, submitButtonSelector} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
 
         if (!form || !(form instanceof Form)) {
+
             form = new Form(++Form.FormCounter);
 
             form
@@ -38,7 +45,10 @@ export default class Form {
                 .attr('data-form-id', form.id);
 
             WysiwygManager.initializeWYSIWYG(form.element);
-            submitButtonSelector ??= '[type=submit]';
+
+            submitButtonSelector = submitButtonSelector || '[type=submit]';
+            resetView = resetView || [];
+
             form.element
                 .off('click.submit-form')
                 .off('shown.bs.modal')
@@ -57,8 +67,8 @@ export default class Form {
                     event.preventDefault();
                 })
                 .on('shown.bs.modal', function (event) {
-                    if (clearOnOpen) {
-                        form.clear();
+                    if (resetView.includes('open')) {
+                        form.resetView();
                     }
 
                     form.openListeners.forEach((openListener) => {
@@ -66,6 +76,9 @@ export default class Form {
                     });
                 })
                 .on('hidden.bs.modal', function (event) {
+                    if (resetView.includes('close')) {
+                        form.resetView();
+                    }
                     form.closeListeners.forEach((closeListener) => {
                         closeListener(event);
                     });
@@ -109,7 +122,7 @@ export default class Form {
      *    success?: function,
      *    error?: function
      *    routeParams?: {[string]: string},
-     *    tables?: Datatable|Datatable[],
+     *    tables?: JQueryDataTableApi|JQueryDataTableApi[],
      *    clearFields?: boolean,
      * }} options
      * @returns {Form}
@@ -209,6 +222,11 @@ export default class Form {
                 this.element.modal(`hide`);
             }
         }
+    }
+
+    resetView() {
+        this.clear();
+        this.element.find('.hide-on-reset').addClass('d-none');
     }
 
     static getFieldNames(form, config = {}) {

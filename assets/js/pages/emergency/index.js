@@ -2,6 +2,9 @@ import {showAndRequireInputByType} from "@app/utils";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
+import FixedFieldEnum from "@generated/fixed-field-enum";
+import {initDataTable} from "@app/datatable";
+import Routing from "@app/fos-routing";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
@@ -12,10 +15,15 @@ const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
 const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
-    initializeModals();
+    const table = initializeTable();
+    initializeModals(table);
 });
 
-function onEmergencyTypeChange($modal) {
+/**
+ * @param {jQuery} $modal
+ * @param {"create"|"edit"} requiredAction
+ */
+function onEmergencyTypeChange($modal, requiredAction) {
     const $emergencyTypeSelect = $modal.find('[name="type"]')
     const $selectedOption = $emergencyTypeSelect.find('option:selected');
     const emergencyCategoryType = $selectedOption.data('category-type');
@@ -23,10 +31,16 @@ function onEmergencyTypeChange($modal) {
     const $stockEmergencyContainer = $modal.find('.stock-emergency-container');
     const $trackingEmergencyContainer = $modal.find('.tracking-emergency-container');
     const $dateContainer = $modal.find('.date-container');
+    const $freeFieldsGlobalContainer = $modal.find('.free-fields-global-container');
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
 
     $stockEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== STOCK_EMERGENCY);
     $trackingEmergencyContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
     $dateContainer.toggleClass('d-none', emergencyCategoryType !== TRACKING_EMERGENCY);
+    $freeFieldsGlobalContainer.toggleClass('d-none', emergencyCategoryType === undefined);
+
+    toggleRequiredChampsLibres($emergencyTypeSelect, requiredAction, $freeFieldsContainer);
+    typeChoice($emergencyTypeSelect, $freeFieldsContainer);
 
     if(emergencyCategoryType === STOCK_EMERGENCY) {
         onEmergencyTriggerChange($modal);
@@ -60,48 +74,64 @@ function onEmergencyTriggerChange($modal) {
 }
 
 /**
- * TODO WIIS-12629 mettre l'id de l'urgence à modifier
- * @param {jQuery} $tableEmergencies
+ * @param {JQueryDataTableApi|JQueryDataTableApi[]} $tableEmergencies
  */
 function initializeModals($tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
     Form
-        .create($modalNewEmergency, {clearOnOpen: true})
+        .create($modalNewEmergency, {resetView: ['open', 'close']})
         .on('change', '[name="type"]', () => {
-            onEmergencyTypeChange($modalNewEmergency);
+            onEmergencyTypeChange($modalNewEmergency, 'create');
         })
         .on('change', '[name="emergencyTrigger"], [name="endEmergencyCriteria"]', () => {
             onEmergencyTriggerChange($modalNewEmergency);
         })
         .onOpen(() => {
-            onEmergencyTypeChange($modalNewEmergency);
+            onEmergencyTypeChange($modalNewEmergency, 'create');
         })
         .submitTo(POST, 'emergency_new', {
-            tables: [$tableEmergencies],
+            tables: $tableEmergencies,
             clearFields: true,
         });
 
     let $modalEditEmergency = $('#modalEditEmergency');
     Form
-        .create($modalEditEmergency, {clearOnOpen: true})
+        .create($modalEditEmergency, {resetView: ['open', 'close']})
         .onOpen((event) => {
-            Modal.load('emergency_edit_api', {emergency: ""}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {//TODO WIIS-12629 mettre l'id de l'urgence à modifier
+            const emergencyId = $(event.relatedTarget).data('id');
+            Modal.load('emergency_edit_api', {emergency: emergencyId}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
                 onOpen: () => {
-                    $modalEditEmergency
-                        .find('.modal-body')
-                        .off('change.emergencyType')
-                        .on('change.emergencyType', '[name="type"]', () => {
-                            onEmergencyTypeChange($modalEditEmergency);
-                        });
-
-                    onEmergencyTypeChange($modalEditEmergency);
+                    onEmergencyTypeChange($modalEditEmergency, 'edit');
                     onEmergencyTriggerChange($modalEditEmergency);
                 }
             });
         })
         .submitTo(POST, 'emergency_edit', {
             clearFields: true,
-            routeParams: {emergency: ""}, //TODO WIIS-12629 mettre l'id de l'urgence à modifier
-            tables: $tableEmergencies, //TODO WIIS-12629 mettre le tableau a refresh après édition
+            tables: $tableEmergencies,
         });
+}
+
+function initializeTable() {
+    return initDataTable('tableEmergency', {
+        pageLength: 10,
+        processing: true,
+        serverSide: true,
+        paging: true,
+        order: [
+            [FixedFieldEnum.dateStart.name, "desc"]
+        ],
+        ajax: {
+            url: Routing.generate('emergency_api_list', true),
+            type: POST,
+        },
+        drawConfig: {
+            needsResize: true,
+            hidePaging: false,
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        page: 'emergency',
+    });
 }

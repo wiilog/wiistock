@@ -4,16 +4,19 @@ namespace App\Service;
 
 
 use App\Entity\Arrivage;
+use App\Controller\FieldModesController;
+use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Menu;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -27,16 +30,23 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
+use App\Entity\FreeField\FreeField;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Twig\Environment as Twig_Environment;
 
-class EmergencyService
-{
+class EmergencyService {
+
     private array $__arrival_emergency_fields;
 
     public function __construct(
         private AttachmentService $attachmentService,
         private FixedFieldService $fieldsParamService,
         private FormatService     $formatService,
-        private SettingsService   $settingService
+        private SettingsService   $settingService,
+        private FieldModesService $fieldModesService,
+        private UserService       $userService,
+        private Twig_Environment  $templating,
+        private FreeFieldService  $freeFieldService,
     ) {}
 
     /**
@@ -114,8 +124,8 @@ class EmergencyService
                             Stream::explode(" ", $trackingFixedFieldParams[$key] ?? '')->filter(),
                             Stream::explode(" ", $stockFixedFieldParams[$key] ?? '')->filter(),
                         )
-                        ->unique()
-                        ->join(' ')
+                            ->unique()
+                            ->join(' ')
                     ])
                     ->toArray();
 
@@ -130,17 +140,13 @@ class EmergencyService
             'onlyActive' => true,
         ]);
 
-        $types = Stream::from($emergencyTypes)
-            ->map(static fn(Type $type) => [
-                'label' => $type->getLabel(),
-                'value' => $type->getId(),
-                'selected' => !$emergency && $type->isDefault() || $type->getId() === $emergency?->getType()->getId(),
-                'category-type' => $type->getCategory()->getLabel(),
-            ])
-            ->toArray();
+        $defaultType = !$emergency
+            ? Stream::from($emergencyTypes)->find(static fn(Type $type) => $type->isDefault())
+            : null;
 
         return [
-            'types' => $types,
+            'emergencyTypes' => $emergencyTypes,
+            'defaultType' => $defaultType,
             'fieldParams' => $fieldParams,
             'emergency' => $emergency ?? null,
         ];
@@ -194,7 +200,7 @@ class EmergencyService
         }
 
         if ($data->has(FixedFieldEnum::orderNumber->name)) {
-            $emergency->setCommand($data->get(FixedFieldEnum::orderNumber->name));
+            $emergency->setOrderNumber($data->get(FixedFieldEnum::orderNumber->name));
         }
 
         if ($data->has(FixedFieldEnum::carrierTrackingNumber->name)) {
@@ -206,6 +212,8 @@ class EmergencyService
         } else if($emergency instanceof StockEmergency) {
             $this->updateStockEmergency($entityManager, $emergency, $data);
         }
+
+        $this->freeFieldService->manageFreeFields($emergency, $data->all(), $entityManager);
 
         $this->checkForDuplicates($entityManager, $emergency);
 
@@ -275,10 +283,11 @@ class EmergencyService
             $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
             $duplicateEmergency = $trackingEmergencyRepository->countMatching(
+                $emergency,
                 $emergency->getDateStart(),
                 $emergency->getDateEnd(),
                 $emergency->getSupplier(),
-                $emergency->getCommand(),
+                $emergency->getOrderNumber(),
                 $emergency->getPostNumber(),
             );
 
@@ -295,7 +304,7 @@ class EmergencyService
                 'referenceArticle' => $emergency->getReferenceArticle(),
             ]);
 
-            if($duplicateEmergency) {
+            if($duplicateEmergency && $duplicateEmergency->getId() !== $emergency->getId()) {
                 throw new FormException("Enregistrement impossible : une urgence similaire existe déjà avec la même référence et le même critère de fin d'urgence quantité");
             }
         }
@@ -305,10 +314,10 @@ class EmergencyService
      * @return TrackingEmergency[]
      */
     public function matchingEmergencies(EntityManagerInterface $entityManager,
-                                        Arrivage $arrival,
-                                        ?string $orderNumber,
-                                        ?string $postNumber,
-                                        bool $excludeTriggered = false) {
+                                        Arrivage               $arrival,
+                                        ?string                $orderNumber,
+                                        ?string                $postNumber,
+                                        bool                   $excludeTriggered = false) {
         $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
         if(!isset($this->__arrival_emergency_fields)) {
@@ -323,5 +332,133 @@ class EmergencyService
             $postNumber,
             $excludeTriggered,
         );
+    }
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager,
+                                            ?Utilisateur           $currentUser): array {
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $page = FieldModesController::PAGE_EMERGENCY_LIST;
+        $freeFields = $freeFieldRepository->findByCategoriesTypeAndCategoriesCL(
+            [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY],
+            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]
+        );
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
+
+        $columns = [
+            [
+                'title' => null,
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ],
+            FixedFieldEnum::dateStart,
+            FixedFieldEnum::dateEnd,
+            ['title' => "Date de cloture", 'name' => 'closedAt'],
+            ['title' => "Date dernier déclenchement", 'name' => 'lastTriggeredAt'],
+            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber', 'orderable' => false,],
+            FixedFieldEnum::createdAt,
+            FixedFieldEnum::orderNumber,
+            FixedFieldEnum::postNumber,
+            FixedFieldEnum::buyer,
+            FixedFieldEnum::supplier,
+            FixedFieldEnum::carrier,
+            FixedFieldEnum::carrierTrackingNumber,
+            FixedFieldEnum::type,
+            FixedFieldEnum::internalArticleCode,
+            FixedFieldEnum::supplierArticleCode,
+        ];
+
+        $columns = Stream::from($columns)
+            ->map(function ( array|FixedFieldEnum $field): array {
+                if ($field instanceof FixedFieldEnum) {
+                    $field = [
+                        "title" => $field->value,
+                        "name" => $field->name,
+                        "searchable" => in_array($field, [
+                            FixedFieldEnum::orderNumber,
+                            FixedFieldEnum::postNumber,
+                            FixedFieldEnum::buyer,
+                            FixedFieldEnum::supplier,
+                            FixedFieldEnum::carrier,
+                            FixedFieldEnum::carrierTrackingNumber,
+                            FixedFieldEnum::type,
+                            FixedFieldEnum::type,
+                            FixedFieldEnum::internalArticleCode,
+                            FixedFieldEnum::supplierArticleCode,
+                        ], true),
+                    ];
+                }
+                return $field;
+            })
+            ->toArray();
+
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes);
+    }
+
+    public function getDataForDatatable(EntityManagerInterface $entityManager, ParameterBag $request): array {
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
+
+        $queryResult = $emergencyRepository->findByParamsAndFilters(
+            $request,
+            [],
+            $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
+        );
+
+         $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+             $entityManager,
+             [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
+             [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
+         );
+
+         $datum = Stream::from($queryResult["data"])
+             ->map(function (array $data) use ($freeFieldsConfig): array {
+                 $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                     'actions' => [
+                         [
+                             "title" => "Modifier",
+                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "actionOnClick" => true,
+                             "icon" => "fas fa-pencil-alt",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                                 "data-target" => "#modalEditEmergency",
+                                 "data-toggle" => "modal",
+                             ],
+                         ],
+                     ],
+                 ]);
+
+                 $dateFields = [
+                     FixedFieldEnum::dateStart->name,
+                     FixedFieldEnum::dateEnd->name,
+                     "closedAt",
+                     "lastTriggeredAt",
+                     FixedFieldEnum::createdAt->name,
+                 ];
+
+                 foreach ($dateFields as $field) {
+                     $data[$field] = !empty($data[$field])
+                         ? $this->formatService->date($data[$field])
+                         : "";
+                 }
+
+                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
+                 }
+                 return $data;
+             })
+             ->toArray();
+
+        return [
+            'data' => $datum,
+            'recordsTotal' => $queryResult['total'],
+            'recordsFiltered' => $queryResult['count'],
+        ];
+
     }
 }

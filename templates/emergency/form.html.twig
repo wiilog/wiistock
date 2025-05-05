@@ -7,11 +7,17 @@
 {% set displayAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
 {% set requiredAction = isEdit ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
 
+{% if isEdit %}
+    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::id') %}
+    {{ form.hidden(field.name, emergency.id ) }}
+{% endif %}
+
 <div class="row">
     <div class="col-md-4 col-12 mb-2">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::type') %}
         {{ form.select(fieldCode.name, trans('Demande', 'Général', fieldCode.value, false), true, {
             type: '',
+            inputClass: not isEdit and defaultType ? 'needs-default' : null,
             disabled: isEdit,
             items: isEdit
                 ? [{
@@ -20,12 +26,21 @@
                     selected: true,
                     'category-type': emergency.type.category.label,
                 }]
-                : types,
+                : emergencyTypes|map((type) => ({
+                    label: type|format_helper('type'),
+                    value: type.id,
+                    'category-type': type.category.label,
+                })),
+            attributes: not isEdit and defaultType
+                ? {
+                    'data-init': defaultType.id
+                }
+                : {}
         }) }}
     </div>
 </div>
 
-<div class="stock-emergency-container d-none">
+<div class="stock-emergency-container hide-on-reset d-none">
     {% set fieldCodeReference = constant('App\\Entity\\Fields\\FixedFieldEnum::reference') %}
     {% set fieldCodeSupplier = constant('App\\Entity\\Fields\\FixedFieldEnum::supplier') %}
     <div class="row">
@@ -46,7 +61,7 @@
             {{ form.select(fieldCodeReference.name, fieldCodeReference.value, true, {
                 type: 'reference',
                 disabled: isEdit,
-                items: isEdit and emergency.referenceArticle ? [{
+                items: isEdit and not isTrackingEmergency and emergency.referenceArticle ? [{
                     label: emergency.referenceArticle.reference,
                     value: emergency.referenceArticle.id,
                     selected: true
@@ -64,7 +79,7 @@
             {{ form.select(fieldCodeSupplier.name, trans('Qualité & Urgences', 'Urgences', fieldCodeSupplier.value, false), true, {
                 type: 'provider',
                 disabled: isEdit,
-                items: isEdit and emergency.supplier ? [{
+                items: isEdit and not isTrackingEmergency and emergency.supplier ? [{
                     label: emergency.supplier.nom,
                     value: emergency.supplier.id,
                     selected: true
@@ -86,7 +101,7 @@
 
 {# Customizable fields via field params pages #}
 
-<div class="date-container d-none">
+<div class="date-container hide-on-reset d-none">
     <div class="row">
         <div class="col-6 mb-2">
             {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dateStart') %}
@@ -110,12 +125,12 @@
         </div>
     </div>
 </div>
-<div class="stock-emergency-container d-none">
+<div class="stock-emergency-container hide-on-reset d-none">
     <div class="row">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.command ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.orderNumber ?? null) }}
             </div>
         {% endif %}
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
@@ -140,12 +155,12 @@
         {% endif %}
     </div>
 </div>
-<div class="tracking-emergency-container d-none">
+<div class="tracking-emergency-container hide-on-reset d-none">
     <div class="row">
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::orderNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
-                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.command ?? null) }}
+                {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.orderNumber ?? null) }}
             </div>
         {% endif %}
 
@@ -161,7 +176,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'user',
-                    items: isEdit and emergency.buyer ? [{
+                    items: isEdit and isTrackingEmergency and emergency.buyer ? [{
                         label: emergency.buyer.username,
                         value: emergency.buyer.id,
                         selected: true
@@ -175,7 +190,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'provider',
-                    items: isEdit and emergency.supplier ? [{
+                    items: isEdit and isTrackingEmergency and emergency.supplier ? [{
                         label: emergency.supplier.nom,
                         value: emergency.supplier.id,
                         selected: true
@@ -189,7 +204,7 @@
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
                 {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
                     type: 'carrier',
-                    items: isEdit and emergency.carrier ? [{
+                    items: isEdit and isTrackingEmergency and emergency.carrier ? [{
                         label: emergency.carrier.label,
                         value: emergency.carrier.id,
                         selected: true
@@ -218,5 +233,27 @@
                 {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.supplierArticleCode ?? null) }}
             </div>
         {% endif %}
+    </div>
+</div>
+<div class="free-fields-global-container hide-on-reset d-none">
+    <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
+    <div class="collapsible expanded free-fields-container mb-2">
+        {% set typesForFreeFields = isEdit
+            ? [emergency.type]
+            : emergencyTypes
+        %}
+
+        {% for type in typesForFreeFields %}
+            <div class="{{ typesForFreeFields|length > 1 ? ' d-none' }}"
+                 data-type="{{ type.id }}">
+                {% include 'free_field/freeFieldsEdit.html.twig' with {
+                    freeFieldManagementRules: type.freeFieldManagementRules,
+                    freeFieldValues: isEdit ? emergency.freeFields : [],
+                    colType: 'col-md-4 col-12',
+                    requiredType: requiredAction,
+                    actionType: isEdit ? 'edit' : 'new',
+                } %}
+            </div>
+        {% endfor %}
     </div>
 </div>

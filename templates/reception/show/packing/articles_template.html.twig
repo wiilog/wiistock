@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set referenceArticle = receptionReferenceArticle.referenceArticle %}
 <div class="row article-line mb-3"
      data-drop-location-is-reception-location="{{ dropLocationIsReceptionLocation ? 1 : 0 }}"
@@ -11,6 +13,7 @@
         <div class="d-flex flex-column justify-content-center align-items-center quantity-to-receive">
             <label class="text-white bold">Article(s)</label>
             <span class="text-white">{{ quantityToReceive }}</span>
+            {{ form.hidden('quantityToReceive', quantityToReceive) }}
         </div>
     </div>
     <div class="col-3">
@@ -51,7 +54,7 @@
                                 <div class="d-flex flex-column">
                                     <label class="wii-field-name">Quantité</label>
                                     <span class="wii-body-text">{{ quantity }}</span>
-                                    <input hidden class="data" name="articleQuantity" value="{{ quantity }}"/>
+                                    {{ form.hidden('articleQuantity', quantity) }}
                                 </div>
                             </div>
                             <div class="col-3">

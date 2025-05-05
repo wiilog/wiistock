@@ -27,6 +27,7 @@ class SpecificService
     const CLIENT_QUENELLE = 'quenelle';
     const CLIENT_CROUSTADE = 'croustade';
     const CLIENT_DIOT = 'diot';
+    const CLIENT_FOURME = 'fourme';
 
     public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
         self::CLIENT_QUICHE => 1,
@@ -34,6 +35,7 @@ class SpecificService
         self::CLIENT_POTEE => 1,
         self::CLIENT_BOURGUIGNON => 1,
         self::CLIENT_CROUSTADE => 1,
+        self::CLIENT_FOURME => 1,
     ];
 
     public const DEFAULT_DASHBOARD_REFRESH_RATE = 5;

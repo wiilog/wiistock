@@ -87,15 +87,4 @@ enum FixedFieldEnum: string
     case reference = "Référence";
     case dateStart = "Date de début";
     case dateEnd = "Date de fin";
-
-    public static function fromCase(string $case): string|null {
-        try {
-            return (new ReflectionEnum(self::class))
-                ->getCase($case)
-                ->getValue()
-                ->value;
-        } catch (ReflectionException) {
-            return null;
-        }
-    }
 }

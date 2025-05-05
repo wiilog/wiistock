@@ -27,7 +27,7 @@ $(function () {
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    if (!$(`#filterArticle`).exists()) {
+    if (!$(`[name="filterArticle"]`).exists()) {
         const filters = JSON.parse($(`[name="trackingMovementFilters"]`).val())
         displayFiltersSup(filters, true);
     }
@@ -115,7 +115,7 @@ function initTrackingMovementTable(columns) {
             url: Routing.generate('tracking_movement_api', true),
             type: "POST",
             data: {
-                article: $(`#filterArticle`).val(),
+                article: $(`[name="filterArticle"]`).val(),
             }
         },
         rowConfig: {
@@ -131,7 +131,7 @@ function initTrackingMovementTable(columns) {
 function initPageModals(tableMvt) {
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
     Form
-        .create($modalEditMvtTraca, {clearOnOpen: false})
+        .create($modalEditMvtTraca)
         .onOpen(function (event) {
             const trackingMovement = $(event.relatedTarget).data('id');
             clearModal($modalEditMvtTraca);
@@ -322,6 +322,7 @@ function switchMvtCreationType($input) {
  */
 function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
+    window.location.href =  Routing.generate('mvt_traca_index');
 }
 
 function displayConfirmationModal($trackingMovementModal, confirmMessage) {

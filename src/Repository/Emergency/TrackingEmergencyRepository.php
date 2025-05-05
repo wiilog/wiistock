@@ -3,6 +3,7 @@
 namespace App\Repository\Emergency;
 
 
+use App\Entity\Emergency\Emergency;
 use App\Entity\Arrivage;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fournisseur;
@@ -15,7 +16,8 @@ use WiiCommon\Helper\Stream;
  */
 class TrackingEmergencyRepository extends EntityRepository {
 
-    public function countMatching(DateTime     $dateStart,
+    public function countMatching(Emergency    $emergency,
+                                  DateTime     $dateStart,
                                   DateTime     $dateEnd,
                                   ?Fournisseur $supplier,
                                   ?string      $orderNumber,
@@ -34,8 +36,10 @@ class TrackingEmergencyRepository extends EntityRepository {
             ))
             ->andWhere('emergency.supplier = :supplier')
             ->andWhere('emergency.orderNumber = :orderNumber')
+            ->andWhere('emergency.id != :emergencyId')
             ->setParameter('dateStart', $dateStart)
             ->setParameter('dateEnd', $dateEnd)
+            ->setParameter('emergencyId', $emergency->getId())
             ->setParameter('supplier', $supplier)
             ->setParameter('orderNumber', $orderNumber);
 
