@@ -89,7 +89,7 @@ class TrackingEmergencyRepository extends EntityRepository {
         }
 
         if ($excludeTriggered) {
-            $queryBuilder->andWhere('emergency.arrivals IS EMPTY');
+            $queryBuilder->andWhere('emergency.closedAt IS NULL');
         }
 
         return $queryBuilder
