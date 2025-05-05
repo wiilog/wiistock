@@ -248,25 +248,25 @@ class ArrivageService {
     }
 
     public function setArrivalUrgent(EntityManagerInterface $entityManager,
-                                     Arrivage               $arrivage,
+                                     Arrivage               $arrival,
                                      bool                   $urgent,
                                      array                  $emergencies = []): void {
         if ($urgent) {
-            $arrivage->setIsUrgent(true);
-            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrivage, $arrivage->getDropLocation());
+            $arrival->setIsUrgent(true);
+            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrival, $arrival->getDropLocation());
 
             if ($dropLocation) {
-                $arrivage->setDropLocation($dropLocation);
+                $arrival->setDropLocation($dropLocation);
             }
         }
 
         if ($urgent && !empty($emergencies)) {
             /** @var TrackingEmergency $emergency */
             foreach ($emergencies as $emergency) {
-                $emergency->addArrival($arrivage);
+                $emergency->addArrival($arrival);
             }
 
-            $this->sendArrivalEmails($entityManager, $arrivage, $emergencies);
+            $this->sendArrivalEmails($entityManager, $arrival, $emergencies);
         }
     }
 
@@ -295,8 +295,8 @@ class ArrivageService {
         $arrivalOrderNumbersStr = null;
 
         if ($askQuestion && $isArrivalUrgent) {
-            $emergencyOrderNumber = $emergencies[0]->getCommand();
-            $postNb = $emergencies[0]->getPostNb();
+            $emergencyOrderNumber = $emergencies[0]->getOrderNumber();
+            $postNb = $emergencies[0]->getPostNumber();
             $internalArticleCode = $emergencies[0]->getInternalArticleCode()
                 ? $this->translation->translate('Qualité & Urgences', 'Urgences', 'Code article interne', false) . ' : ' . $emergencies[0]->getInternalArticleCode() . '</br>'
                 : '';

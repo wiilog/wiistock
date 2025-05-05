@@ -407,52 +407,55 @@ class EmergencyService {
             $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
         );
 
-         $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
-             $entityManager,
-             [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
-             [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
-         );
+        $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+            $entityManager,
+            [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
+            [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
+        );
 
-         $datum = Stream::from($queryResult["data"])
-             ->map(function (array $data) use ($freeFieldsConfig): array {
-                 $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
-                     'actions' => [
-                         [
-                             "title" => "Modifier",
-                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
-                             "actionOnClick" => true,
-                             "icon" => "fas fa-pencil-alt",
-                             "attributes" => [
-                                 "data-id" => $data["id"],
-                                 "data-target" => "#modalEditEmergency",
-                                 "data-toggle" => "modal",
-                             ],
-                         ],
-                     ],
-                 ]);
+        $datum = Stream::from($queryResult["data"])
+            ->map(function (array $data) use ($freeFieldsConfig): array {
+                $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                    'actions' => [
+                        [
+                            "title" => "Modifier",
+                            "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                            "actionOnClick" => true,
+                            "icon" => "fas fa-pencil-alt",
+                            "attributes" => [
+                                "data-id" => $data["id"],
+                                "data-target" => "#modalEditEmergency",
+                                "data-toggle" => "modal",
+                            ],
+                        ],
+                    ],
+                ]);
 
-                 $dateFields = [
-                     FixedFieldEnum::dateStart->name,
-                     FixedFieldEnum::dateEnd->name,
-                     "closedAt",
-                     "lastTriggeredAt",
-                     FixedFieldEnum::createdAt->name,
-                 ];
+                $dateFields = [
+                    FixedFieldEnum::dateStart->name,
+                    FixedFieldEnum::dateEnd->name,
+                    "closedAt",
+                    "lastTriggeredAt",
+                    FixedFieldEnum::createdAt->name,
+                ];
 
-                 foreach ($dateFields as $field) {
-                     $data[$field] = !empty($data[$field])
-                         ? $this->formatService->date($data[$field])
-                         : "";
-                 }
+                foreach ($dateFields as $field) {
+                    $data[$field] = !empty($data[$field])
+                        ? $this->formatService->date($data[$field])
+                        : "";
+                }
 
-                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
-                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
-                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
-                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
-                 }
-                 return $data;
-             })
-             ->toArray();
+                foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                    $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                    $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                    $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
+                }
+
+                $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
+
+                return $data;
+            })
+            ->toArray();
 
         return [
             'data' => $datum,

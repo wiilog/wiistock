@@ -24,8 +24,7 @@ class EmergencyRepository extends EntityRepository {
         $lastArrivalNumberSubquery = $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
             ->from(Arrivage::class, 'arrival')
-            ->andwhere('emergency_arrival = emergency.id')
-            ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival')
+            ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival', Join::WITH, 'emergency_arrival = emergency')
             ->orderBy('arrival.date', Order::Descending->value)
             ->getDQL();
 
@@ -33,7 +32,7 @@ class EmergencyRepository extends EntityRepository {
         $lastReceptionNumberSubquery = $entityManager->createQueryBuilder()
             ->select('reception.number')
             ->from(Reception::class, 'reception')
-            ->andWhere('emergency_reception = emergency.id')
+            ->andWhere('emergency_reception.id = emergency.id')
             ->innerJoin("reception.lines", "reception_line")
             ->innerJoin("reception_line.receptionReferenceArticles", "reception_reference_article")
             ->innerJoin("reception_reference_article.stockEmergencies", "emergency_reception")
@@ -43,7 +42,10 @@ class EmergencyRepository extends EntityRepository {
         $columns = [
             FixedFieldEnum::dateStart->name => "emergency.dateStart",
             FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
-            "lastEntityNumber"=> "GREATEST(FIRST($lastArrivalNumberSubquery), FIRST($lastReceptionNumberSubquery))",
+            "lastEntityNumber"=> [
+                "lastArrivalNumber"=> "FIRST($lastArrivalNumberSubquery)",
+                "lastReceptionNumber"=> "FIRST($lastReceptionNumberSubquery)",
+            ],
             FixedFieldEnum::createdAt->name => "emergency.createdAt",
             "lastTriggeredAt" => "emergency.createdAt",
             "closedAt"=> "emergency.closedAt",
@@ -75,22 +77,27 @@ class EmergencyRepository extends EntityRepository {
         $exprBuilder = $queryBuilder->expr();
 
         foreach ($visibleColumnsConfig as $config) {
-            $field = $config['data'] ?? null;
-            $column = $columns[$field] ?? null;
+            $columnName = $config['data'] ?? null;
+            $columnsSelected = $columns[$columnName] ?? [];
 
-            if ($order && $columnToOrder === $field) {
-                $queryBuilder
-                    ->orderBy($column, $order)
-                    ->addSelect("$column AS order_$field");
+            if(!is_array($columnsSelected)) {
+                $columnsSelected = [$columnName => $columnsSelected];
             }
 
-            if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
-                $queryBuilder->addSelect("'' AS $field");
-            } else {
-                $queryBuilder->addSelect("$column AS $field");
+            foreach ($columnsSelected as $field => $column) {
+                if ($order && $columnToOrder === $field) {
+                    $queryBuilder
+                        ->orderBy($column, $order)
+                        ->addSelect("$column AS order_$field");
+                }
+                if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
+                    $queryBuilder->addSelect("'' AS $field");
+                } else {
+                    $queryBuilder->addSelect("$column AS $field");
 
-                if (!empty($search) && in_array($field, $presentSearchableColumns)) {
-                    $searches[] = $exprBuilder->like("$column", ":value");
+                    if (!empty($search) && in_array($field, $presentSearchableColumns)) {
+                        $searches[] = $exprBuilder->like("$column", ":value");
+                    }
                 }
             }
         }
