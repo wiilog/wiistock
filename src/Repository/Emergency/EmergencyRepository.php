@@ -4,8 +4,11 @@ namespace App\Repository\Emergency;
 
 
 use App\Entity\Arrivage;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
+use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\Common\Collections\Order;
@@ -70,9 +73,92 @@ class EmergencyRepository extends EntityRepository {
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
-            ->addSelect("emergency.freeFields AS freeFields")
-            ->distinct();
+            ->addSelect("emergency.freeFields AS freeFields");
         $exprBuilder = $queryBuilder->expr();
+
+        $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
+
+        foreach ($filters as $filter) {
+            switch($filter['field']) {
+                case 'dateMin':
+                    $queryBuilder
+                        ->andWhere("emergency.createdAt >= :filter_dateMin_value")
+                        ->setParameter('filter_dateMin_value', "{$filter['value']} 00:00:00");
+                    break;
+                case 'dateMax':
+                    $queryBuilder
+                        ->andWhere("emergency.createdAt <= :filter_dateMax_value")
+                        ->setParameter('filter_dateMax_value', "{$filter['value']} 23:59:59");
+                    break;
+                case FiltreSup::FIELD_EMERGENCY_STATUT:
+                    if ($filter['value']) {
+                        $queryBuilder->andWhere(
+                            $exprBuilder->orX(
+                                'emergency.closedAt IS NULL',
+                                'emergency.closedAt IS NOT NULL'
+                            )
+                        );
+                    }
+                    break;
+                case FiltreSup::FIELD_MULTIPLE_TYPES:
+                    if(!empty($filter['value'])){
+                        $value = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($type) => explode(':', $type)[0])
+                            ->toArray();
+
+                        $queryBuilder
+                            ->join('emergency.type', 'filter_type')
+                            ->andWhere('filter_type.id in (:filter_type_value)')
+                            ->setParameter('filter_type_value', $value);
+                    }
+                    break;
+                case FiltreSup::FIELD_CARRIERS:
+                    if(!empty($filter['value'])){
+                        $value = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($carrier) => explode(':', $carrier)[0])
+                            ->toArray();
+                        $queryBuilder
+                            ->join('emergency.carrier', 'filter_carrier')
+                            ->andWhere('filter_carrier.id in (:filter_carrier_value)')
+                            ->setParameter('filter_carrier_value', $value);
+                    }
+                    break;
+                case FiltreSup::FIELD_EMERGENCY_APPLIED_TO:
+                    if(!empty($filter['value'])){
+                        $value = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($entity) => explode(':', $entity)[0])
+                            ->toArray();
+
+                        $queryBuilder
+                            ->andWhere(
+                                $exprBuilder->orX(
+                                    ...(in_array('Trace', $value) ? ['emergency INSTANCE OF :filter_trackingEmergencyClass'] : []),
+                                    ...(in_array('Stock', $value) ? ['emergency INSTANCE OF :filter_stockEmergencyClass'] : []),
+                                )
+                            );
+
+                        if(in_array('Trace', $value)) {
+                            $queryBuilder->setParameter('filter_trackingEmergencyClass', $entityManager->getClassMetadata(TrackingEmergency::class));
+                        }
+
+                        if(in_array('Stock', $value)) {
+                            $queryBuilder->setParameter('filter_stockEmergencyClass', $entityManager->getClassMetadata(StockEmergency::class));
+                        }
+                    }
+                    break;
+                case FiltreSup::FIELD_TRACKING_CARRIER_NUMBER:
+                    $queryBuilder->andWhere('emergency.carrierTrackingNumber = :filter_carrierTrackingNumber ')
+                        ->setParameter('filter_carrierTrackingNumber', $filter['value']);
+                    break;
+                case FiltreSup::FIELD_COMMANDE:
+                    $queryBuilder->andWhere('emergency.orderNumber = :filter_orderNumber ')
+                        ->setParameter('filter_orderNumber', $filter['value']);
+                    break;
+            }
+        }
 
         foreach ($visibleColumnsConfig as $config) {
             $field = $config['data'] ?? null;
@@ -101,13 +187,13 @@ class EmergencyRepository extends EntityRepository {
                 ->setParameter('value', "%$search%");
         }
 
-        $queryBuilder->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+        $queryBuilder
+            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
             ->leftJoin("emergency.type", "emergency_type");
 
-        $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
         $filtered = QueryBuilderHelper::count($queryBuilder, 'emergency');
 
         if ($params->getInt('start')) {

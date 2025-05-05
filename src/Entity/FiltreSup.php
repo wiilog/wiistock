@@ -62,6 +62,8 @@ class FiltreSup {
     const FIELD_CARRIER_TRACKING_NUMBER = 'carrierTrackingNumber';
     const FIELD_TRUCK_ARRIVAL_NUMBER = 'truckArrivalNumber';
     const FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED = 'carrierTrackingNumberNotAssigned';
+    const FIELD_EMERGENCY_STATUT = 'emergencyStatut';
+    const FIELD_EMERGENCY_APPLIED_TO = 'emergencyAppliedTo';
     const FIELD_PICK_LOCATION = 'pickLocation';
     const FIELD_DROP_LOCATION = 'dropLocation';
     const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
@@ -100,6 +102,7 @@ class FiltreSup {
     const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
     const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
+    const PAGE_EMERGENCIES = 'emergencies';
     const PAGE_ALERTE = 'alerte';
     const PAGE_NOTIFICATIONS = 'notifications';
     const PAGE_ENCOURS = 'encours';

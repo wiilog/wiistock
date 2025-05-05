@@ -15,6 +15,13 @@ const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
 const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+
+    getUserFiltersByPage(PAGE_EMERGENCIES);
+
     const table = initializeTable();
     initializeModals(table);
 });

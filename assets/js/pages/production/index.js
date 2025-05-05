@@ -27,7 +27,6 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     const filtersContainer = $('.filters-container');
-    Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgences', false));
 
     filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {

@@ -67,6 +67,7 @@ class FiltreSupController extends AbstractController
                 'attachmentAssigned' => FiltreSup::FIELD_ATTACHMENTS_ASSIGNED,
                 'receiptAssociation' => FiltreSup::FIELD_RECEIPT_ASSOCIATION,
                 'packWithTracking' => FiltreSup::FIELD_PACK_WITH_TRACKING,
+                'emergencyStatut' => FiltreSup::FIELD_EMERGENCY_STATUT,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -130,6 +131,7 @@ class FiltreSupController extends AbstractController
                 'drivers' => FiltreSup::FIELD_DRIVERS,
                 'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
                 'unloadingLocation' => FiltreSup::FIELD_UNLOADING_LOCATION,
+                'emergencyAppliedTo' => FiltreSup::FIELD_EMERGENCY_APPLIED_TO,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

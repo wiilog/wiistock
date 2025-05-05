@@ -1,0 +1,32 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+        types,
+    } %}
+
+    {% include 'filters/filter_item/filterCommand.html.twig' %}
+
+    {% include 'filters/filter_item/filterTrackingCarrierNumber.html.twig' with {
+        title: trans('Qualité & Urgences', 'Urgences', 'N° tracking transporteur', false)
+    } %}
+
+    {% include 'filters/filter_item/filterCarrier.html.twig' %}
+
+    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
+        label: 'Actives + clôturées',
+        name: 'emergencyStatut',
+    } %}
+
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+        name: 'emergencyAppliedTo',
+        placeholder: 'Urgences appliquées à',
+        types: ['Trace', 'Stock']|map((type) => {
+            id: type,
+            label: type,
+        })
+    }%}
+{% endblock %}
+

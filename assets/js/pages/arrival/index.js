@@ -37,7 +37,6 @@ $(function () {
     initArrivalFormEvent();
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
-    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival(false).then((returnedArrivalsTable) => {

@@ -124,7 +124,7 @@ class TransporteurRepository extends EntityRepository
             ->getSingleScalarResult();
 	}
 
-    public function getForSelect(?string $term) {
+    public function getForSelect(?string $term = "") {
         return $this->createQueryBuilder("carrier")
             ->select("carrier.id AS id, carrier.label AS text")
             ->addSelect("carrier.minTrackingNumberLength AS minTrackingNumberLength" )
