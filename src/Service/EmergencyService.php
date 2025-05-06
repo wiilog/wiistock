@@ -465,7 +465,7 @@ class EmergencyService {
                          ], [
                              "title" => "Aller vers les arrivages",
                              "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_EMERGENCY),
-                             "icon" => "fa fa-eye",
+                             "icon" => "fa fa-up-right-from-square",
                              "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
                              "attributes" => [
                                  "data-id" => $data["id"],
