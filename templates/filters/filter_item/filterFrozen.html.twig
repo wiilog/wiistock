@@ -1,11 +1,19 @@
 <div class="col-auto m-1 pr-0">
-    <div class="checkbox-filter cursor-default">
+    <div class="checkbox-filter cursor-default {{ disabled is defined and disabled ? 'disabled' }}">
         <div class="row no-gutters align-items-center">
             <div class="col">
                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé') }} ?
             </div>
             <label class="switch col-auto">
-                <input class="checkbox filter-checkbox" type="checkbox" name="frozen" id="frozen-filter">
+                <input
+                    class="checkbox filter-checkbox"
+                    type="checkbox"
+                    name="frozen"
+                    id="frozen-filter"
+                    {% if disabled is defined and disabled %}
+                        disabled="disabled"
+                    {% endif %}
+                >
                 <span class="slider round"></span>
             </label>
         </div>

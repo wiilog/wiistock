@@ -43,9 +43,6 @@ $(function () {
         arrivalsTable = returnedArrivalsTable;
     });
 
-    const filters = JSON.parse($(`#arrivalFilters`).val())
-    displayFiltersSup(filters, true);
-
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Fournisseurs', false));
 
@@ -117,6 +114,14 @@ function initTableArrival(dispatchMode = false) {
     }
 
     function proceed(columns) {
+        const $table = $(`#arrivalsTable`);
+
+        const filterEmergency = $table.data('filter-emergency');
+        if(!filterEmergency) {
+            const filters = JSON.parse($(`#arrivalFilters`).val())
+            displayFiltersSup(filters, true);
+        }
+
         let tableArrivageConfig = {
             serverSide: !dispatchMode,
             processing: true,
@@ -127,6 +132,7 @@ function initTableArrival(dispatchMode = false) {
                 "type": "POST",
                 'data': {
                     'clicked': () => clicked,
+                    ... filterEmergency ? {emergency: filterEmergency} : {},
                 }
             },
             columns,
@@ -173,7 +179,7 @@ function initTableArrival(dispatchMode = false) {
             extendsDateSort('customDate');
         }
 
-        return initDataTable('arrivalsTable', tableArrivageConfig);
+        return initDataTable($table, tableArrivageConfig);
     }
 }
 

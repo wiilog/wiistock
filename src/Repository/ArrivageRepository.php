@@ -158,6 +158,14 @@ class ArrivageRepository extends EntityRepository {
 
         $total = QueryBuilderHelper::count($qb, 'arrival');
 
+        $emergencyFilter = $params->getInt('emergency') ?? false;
+        if ($emergencyFilter) {
+            $qb
+                ->innerjoin("arrival.trackingEmergencies", "trackingEmergencies", Join::WITH, "trackingEmergencies.id = :emergencyId")
+                ->setParameter('emergencyId', $emergencyFilter);
+            $filters = [];
+        }
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
