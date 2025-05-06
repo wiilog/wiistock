@@ -19,6 +19,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\ScheduledTask\Export;
 use App\Entity\Setting;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferRequest;
@@ -27,15 +28,19 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\EmplacementDataService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -313,5 +318,23 @@ class LocationController extends AbstractController {
         return $this->json([
             'results' => $locations
         ]);
+    }
+
+    #[Route("/csv", name: "get_locations_csv", options: ["expose" => true], methods: [self::GET])]
+    public function exportLocations(EntityManagerInterface $entityManager,
+                                    CSVExportService       $csvService,
+                                    DataExportService      $dataExportService,
+                                    EmplacementDataService $locationDataService): StreamedResponse
+    {
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);
+
+        return $csvService->streamResponse(
+            $locationDataService->getExportFunction(
+                $entityManager,
+            ), "export-emplacement-$today.csv",
+            $locationDataService->getCsvHeader()
+        );
     }
 }
