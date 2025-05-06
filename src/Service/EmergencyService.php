@@ -413,23 +413,32 @@ class EmergencyService {
             [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
         );
 
-        $datum = Stream::from($queryResult["data"])
-            ->map(function (array $data) use ($freeFieldsConfig): array {
-                $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
-                    'actions' => [
-                        [
-                            "title" => "Modifier",
-                            "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
-                            "actionOnClick" => true,
-                            "icon" => "fas fa-pencil-alt",
-                            "attributes" => [
-                                "data-id" => $data["id"],
-                                "data-target" => "#modalEditEmergency",
-                                "data-toggle" => "modal",
-                            ],
-                        ],
-                    ],
-                ]);
+         $datum = Stream::from($queryResult["data"])
+             ->map(function (array $data) use ($freeFieldsConfig): array {
+                 $data["actions"] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                     'actions' => [
+                         [
+                             "title" => "Modifier",
+                             "hasRight" => !($data["closedAt"] ?? false) && $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "actionOnClick" => true,
+                             "icon" => "fas fa-pencil-alt",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                                 "data-target" => "#modalEditEmergency",
+                                 "data-toggle" => "modal",
+                             ],
+                         ],
+                         [
+                             "title" => "Cloturer",
+                             "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "icon" => "fa-solid fa-ban",
+                             "class" => "close-emergency",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                             ],
+                         ],
+                     ],
+                 ]);
 
                 $dateFields = [
                     FixedFieldEnum::dateStart->name,
@@ -462,6 +471,12 @@ class EmergencyService {
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
+    }
 
+    public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void {
+        $now = new DateTime();
+        $emergency->setClosedAt($now);
+
+        $entityManager->flush();
     }
 }
