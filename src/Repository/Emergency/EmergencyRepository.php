@@ -187,15 +187,14 @@ class EmergencyRepository extends EntityRepository {
                         $queryBuilder->orderBy($sort, $order);
                     }
                 } else {
+                    $column = $columnsSelected[$columnName];
                     $queryBuilder
                         ->orderBy($column, $order)
-                        ->addSelect("$column AS order_$field");
+                        ->addSelect("$column AS order_$columnName");
                 }
             }
 
             foreach ($columnsSelected as $field => $column) {
-
-
                 if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
                     $queryBuilder->addSelect("'' AS $field");
                 } else {
