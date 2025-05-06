@@ -68,8 +68,6 @@ class StockEmergency extends Emergency implements AttachmentContainer {
     public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
         if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles[] = $receptionReferenceArticle;
-
-            $this->setLastTriggeredAt(new DateTime());
         }
 
         return $this;

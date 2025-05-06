@@ -163,7 +163,7 @@ abstract class Emergency {
         return $this->lastTriggeredAt;
     }
 
-    public function setLastTriggeredAt(?DateTime $lastTriggeredAt): self {
+    public function setLastTriggeredAt(DateTime $lastTriggeredAt): self {
         $this->lastTriggeredAt = $lastTriggeredAt;
 
         return $this;

@@ -43,8 +43,6 @@ class TrackingEmergency extends Emergency {
         if (!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
             $arrival->addTrackingEmergency($this);
-
-            $this->setLastTriggeredAt(new DateTime());
         }
 
         return $this;
