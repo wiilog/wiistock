@@ -402,13 +402,12 @@ class EmergencyService {
                          [
                              "title" => "Cloturer",
                              "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
-                             "icon" => "fa-regular fa-handshake",
+                             "icon" => "fa-solid fa-ban",
                              "class" => "close-emergency",
                              "attributes" => [
                                  "data-id" => $data["id"],
                              ],
                          ],
-
                      ],
                  ]);
 
