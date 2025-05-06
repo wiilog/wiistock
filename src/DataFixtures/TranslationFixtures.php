@@ -1073,11 +1073,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                 ],
             ],
-            "Urgences" => [
-                "content" => [
-
-                ],
-            ],
             "Unités logistiques" => [
                 "Divers" => [
                     "content" => [
