@@ -76,6 +76,7 @@ class ArrivageController extends AbstractController {
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
     public function index(Request                $request,
                           EntityManagerInterface $entityManager,
+                          UserService            $userService,
                           TagTemplateService     $tagTemplateService,
                           ArrivageService        $arrivageService,
                           FilterSupService       $filterSupService): Response {
@@ -127,7 +128,7 @@ class ArrivageController extends AbstractController {
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
-            "initial_arrivals" => $this->api($request, $arrivageService, $entityManager)->getContent(),
+            "initial_arrivals" => $this->api($request, $arrivageService, $userService, $entityManager)->getContent(),
             "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
