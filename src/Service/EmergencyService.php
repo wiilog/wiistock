@@ -16,6 +16,7 @@ use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
@@ -400,10 +401,13 @@ class EmergencyService {
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, ParameterBag $request): array {
         $emergencyRepository = $entityManager->getRepository(Emergency::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EMERGENCIES, $this->userService->getUser());
 
         $queryResult = $emergencyRepository->findByParamsAndFilters(
             $request,
-            [],
+            $filters,
             $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
         );
 

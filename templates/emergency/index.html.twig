@@ -4,7 +4,13 @@
 {% block title_tooltip %}Qualité & Urgences | Urgences{% endblock %}
 
 {% block page_filter %}
-
+    {% include 'filters/filtersEmergency.html.twig' with {
+        page: 'PAGE_EMERGENCIES',
+        tableSelector: '#tableEmergency',
+        callback: 'null',
+        needsDateFormatting: true,
+        types,
+    } %}
 {% endblock %}
 
 {% block page_content %}
