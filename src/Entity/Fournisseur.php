@@ -45,7 +45,7 @@ class Fournisseur {
     private bool $possibleCustoms = false;
 
     #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Urgence::class)]
-    private Collection $urgences; // TODO WIIS-12642
+    private Collection $urgences; // TODO WIIS-12734
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $address = null;
