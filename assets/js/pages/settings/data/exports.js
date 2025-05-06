@@ -24,6 +24,7 @@ const ENTITY_PACK = "pack";
 const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
 const ENTITY_DISPUTE = "dispute";
 const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
+const ENTITY_LOCATION = "location";
 const ENTITY_EMERGENCY = "emergency"
 
 global.displayExportModal = displayExportModal;
@@ -179,6 +180,7 @@ function createForm() {
                 }
 
                 const content = data.asObject();
+                console.log(content);
 
                 if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
@@ -336,6 +338,8 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
+                    } else if (content.entityToExport === ENTITY_LOCATION) {
+                        window.open(Routing.generate(`settings_export_locations`));
                     } else if (content.entityToExport === ENTITY_EMERGENCY) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();

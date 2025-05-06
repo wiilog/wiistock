@@ -34,6 +34,7 @@ use App\Service\DataExportService;
 use App\Service\DispatchService;
 use App\Service\Emergency\EmergencyService;
 use App\Service\FormatService;
+use App\Service\EmplacementDataService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\ReceiptAssociationService;
@@ -234,6 +235,27 @@ class DataExportController extends AbstractController
             $entityManager->flush();
         }, "export-references-$today.csv", $header);
     }
+
+    #[Route("/export/unique/location", name: "settings_export_locations", options: ["expose" => true], methods: [self::GET])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function exportLocations(EntityManagerInterface $entityManager,
+                                    CSVExportService       $csvService,
+                                    DataExportService      $dataExportService,
+                                    EmplacementDataService $locationDataService,
+                                    ): StreamedResponse {
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);
+
+        return $csvService->streamResponse(
+            $locationDataService->getExportFunction(
+                $entityManager,
+            ), "export-emplacement-$today.csv",
+            $locationDataService->getCsvHeader()
+        );
+    }
+
+
 
     #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]

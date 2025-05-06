@@ -47,6 +47,9 @@ class EmplacementDataService {
 
     private array $labeledCacheLocations = [];
 
+    #[Required]
+    public CSVExportService $csvExportService;
+
     public function persistLocation(EntityManagerInterface $entityManager,
                                     ParameterBag|array     $data,
                                     bool                   $viaUserForm = false): Emplacement {
@@ -350,5 +353,83 @@ class EmplacementDataService {
         } else {
             throw new FormException("Vous devez donner un nom valide.");
         }
+    }
+
+    public function getExportFunction(EntityManagerInterface $entityManager): callable {
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locations = $locationRepository->findAll();
+
+        return function ($handle) use ($locations) {
+            foreach ($locations as $location) {
+                $allowedNatures = Stream::from($location->getAllowedNatures())
+                    ->map(fn(Nature $nature) => $this->formatService->nature($nature))
+                    ->join(", ");
+
+                $allowedTemperatures = Stream::from($location->getTemperatureRanges())
+                    ->map(fn(TemperatureRange $temperature) => $temperature->getValue())
+                    ->join(", ");
+
+                $allowedDeliveryTypes = Stream::from($location->getAllowedDeliveryTypes())
+                    ->map(fn(Type $type) => $this->formatService->type($type))
+                    ->join(", ");
+
+                $allowedCollectTypes = Stream::from($location->getAllowedCollectTypes())
+                    ->map(fn(Type $type) => $this->formatService->type($type))
+                    ->join(", ");
+
+
+                $this->csvExportService->putLine($handle, [
+                    $location->getLabel() ?: 'Non défini',
+                    $location->getDescription() ?: 'Non défini',
+                    $this->formatService->bool($location->getIsDeliveryPoint()),
+                    $this->formatService->bool($location->isOngoingVisibleOnMobile()),
+                    $location->getDateMaxTime() ?? '',
+                    $location->getIsActive() ? 'actif' : 'inactif',
+                    $allowedNatures,
+                    $allowedTemperatures,
+                    $this->formatService->users($location->getSignatories()),
+                    $location->getEmail(),
+                    $location->getZone() ? $location->getZone()->getName() : '',
+                    $this->formatService->users($location->getManagers()),
+                    $this->formatService->bool($location->isSendEmailToManagers()),
+                    $allowedDeliveryTypes,
+                    $allowedCollectTypes,
+                    $this->formatService->bool($location->isStartTrackingTimerOnPicking()),
+                    $this->formatService->bool($location->isStopTrackingTimerOnDrop()),
+                    $this->formatService->bool($location->isPauseTrackingTimerOnDrop()),
+                    $this->formatService->nature($location->getNewNatureOnPick()),
+                    $this->formatService->nature($location->getNewNatureOnDrop()),
+                    $this->formatService->bool($location->isNewNatureOnPickEnabled()),
+                    $this->formatService->bool($location->isNewNatureOnDropEnabled()),
+                ]);
+            }
+        };
+    }
+
+    public function getCsvHeader (): array {
+        return [
+            FixedFieldEnum::name->value,
+            FixedFieldEnum::description->value,
+            FixedFieldEnum::isDeliveryPoint->value,
+            FixedFieldEnum::isOngoingVisibleOnMobile->value,
+            FixedFieldEnum::maximumTrackingDelay->value,
+            FixedFieldEnum::status->value,
+            FixedFieldEnum::allowedNatures->value,
+            FixedFieldEnum::allowedTemperatures->value,
+            FixedFieldEnum::signatories->value,
+            FixedFieldEnum::email->value,
+            FixedFieldEnum::zone->value,
+            FixedFieldEnum::managers->value,
+            FixedFieldEnum::sendEmailToManagers->value,
+            FixedFieldEnum::allowedDeliveryTypes->value,
+            FixedFieldEnum::allowedCollectTypes->value,
+            FixedFieldEnum::startTrackingTimerOnPicking->value,
+            FixedFieldEnum::stopTrackingTimerOnDrop->value,
+            FIxedFieldEnum::pauseTrackingTimerOnDrop->value,
+            FixedFieldEnum::newNatureOnPick->value,
+            FixedFieldEnum::newNatureOnDrop->value,
+            'Activer le changement de nature à la prise',
+            'Activer le changement de nature à la dépose',
+        ];
     }
 }
