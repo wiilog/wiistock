@@ -7,19 +7,12 @@ namespace DoctrineMigrations;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
-/**
- * Auto-generated Migration: Please modify to your needs!
- */
-final class Version20250505134106 extends AbstractMigration
-{
-    public function getDescription(): string
-    {
+final class Version20250505134106 extends AbstractMigration {
+    public function getDescription(): string {
         return '';
     }
 
-    public function up(Schema $schema): void
-    {
-        // this up() migration is auto-generated, please modify it to your needs
+    public function up(Schema $schema): void {
         $newValues = [
             'provider' => 'supplier',
             'commande' => 'orderNumber',
@@ -36,7 +29,6 @@ final class Version20250505134106 extends AbstractMigration
                 $newValue = $newValues[$explodedValue[0]] ?? $explodedValue[0];
             } else {
                 foreach($explodedValue as $value) {
-                    dump($value);
                     $newValue .= ($newValues[$value] ?? $value) . ',';
                 }
             }
@@ -45,9 +37,5 @@ final class Version20250505134106 extends AbstractMigration
         }
     }
 
-    public function down(Schema $schema): void
-    {
-        // this down() migration is auto-generated, please modify it to your needs
-
-    }
+    public function down(Schema $schema): void {}
 }
