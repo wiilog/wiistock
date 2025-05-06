@@ -36,7 +36,7 @@ class Transporteur {
     #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'carrier')]
     private Collection $dispatches;
 
-    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')] // TODO WIIS-12642
+    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')] // TODO WIIS-12734
     private Collection $urgences;
 
     #[ORM\Column(nullable: true)]

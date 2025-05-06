@@ -6,15 +6,15 @@ namespace App\Repository\Emergency;
 use App\Entity\Arrivage;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\FreeField\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FieldModesService;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
-use phpDocumentor\Reflection\Types\Static_;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 
@@ -27,8 +27,7 @@ class EmergencyRepository extends EntityRepository {
         $lastArrivalNumberSubquery = $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
             ->from(Arrivage::class, 'arrival')
-            ->andwhere('emergency_arrival = emergency.id')
-            ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival')
+            ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival', Join::WITH, 'emergency_arrival = emergency')
             ->orderBy('arrival.date', Order::Descending->value)
             ->getDQL();
 
@@ -36,7 +35,7 @@ class EmergencyRepository extends EntityRepository {
         $lastReceptionNumberSubquery = $entityManager->createQueryBuilder()
             ->select('reception.number')
             ->from(Reception::class, 'reception')
-            ->andWhere('emergency_reception = emergency.id')
+            ->andWhere('emergency_reception.id = emergency.id')
             ->innerJoin("reception.lines", "reception_line")
             ->innerJoin("reception_line.receptionReferenceArticles", "reception_reference_article")
             ->innerJoin("reception_reference_article.stockEmergencies", "emergency_reception")
@@ -46,9 +45,12 @@ class EmergencyRepository extends EntityRepository {
         $columns = [
             FixedFieldEnum::dateStart->name => "emergency.dateStart",
             FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
-            "lastEntityNumber"=> "GREATEST(FIRST($lastArrivalNumberSubquery), FIRST($lastReceptionNumberSubquery))",
+            "lastEntityNumber"=> [
+                "lastArrivalNumber"=> "FIRST($lastArrivalNumberSubquery)",
+                "lastReceptionNumber"=> "FIRST($lastReceptionNumberSubquery)",
+            ],
             FixedFieldEnum::createdAt->name => "emergency.createdAt",
-            "lastTriggeredAt" => "emergency.createdAt",
+            "lastTriggeredAt" => "emergency.lastTriggeredAt",
             "closedAt"=> "emergency.closedAt",
             FixedFieldEnum::orderNumber->name => "emergency.orderNumber",
             FixedFieldEnum::postNumber->name => "tracking_emergency.postNumber",
@@ -161,22 +163,36 @@ class EmergencyRepository extends EntityRepository {
         }
 
         foreach ($visibleColumnsConfig as $config) {
-            $field = $config['data'] ?? null;
-            $column = $columns[$field] ?? null;
-
-            if ($order && $columnToOrder === $field) {
-                $queryBuilder
-                    ->orderBy($column, $order)
-                    ->addSelect("$column AS order_$field");
+            $columnName = $config['data'] ?? null;
+            $columnsSelected = $columns[$columnName] ?? [];
+            if(!is_array($columnsSelected)) {
+                $columnsSelected = [$columnName => $columnsSelected];
             }
+            foreach ($columnsSelected as $field => $column) {
+                if ($order && $columnToOrder === $field) {
+                    if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
+                        $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
+                        if(is_numeric($freeFieldId)) {
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            $sort = $freeField->getTypage() === FreeField::TYPE_NUMBER
+                                ? "CAST(JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"') AS SIGNED)"
+                                : "JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"')";
+                            $queryBuilder->orderBy($sort, $order);
+                        }
+                    } else {
+                        $queryBuilder
+                            ->orderBy($column, $order)
+                            ->addSelect("$column AS order_$field");
+                    }
+                }
 
-            if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
-                $queryBuilder->addSelect("'' AS $field");
-            } else {
-                $queryBuilder->addSelect("$column AS $field");
-
-                if (!empty($search) && in_array($field, $presentSearchableColumns)) {
-                    $searches[] = $exprBuilder->like("$column", ":value");
+                if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
+                    $queryBuilder->addSelect("'' AS $field");
+                } else {
+                    $queryBuilder->addSelect("$column AS $field");
+                    if (!empty($search) && in_array($field, $presentSearchableColumns)) {
+                        $searches[] = $exprBuilder->like("$column", ":value");
+                    }
                 }
             }
         }

@@ -117,6 +117,26 @@ function initializeModals($tableEmergencies) {
             clearFields: true,
             tables: $tableEmergencies,
         });
+
+    $(document).on('click', '.close-emergency', (event) => {
+        const emergencyId = $(event.target).data('id');
+        Modal.confirm({
+            ajax: {
+                method: POST,
+                route: 'emergency_close',
+                params: {
+                    emergency: emergencyId
+                },
+            },
+            message: "Voulez-vous vraiment cloturer l'urgence ?",
+            title:  "Cloturer l'urgence",
+            validateButton: {
+                color: 'success',
+                label: Translation.of('Général', null, 'Modale', 'Oui'),
+            },
+            table: $tableEmergencies,
+        });
+    });
 }
 
 function initializeTable() {
