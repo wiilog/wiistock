@@ -43,9 +43,6 @@ $(function () {
         arrivalsTable = returnedArrivalsTable;
     });
 
-    const filters = JSON.parse($(`#arrivalFilters`).val())
-    displayFiltersSup(filters, true);
-
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Fournisseurs', false));
 
@@ -120,6 +117,10 @@ function initTableArrival(dispatchMode = false) {
         const $table = $(`#arrivalsTable`);
 
         const filterEmergency = $table.data('filter-emergency');
+        if(!filterEmergency) {
+            const filters = JSON.parse($(`#arrivalFilters`).val())
+            displayFiltersSup(filters, true);
+        }
 
         let tableArrivageConfig = {
             serverSide: !dispatchMode,
