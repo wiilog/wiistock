@@ -11,6 +11,7 @@ use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Type;
+use App\Exceptions\FormException;
 use App\Service\EmergencyService;
 use App\Entity\Menu;
 use App\Service\UserService;
@@ -66,6 +67,9 @@ class EmergencyController extends AbstractController {
     public function editApi(EntityManagerInterface $entityManager,
                             EmergencyService       $emergencyService,
                             Emergency              $emergency): JsonResponse {
+        if ($emergency->getClosedAt()) {
+            throw new FormException("L'urgence est cloturée, vous ne pouvez pas la modifier.");
+        }
 
         return $this->json([
             'html' => $this->renderView('emergency/form.html.twig', $emergencyService->getEmergencyConfig($entityManager, $emergency)),
@@ -79,6 +83,10 @@ class EmergencyController extends AbstractController {
                          EmergencyService       $emergencyService): JsonResponse {
         $emergencyRepository = $entityManager->getRepository(Emergency::class);
         $emergency = $emergencyRepository->find($request->request->getInt(FixedFieldEnum::id->name));
+
+        if ($emergency->getClosedAt()) {
+            throw new FormException("L'urgence est cloturée, vous ne pouvez pas la modifier.");
+        }
         $emergencyService->updateEmergency($entityManager, $emergency, $request);
 
         $entityManager->flush();
@@ -97,5 +105,17 @@ class EmergencyController extends AbstractController {
         $data = $emergencyService->getDataForDatatable($entityManager, $request->request);
 
         return $this->json($data);
+    }
+
+    #[Route("/close/{emergency}", name: "close", options: ['expose' => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
+    public function close(EntityManagerInterface $entityManager,
+                          Emergency              $emergency,
+                          EmergencyService       $emergencyService): JsonResponse {
+        $emergencyService->closeEmergency($entityManager, $emergency);
+
+        return $this->json([
+            "success" => true,
+        ]);
     }
 }

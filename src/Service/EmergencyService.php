@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
@@ -18,8 +19,10 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Menu;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Type;
+use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
@@ -33,14 +36,17 @@ use Twig\Environment as Twig_Environment;
 
 class EmergencyService {
 
+    private array $__arrival_emergency_fields;
+
     public function __construct(
-        private AttachmentService   $attachmentService,
-        private FixedFieldService   $fieldsParamService,
-        private FormatService       $formatService,
-        private FieldModesService   $fieldModesService,
-        private UserService         $userService,
-        private Twig_Environment    $templating,
-        private FreeFieldService    $freeFieldService,
+        private AttachmentService $attachmentService,
+        private FixedFieldService $fieldsParamService,
+        private FormatService     $formatService,
+        private SettingsService   $settingService,
+        private FieldModesService $fieldModesService,
+        private UserService       $userService,
+        private Twig_Environment  $templating,
+        private FreeFieldService  $freeFieldService,
     ) {}
 
     /**
@@ -304,9 +310,32 @@ class EmergencyService {
         }
     }
 
+    /**
+     * @return array<TrackingEmergency>
+     */
+    public function matchingEmergencies(EntityManagerInterface $entityManager,
+                                        Arrivage               $arrival,
+                                        ?string                $orderNumber,
+                                        ?string                $postNumber,
+                                        bool                   $excludeTriggered = false): array {
+        $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
+
+        if(!isset($this->__arrival_emergency_fields)) {
+            $arrivalEmergencyFields = $this->settingService->getValue($entityManager, Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+            $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
+        }
+
+        return $trackingEmergencyRepository->findMatchingEmergencies(
+            $arrival,
+            $this->__arrival_emergency_fields,
+            $orderNumber,
+            $postNumber,
+            $excludeTriggered,
+        );
+    }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager,
-                                            ?Utilisateur $currentUser): array {
+                                            ?Utilisateur           $currentUser): array {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
@@ -378,11 +407,11 @@ class EmergencyService {
             $this->getVisibleColumnsConfig($entityManager, $this->userService->getUser()),
         );
 
-         $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
-             $entityManager,
-             [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
-             [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
-         );
+        $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+            $entityManager,
+            [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
+            [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
+        );
 
          $datum = Stream::from($queryResult["data"])
              ->map(function (array $data) use ($freeFieldsConfig): array {
@@ -390,7 +419,7 @@ class EmergencyService {
                      'actions' => [
                          [
                              "title" => "Modifier",
-                             "hasRight" => $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "hasRight" => !($data["closedAt"] ?? false) && $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
                              "actionOnClick" => true,
                              "icon" => "fas fa-pencil-alt",
                              "attributes" => [
@@ -399,38 +428,55 @@ class EmergencyService {
                                  "data-toggle" => "modal",
                              ],
                          ],
+                         [
+                             "title" => "Cloturer",
+                             "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "icon" => "fa-solid fa-ban",
+                             "class" => "close-emergency",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                             ],
+                         ],
                      ],
                  ]);
 
-                 $dateFields = [
-                     FixedFieldEnum::dateStart->name,
-                     FixedFieldEnum::dateEnd->name,
-                     "closedAt",
-                     "lastTriggeredAt",
-                     FixedFieldEnum::createdAt->name,
-                 ];
+                $dateFields = [
+                    FixedFieldEnum::dateStart->name,
+                    FixedFieldEnum::dateEnd->name,
+                    "closedAt",
+                    "lastTriggeredAt",
+                    FixedFieldEnum::createdAt->name,
+                ];
 
-                 foreach ($dateFields as $field) {
-                     $data[$field] = !empty($data[$field])
-                         ? $this->formatService->date($data[$field])
-                         : "";
-                 }
+                foreach ($dateFields as $field) {
+                    $data[$field] = !empty($data[$field])
+                        ? $this->formatService->date($data[$field])
+                        : "";
+                }
 
-                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
-                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
-                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
-                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
-                 }
-                 return $data;
-             })
-             ->toArray();
+                foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                    $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                    $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                    $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
+                }
+
+                $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
+
+                return $data;
+            })
+            ->toArray();
 
         return [
             'data' => $datum,
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
-
     }
 
+    public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void {
+        $now = new DateTime();
+        $emergency->setClosedAt($now);
+
+        $entityManager->flush();
+    }
 }

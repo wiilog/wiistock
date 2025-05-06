@@ -35,6 +35,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
+use App\Service\EmergencyService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
@@ -48,13 +49,10 @@ use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\TruckArrivalLineService;
 use App\Service\UniqueNumberService;
-use App\Service\UrgenceService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\ClientException;
-use http\Client;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -480,32 +478,32 @@ class ArrivageController extends AbstractController
         Arrivage               $arrival,
         Request                $request,
         ArrivageService        $arrivageDataService,
-        UrgenceService         $urgenceService,
-        EntityManagerInterface $entityManager): Response
-    {
-        $numeroCommande = $request->request->get('numeroCommande');
-        $postNb = $request->request->get('postNb');
+        EmergencyService       $emergencyService,
+        EntityManagerInterface $entityManager): Response {
+        $orderNumber = $request->request->get('numeroCommande');
+        $postNumber = $request->request->get('postNb');
 
-        $urgencesMatching = !empty($numeroCommande)
-            ? $urgenceService->matchingEmergencies(
+        $matchingEmergencies = !empty($orderNumber)
+            ? $emergencyService->matchingEmergencies(
+                $entityManager,
                 $arrival,
-                $numeroCommande,
-                $postNb,
+                $orderNumber,
+                $postNumber,
                 true
             )
             : [];
 
-        $success = !empty($urgencesMatching);
+        $success = !empty($matchingEmergencies);
 
         if ($success) {
-            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, true, $matchingEmergencies);
             $entityManager->flush();
         }
 
         $response = [
             'success' => $success,
             'alertConfigs' => $success
-                ? [$arrivageDataService->createArrivalAlertConfig($entityManager, $arrival, false, $urgencesMatching)]
+                ? [$arrivageDataService->createArrivalAlertConfig($entityManager, $arrival, false, $matchingEmergencies)]
                 : null
         ];
 
@@ -731,8 +729,8 @@ class ArrivageController extends AbstractController
                 $arrival->getPacks()->clear();
                 $attachmentService->removeAttachments($entityManager, $arrival);
 
-                foreach ($arrival->getUrgences() as $urgence) {
-                    $urgence->setLastArrival(null);
+                foreach ($arrival->getTrackingEmergencies() as $emergency) {
+                    $emergency->removeArrival($arrival);
                 }
 
                 $entityManager->remove($arrival);
