@@ -261,9 +261,11 @@ class ArrivageService {
         }
 
         if ($urgent && !empty($emergencies)) {
+            $now = new DateTime('now');
             /** @var TrackingEmergency $emergency */
             foreach ($emergencies as $emergency) {
                 $emergency->addArrival($arrival);
+                $emergency->setLastTriggeredAt($now);
             }
 
             $this->sendArrivalEmails($entityManager, $arrival, $emergencies);
