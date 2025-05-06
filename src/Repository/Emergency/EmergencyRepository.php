@@ -178,7 +178,6 @@ class EmergencyRepository extends EntityRepository {
 
             if ($order && $columnToOrder === $columnName) {
                 if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
-                    dump('free field');
                     $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
                     if(is_numeric($freeFieldId)) {
                         $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
@@ -188,7 +187,6 @@ class EmergencyRepository extends EntityRepository {
                         $queryBuilder->orderBy($sort, $order);
                     }
                 } else {
-                    dump('not free field');
                     $queryBuilder
                         ->orderBy($column, $order)
                         ->addSelect("$column AS order_$field");
