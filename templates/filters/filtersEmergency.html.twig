@@ -15,10 +15,14 @@
 
     {% include 'filters/filter_item/filterCarrier.html.twig' %}
 
-    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
-        label: 'Actives + clôturées',
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
         name: 'emergencyStatut',
-    } %}
+        placeholder: 'Statut',
+        types: ['Actives', 'Cloturées']|map((statut) => {
+            id: statut,
+            label: statut,
+        })
+    }%}
 
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
         name: 'emergencyAppliedTo',

@@ -94,12 +94,19 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_EMERGENCY_STATUT:
                     if ($filter['value']) {
-                        $queryBuilder->andWhere(
-                            $exprBuilder->orX(
-                                'emergency.closedAt IS NULL',
-                                'emergency.closedAt IS NOT NULL'
-                            )
-                        );
+                        $conditions = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($entity) => explode(':', $entity)[0])
+                            ->map(static function(string $statut) {
+                                return match($statut) {
+                                    "Actives" => "emergency.closedAt IS NULL",
+                                    "Cloturées" => "emergency.closedAt IS NOT NULL",
+                                    default => "",
+                                };
+                            })
+                            ->toArray();
+
+                        $queryBuilder->andWhere($exprBuilder->orX(...($conditions)));
                     }
                     break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:

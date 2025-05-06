@@ -808,6 +808,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'locationWithGroups':
                 case 'unloadingLocation':
                 case 'emergencyAppliedTo':
+                case 'emergencyStatut':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -850,7 +851,6 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'frozen':
                 case 'carrierTrackingNumberNotAssigned':
                 case 'useTruckArrivals':
-                case 'emergencyStatut':
                     if (element.value === '1') {
                         $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
