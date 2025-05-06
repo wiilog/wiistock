@@ -1,5 +1,5 @@
 <div class="col-auto m-1 pr-0">
-    <div class="checkbox-filter cursor-default">
+    <div class="checkbox-filter cursor-default {{ disabled is defined and disabled ? 'disabled' }}">
         <div class="row no-gutters align-items-center">
             <div class="col">{{ titleFilterStatut ?? trans('Qualité', 'Litiges', 'Urgence ?', false) }}</div>
             <label class="switch col-auto">
