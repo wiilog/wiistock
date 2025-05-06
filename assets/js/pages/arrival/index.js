@@ -117,6 +117,10 @@ function initTableArrival(dispatchMode = false) {
     }
 
     function proceed(columns) {
+        const $table = $(`#arrivalsTable`);
+
+        const filterEmergency = $table.data('filter-emergency');
+
         let tableArrivageConfig = {
             serverSide: !dispatchMode,
             processing: true,
@@ -127,6 +131,7 @@ function initTableArrival(dispatchMode = false) {
                 "type": "POST",
                 'data': {
                     'clicked': () => clicked,
+                    ... filterEmergency ? {emergency: filterEmergency} : {},
                 }
             },
             columns,
@@ -173,7 +178,7 @@ function initTableArrival(dispatchMode = false) {
             extendsDateSort('customDate');
         }
 
-        return initDataTable('arrivalsTable', tableArrivageConfig);
+        return initDataTable($table, tableArrivageConfig);
     }
 }
 

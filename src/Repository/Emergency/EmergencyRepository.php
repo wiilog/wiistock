@@ -3,6 +3,7 @@
 namespace App\Repository\Emergency;
 
 
+use App\Command\Users\DeactivateUserCommand;
 use App\Entity\Arrivage;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
@@ -75,7 +76,8 @@ class EmergencyRepository extends EntityRepository {
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
-            ->addSelect("emergency.freeFields AS freeFields");
+            ->addSelect("emergency.freeFields AS freeFields")
+            ->addSelect("emergency_category.label AS emergency_category_label");
         $exprBuilder = $queryBuilder->expr();
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
@@ -173,23 +175,28 @@ class EmergencyRepository extends EntityRepository {
             if(!is_array($columnsSelected)) {
                 $columnsSelected = [$columnName => $columnsSelected];
             }
-            foreach ($columnsSelected as $field => $column) {
-                if ($order && $columnToOrder === $field) {
-                    if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
-                        $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
-                        if(is_numeric($freeFieldId)) {
-                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
-                            $sort = $freeField->getTypage() === FreeField::TYPE_NUMBER
-                                ? "CAST(JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"') AS SIGNED)"
-                                : "JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"')";
-                            $queryBuilder->orderBy($sort, $order);
-                        }
-                    } else {
-                        $queryBuilder
-                            ->orderBy($column, $order)
-                            ->addSelect("$column AS order_$field");
+
+            if ($order && $columnToOrder === $columnName) {
+                if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
+                    dump('free field');
+                    $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
+                    if(is_numeric($freeFieldId)) {
+                        $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                        $sort = $freeField->getTypage() === FreeField::TYPE_NUMBER
+                            ? "CAST(JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"') AS SIGNED)"
+                            : "JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"')";
+                        $queryBuilder->orderBy($sort, $order);
                     }
+                } else {
+                    dump('not free field');
+                    $queryBuilder
+                        ->orderBy($column, $order)
+                        ->addSelect("$column AS order_$field");
                 }
+            }
+
+            foreach ($columnsSelected as $field => $column) {
+
 
                 if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
                     $queryBuilder->addSelect("'' AS $field");
@@ -213,7 +220,8 @@ class EmergencyRepository extends EntityRepository {
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
-            ->leftJoin("emergency.type", "emergency_type");
+            ->leftJoin("emergency.type", "emergency_type")
+            ->leftJoin("emergency_type.category", "emergency_category");
 
         $filtered = QueryBuilderHelper::count($queryBuilder, 'emergency');
 

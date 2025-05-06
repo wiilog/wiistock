@@ -30,6 +30,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 use App\Entity\FreeField\FreeField;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -48,6 +49,7 @@ class EmergencyService {
         private UserService       $userService,
         private Twig_Environment  $templating,
         private FreeFieldService  $freeFieldService,
+        private RouterInterface   $router,
     ) {}
 
     /**
@@ -434,9 +436,17 @@ class EmergencyService {
                          ],
                          [
                              "title" => "Cloturer",
-                             "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "hasRight" => !($data["closedAt"] ?? false) && $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
                              "icon" => "fa-solid fa-ban",
                              "class" => "close-emergency",
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                             ],
+                         ], [
+                             "title" => "Aller vers les arrivages",
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_EMERGENCY),
+                             "icon" => "fa fa-eye",
+                             "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
                              "attributes" => [
                                  "data-id" => $data["id"],
                              ],
@@ -444,31 +454,31 @@ class EmergencyService {
                      ],
                  ]);
 
-                $dateFields = [
-                    FixedFieldEnum::dateStart->name,
-                    FixedFieldEnum::dateEnd->name,
-                    "closedAt",
-                    "lastTriggeredAt",
-                    FixedFieldEnum::createdAt->name,
-                ];
+                 $dateFields = [
+                     FixedFieldEnum::dateStart->name,
+                     FixedFieldEnum::dateEnd->name,
+                     "closedAt",
+                     "lastTriggeredAt",
+                     FixedFieldEnum::createdAt->name,
+                 ];
 
-                foreach ($dateFields as $field) {
-                    $data[$field] = !empty($data[$field])
-                        ? $this->formatService->date($data[$field])
-                        : "";
-                }
+                 foreach ($dateFields as $field) {
+                     $data[$field] = !empty($data[$field])
+                         ? $this->formatService->datetime($data[$field])
+                         : "";
+                 }
 
-                foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
-                    $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
-                    $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
-                    $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
-                }
+                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
+                 }
 
-                $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
+                 $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
 
-                return $data;
-            })
-            ->toArray();
+                 return $data;
+             })
+             ->toArray();
 
         return [
             'data' => $datum,
