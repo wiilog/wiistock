@@ -117,8 +117,7 @@ class EmergencyRepository extends EntityRepository {
                             ->toArray();
 
                         $queryBuilder
-                            ->join('emergency.type', 'filter_type')
-                            ->andWhere('filter_type.id in (:filter_type_value)')
+                            ->andWhere('emergency_type.id in (:filter_type_value)')
                             ->setParameter('filter_type_value', $value);
                     }
                     break;
@@ -129,8 +128,7 @@ class EmergencyRepository extends EntityRepository {
                             ->map(static fn($carrier) => explode(':', $carrier)[0])
                             ->toArray();
                         $queryBuilder
-                            ->join('emergency.carrier', 'filter_carrier')
-                            ->andWhere('filter_carrier.id in (:filter_carrier_value)')
+                            ->andWhere('emergency_carrier.id in (:filter_carrier_value)')
                             ->setParameter('filter_carrier_value', $value);
                     }
                     break;
