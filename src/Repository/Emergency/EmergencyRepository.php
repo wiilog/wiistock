@@ -6,8 +6,10 @@ namespace App\Repository\Emergency;
 use App\Entity\Arrivage;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FieldModesService;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -79,22 +81,31 @@ class EmergencyRepository extends EntityRepository {
         foreach ($visibleColumnsConfig as $config) {
             $columnName = $config['data'] ?? null;
             $columnsSelected = $columns[$columnName] ?? [];
-
             if(!is_array($columnsSelected)) {
                 $columnsSelected = [$columnName => $columnsSelected];
             }
-
             foreach ($columnsSelected as $field => $column) {
                 if ($order && $columnToOrder === $field) {
-                    $queryBuilder
-                        ->orderBy($column, $order)
-                        ->addSelect("$column AS order_$field");
+                    if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
+                        $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
+                        if(is_numeric($freeFieldId)) {
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            $sort = $freeField->getTypage() === FreeField::TYPE_NUMBER
+                                ? "CAST(JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"') AS SIGNED)"
+                                : "JSON_EXTRACT(emergency.freeFields, '$.\"$freeFieldId\"')";
+                            $queryBuilder->orderBy($sort, $order);
+                        }
+                    } else {
+                        $queryBuilder
+                            ->orderBy($column, $order)
+                            ->addSelect("$column AS order_$field");
+                    }
                 }
+
                 if (!$field || !$column || !($config['fieldVisible'] ?? false)) {
                     $queryBuilder->addSelect("'' AS $field");
                 } else {
                     $queryBuilder->addSelect("$column AS $field");
-
                     if (!empty($search) && in_array($field, $presentSearchableColumns)) {
                         $searches[] = $exprBuilder->like("$column", ":value");
                     }
