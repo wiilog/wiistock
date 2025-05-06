@@ -25,12 +25,9 @@ final class Version20250505134106 extends AbstractMigration {
         if ($oldValue) {
             $explodedValue = explode(',', $oldValue);
             $newValue = '';
-            if(count($explodedValue) === 1) {
-                $newValue = $newValues[$explodedValue[0]] ?? $explodedValue[0];
-            } else {
-                foreach($explodedValue as $value) {
-                    $newValue .= ($newValues[$value] ?? $value) . ',';
-                }
+
+            foreach($explodedValue as $value) {
+                $newValue .= ($newValues[$value] ?? $value) . ',';
             }
 
             $this->addSql("UPDATE setting SET value = '$newValue' WHERE label = 'ARRIVAL_EMERGENCY_TRIGGERING_FIELDS'");
