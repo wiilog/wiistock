@@ -273,7 +273,7 @@ class EmergencyService {
         }
 
         if ($data->has(FixedFieldEnum::comment->name)) {
-            $emergency->setComment($data->get(FixedFieldEnum::comment->name));
+            $emergency->setComment(strip_tags($data->get(FixedFieldEnum::comment->name)));
         }
     }
 

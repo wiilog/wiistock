@@ -292,6 +292,10 @@ class ReceptionService
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
             ->filter(static fn(PurchaseRequest $request) => $request)
             ->first();
+
+        $hasReferenceArticleEmergencies = Stream::from($reception->getReceptionReferenceArticles())
+            ->some(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => !empty($receptionReferenceArticle->getStockEmergencies()->toArray()));
+
         return [
             "id" => ($reception->getId()),
             "Statut" => $this->formatService->status($reception->getStatut()),
@@ -314,7 +318,7 @@ class ReceptionService
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
-            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            "emergency" => $reception->isManualUrgent() || $hasReferenceArticleEmergencies,
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),

@@ -31,7 +31,6 @@ class EmergencyRepository extends EntityRepository {
             ->orderBy('arrival.date', Order::Descending->value)
             ->getDQL();
 
-        // TODO WIIS-12641 à voir si faut refaire avec changement d'entité ?
         $lastReceptionNumberSubquery = $entityManager->createQueryBuilder()
             ->select('reception.number')
             ->from(Reception::class, 'reception')

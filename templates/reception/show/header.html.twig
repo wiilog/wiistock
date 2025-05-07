@@ -114,13 +114,15 @@
 
 {% block showUrgence %}
     {% set manualUrgent = reception.manualUrgent %}
-    {% set urgentArticles = reception.urgentArticles %}
-    {% if manualUrgent or urgentArticles %}
+    {% if manualUrgent or (hasReferenceArticleEmergencies is defined and hasReferenceArticleEmergencies) %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
         {{
-            ((manualUrgent and urgentArticles) ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes')
-                : (manualUrgent ? trans('Ordre','Réceptions', 'Cette réception est urgente')
-                    : (urgentArticles ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes')
+            ((manualUrgent and hasReferenceArticleEmergencies is defined and hasReferenceArticleEmergencies)
+                ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes')
+                : (manualUrgent
+                    ? trans('Ordre','Réceptions', 'Cette réception est urgente')
+                    : (hasReferenceArticleEmergencies
+                        ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes')
                         : '')))
         }}
     {% endif %}

@@ -426,22 +426,21 @@ function articleChanged($select) {
     let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantite} = selectedReference[0];
+        const {typeQuantite, emergencyComment} = selectedReference[0];
 
         $addArticleLigneSubmit.prop(`disabled`, false);
         $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
-        /*
-        // TODO WIIS-12641 treat reference emergency
+
         const $emergencyContainer = $(`.emergency`);
         const $emergencyCommentContainer =  $(`.emergency-comment`);
-        if (urgent) {
+        if (emergencyComment) {
             $emergencyContainer.removeClass(`d-none`);
             $emergencyCommentContainer.text(emergencyComment);
         } else {
             $emergencyContainer.addClass(`d-none`);
             $emergencyCommentContainer.text(``);
         }
-        */
+
         $modal.find(`.body-add-ref`)
             .removeClass(`d-none`)
             .addClass(`d-flex`);
@@ -793,7 +792,7 @@ function loadReceptionLines({start, search} = {}) {
                                 ordering: true,
                                 paging: false,
                                 searching: false,
-                                order: [['reference', "desc"]],
+                                order: [['emergency', "desc"], ['reference', "desc"]],
                                 columns: [
                                     {data: 'actions', className: 'noVis hideOrder', orderable: false},
                                     {data: 'reference', title: 'Référence'},
@@ -801,6 +800,8 @@ function loadReceptionLines({start, search} = {}) {
                                     {data: 'quantityToReceive', title: 'À recevoir'},
                                     {data: 'receivedQuantity', title: 'Reçu'},
                                     {data: FixedFieldEnum.unitPrice.name, title: FixedFieldEnum.unitPrice.value},
+                                    {data: 'emergency', visible: false},
+                                    {data: 'emergencyComment', visible: false},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
@@ -810,19 +811,16 @@ function loadReceptionLines({start, search} = {}) {
                                 },
                                 rowConfig: {
                                     needsRowClickAction: true,
-                                    /* TODO WIIS-12641
                                     needsColor: true,
                                     dataToCheck: 'emergency',
                                     color: 'danger',
                                     callback: (row, data) => {
-                                        if (data.emergency && data.comment) {
+                                        if (data.emergency && data.emergencyComment) {
                                             const $row = $(row);
-                                            $row.attr('title', data.comment);
+                                            $row.attr('title', data.emergencyComment);
                                             initTooltips($row);
                                         }
                                     }
-
-                                     */
                                 },
                             })
                         });
