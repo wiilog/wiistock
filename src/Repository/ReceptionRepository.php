@@ -118,7 +118,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("articleReferenceArticle.barCode AS articleReferenceArticleBarcode")
             ->addSelect("article.barCode as articleBarcode")
             ->addSelect("reception.manualUrgent AS receptionEmergency")
-            ->addSelect("reception.urgentArticles AS referenceEmergency")
+            ->addSelect("IF(receptionReferenceArticle.stockEmergencies IS NOT EMPTY OR reception.manualUrgent = true, 1,0) AS referenceEmergency")
             ->addSelect("join_storageLocation.label AS storageLocation")
             ->addSelect("receptionReferenceArticle.unitPrice AS receptionReferenceArticleUnitPrice")
             ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
@@ -146,6 +146,7 @@ class ReceptionRepository extends EntityRepository
     public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, FieldModesService $fieldModesService)
     {
         $qb = $this->createQueryBuilder("reception");
+        $exprBuilder = $qb->expr();
 
         $countTotal = QueryBuilderHelper::count($qb, 'reception');
 
@@ -231,7 +232,13 @@ class ReceptionRepository extends EntityRepository
                 case 'emergency':
                     $valueFilter = ((int)($filter['value'] ?? 0));
                     if ($valueFilter) {
-                        $qb->andWhere('reception.urgentArticles = true OR reception.manualUrgent = true');
+                        $qb
+                            ->leftJoin('reception.lines', 'join_reception_lines')
+                            ->leftJoin('join_reception_lines.receptionReferenceArticles', 'join_reception_references_articles')
+                            ->andWhere($exprBuilder->orX(
+                                'join_reception_references_articles.stockEmergencies IS NOT EMPTY ',
+                                ' reception.manualUrgent = true')
+                            );
                     }
                     break;
             }
@@ -394,7 +401,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("join_carrier.label AS carrier")
             ->addSelect("join_location.label AS location")
             ->addSelect("join_storageLocation.label AS storageLocation")
-            ->addSelect("reception.urgentArticles AS emergency_articles")
+            ->addSelect("IF(join_reception_references_articles.stockEmergencies IS NOT EMPTY OR reception.manualUrgent = true, 1,0) AS emergency_articles")
             ->addSelect("reception.manualUrgent AS emergency_manual")
             ->addSelect("reception.number AS number")
             ->addSelect("join_status.nom AS status")
@@ -405,6 +412,8 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin("reception.transporteur", "join_carrier")
             ->leftJoin("reception.fournisseur", "join_supplier")
             ->leftJoin("reception.utilisateur", "join_user")
+            ->leftJoin('reception.lines', 'join_reception_lines')
+            ->leftJoin('join_reception_lines.receptionReferenceArticles', 'join_reception_references_articles')
 
             // Select only reception without packs
             ->andWhere($exprBuilder->eq("({$countLineWithPackQueryBuilder->getDQL()})", 0))

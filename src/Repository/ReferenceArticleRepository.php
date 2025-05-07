@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField\FreeField;
@@ -11,15 +12,12 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
-use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
@@ -29,7 +27,6 @@ use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -202,6 +199,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
+            ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.comment SEPARATOR ', ') AS emergencyComment")
+            ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.id SEPARATOR ', ') AS emergencyId")
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -209,16 +208,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin("reference.type", "type")
             ->leftJoin("reference.articlesFournisseur", "supplierArticle")
             ->leftJoin("supplierArticle.fournisseur", "supplier")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.referenceArticle = reference OR stock_emergency.supplier = supplier")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options['multipleFields']) {
-            Stream::from($queryBuilder->getDQLParts()['select'])
-                ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
-                ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))
-                ->filter(static fn($selectAlias) => !in_array($selectAlias, ['text']))
-                ->each(static fn($field) => $queryBuilder->addGroupBy($field));
+        if($options["multipleFields"] || $options["needEmergencyComment"]) {
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ["emergencyComment", "emergencyId"]);
         }
 
         return $queryBuilder

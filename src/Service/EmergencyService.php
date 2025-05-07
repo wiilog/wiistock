@@ -191,7 +191,7 @@ class EmergencyService {
 
         $emergency->setEndEmergencyCriteria($data->get("endEmergencyCriteria")
             ? EndEmergencyCriteriaEnum::from($data->get("endEmergencyCriteria"))
-            : EndEmergencyCriteriaEnum::REMAINING_QUANTITY);
+            : EndEmergencyCriteriaEnum::END_DATE);
 
         if ($data->has(FixedFieldEnum::supplier->name)) {
             $provider = $data->get(FixedFieldEnum::supplier->name)
@@ -273,7 +273,7 @@ class EmergencyService {
         }
 
         if ($data->has(FixedFieldEnum::comment->name)) {
-            $emergency->setComment($data->get(FixedFieldEnum::comment->name));
+            $emergency->setComment(strip_tags($data->get(FixedFieldEnum::comment->name)));
         }
     }
 

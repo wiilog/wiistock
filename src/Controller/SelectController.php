@@ -240,6 +240,7 @@ class SelectController extends AbstractController {
             'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
             'minQuantity' => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
             'multipleFields' => $request->query->getBoolean('multipleFields'),
+            'needEmergencyComment' => $request->query->getBoolean('need-emergency-comment'),
             'visibilityGroup' => $request->query->get('visibilityGroup'),
             'filterFields' => $request->query->get('filterFields'),
         ];
