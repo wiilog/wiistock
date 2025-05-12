@@ -2,7 +2,6 @@
 
 namespace App\Entity\Emergency;
 
-use App\Entity\Emergency\Enum\EmergencyTriggerEnum;
 use App\Entity\Emplacement;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\ReceptionReferenceArticle;
