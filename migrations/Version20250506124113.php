@@ -19,6 +19,10 @@ final class Version20250506124113 extends AbstractMigration {
     }
 
     public function up(Schema $schema): void {
+        if ($schema->hasTable('emergency')) {
+            return;
+        }
+
         $this->addSql('CREATE TABLE arrivage_tracking_emergency (arrivage_id INT NOT NULL, tracking_emergency_id INT NOT NULL, PRIMARY KEY(arrivage_id, tracking_emergency_id))');
         $this->addSql('CREATE TABLE emergency (id INT AUTO_INCREMENT NOT NULL, type_id INT NOT NULL, supplier_id INT DEFAULT NULL, buyer_id INT DEFAULT NULL, carrier_id INT DEFAULT NULL, end_emergency_criteria VARCHAR(255) NOT NULL, comment LONGTEXT DEFAULT NULL, carrier_tracking_number VARCHAR(255) DEFAULT NULL, date_start DATETIME DEFAULT NULL, date_end DATETIME DEFAULT NULL, created_at DATETIME NOT NULL, closed_at DATETIME DEFAULT NULL, last_triggered_at DATETIME DEFAULT NULL, order_number VARCHAR(255) DEFAULT NULL, free_fields JSON DEFAULT NULL, discr VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE TABLE tracking_emergency (id INT NOT NULL, post_number VARCHAR(255) DEFAULT NULL, internal_article_code VARCHAR(255) DEFAULT NULL, supplier_article_code VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -145,9 +149,12 @@ final class Version20250506124113 extends AbstractMigration {
         $now = (new DateTime("now"))->format('Y-m-d H:i:s');
 
         $standardEmergencyComment = "ggagagagaagagagagaagagag"; //TODO
+        $standardEmergencyExist = false;
 
-        $this->addSql(
-            "
+        foreach ($urgentArrivals as $urgentArrival) {
+            if (!$urgentArrival["tracking_emergency_id"]) {
+                $this->addSql(
+                    "
                     INSERT INTO emergency (
                         buyer_id,
                         supplier_id,
@@ -182,19 +189,19 @@ final class Version20250506124113 extends AbstractMigration {
                         NULL
                     )
                 ",
-            [
-                "dateStart" => $now,
-                "dateEnd" => $now,
-                "createdAt" => $now,
-                "typeId" => $typeIdbyName['standard'],
-                "endEmergencyCriteria" => EndEmergencyCriteriaEnum::END_DATE->value,
-                "discr" => EmergencyDiscrEnum::TRACKING_EMERGENCY->value,
-                "comment" => $standardEmergencyComment,
-            ]
-        );
+                    [
+                        "dateStart" => $now,
+                        "dateEnd" => $now,
+                        "createdAt" => $now,
+                        "typeId" => $typeIdbyName['standard'],
+                        "endEmergencyCriteria" => EndEmergencyCriteriaEnum::END_DATE->value,
+                        "discr" => EmergencyDiscrEnum::TRACKING_EMERGENCY->value,
+                        "comment" => $standardEmergencyComment,
+                    ]
+                );
 
-        $this->addSql(
-            "
+                $this->addSql(
+                    "
                     INSERT INTO tracking_emergency (
                         id,
                         post_number,
@@ -207,9 +214,10 @@ final class Version20250506124113 extends AbstractMigration {
                         NULL
                     )
                 "
-        );
+                );
+                $standardEmergencyExist = true;
+            }
 
-        foreach ($urgentArrivals as $urgentArrival) {
             $trackingEmergencyId = $urgentArrival["tracking_emergency_id"] ? "'".$urgentArrival["tracking_emergency_id"]."'"  : "(SELECT id FROM emergency WHERE comment = '$standardEmergencyComment' ORDER BY id DESC LIMIT 1)";
 
             $this->addSql(
