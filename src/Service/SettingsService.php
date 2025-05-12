@@ -897,10 +897,6 @@ class SettingsService {
                 }
             }
 
-            if(isset($data["emergencyStockWarning"])){
-                $type->setStockEmergencyAlertModes(Stream::explode(",", $data["emergencyStockWarning"])->toArray());
-            }
-
             $newLabel = $data["label"] ?? $type->getLabel();
             $type
                 ->setLabel($newLabel)

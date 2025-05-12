@@ -83,10 +83,6 @@ class FormatService
         Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
     ];
 
-    public const EMERGENCY_STOCK_WARNING_LABELS = [
-        StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value => 'Acheteur',
-        StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value => 'Demandeur'
-    ];
     public const SECONDS_IN_DAY = 86400;
 
     #[Required]
