@@ -46,7 +46,7 @@ use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type\CategoryType;
-use App\Entity\Type\EmergencyStockWarningEnum;
+use App\Entity\Type\StockEmergencyAlertMode;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -2418,10 +2418,10 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $sendMailToBuyerLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value];
-                $sendMailToBuyerValue = EmergencyStockWarningEnum::SEND_MAIL_TO_BUYER->value;
-                $sendMailToRequesterLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value];
-                $sendMailToRequesterValue = EmergencyStockWarningEnum::SEND_MAIL_TO_REQUESTER->value;
+                $sendMailToBuyerLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value];
+                $sendMailToBuyerValue = StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value;
+                $sendMailToRequesterLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value];
+                $sendMailToRequesterValue = StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value;
 
                 $data[] = [
                     "label" => "Alert email",
@@ -2432,12 +2432,12 @@ class SettingsController extends AbstractController {
                             [
                                 "value" => $sendMailToBuyerValue,
                                 "label" => $sendMailToBuyerLabel,
-                                "selected" => in_array($sendMailToRequesterValue, $type?->getEmergencyStockWarnings()),
+                                "selected" => in_array($sendMailToRequesterValue, $type?->getStockEmergencyAlertModes()),
                             ],
                             [
                                 "value" => $sendMailToRequesterValue,
                                 "label" => $sendMailToRequesterLabel,
-                                "selected" => in_array($sendMailToRequesterValue, $type?->getEmergencyStockWarnings()),
+                                "selected" => in_array($sendMailToRequesterValue, $type?->getStockEmergencyAlertModes()),
                             ]
                         ],
                     ]),
@@ -2635,7 +2635,7 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $emergencyWarning = Stream::from($type ? $type->getEmergencyStockWarnings() : [])
+                $emergencyWarning = Stream::from($type ? $type->getStockEmergencyAlertModes() : [])
                     ->map(fn(String $emergencyStockWarningEnum)
                         => $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[$emergencyStockWarningEnum])
                     ->toArray();

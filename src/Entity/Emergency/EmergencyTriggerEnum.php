@@ -1,5 +1,5 @@
 <?php
-namespace App\Entity\Emergency\Enum;
+namespace App\Entity\Emergency;
 
 
 enum EmergencyTriggerEnum: string {

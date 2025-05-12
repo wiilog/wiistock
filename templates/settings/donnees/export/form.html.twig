@@ -9,8 +9,8 @@
         {% set isRelativeDate = false %}
     {% endif %}
     {{ form.radio('type', null, false, [
-        {label: 'Export CSV unique', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_UNIQUE'), checked: not export.type or export.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_EXPORT'), disabled: export.id is not null},
-        {label: 'Export CSV planifié', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_SCHEDULED'), checked: export.type and export.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_EXPORT'), disabled: export.id is not null}
+        {label: 'Export CSV unique', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_UNIQUE'), checked: not export.type or export.type.label == constant('App\\Entity\\Type\\Type::LABEL_UNIQUE_EXPORT'), disabled: export.id is not null},
+        {label: 'Export CSV planifié', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_SCHEDULED'), checked: export.type and export.type.label == constant('App\\Entity\\Type\\Type::LABEL_SCHEDULED_EXPORT'), disabled: export.id is not null}
     ]) }}
     <div>
         <div class="wii-section-title my-3">Type de données à exporter</div>

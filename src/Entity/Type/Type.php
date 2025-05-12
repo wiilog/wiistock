@@ -124,7 +124,7 @@ class Type {
     private ?bool $sendMailReceiver = null;
 
     #[ORM\Column(type: Types::JSON)]
-    private array $emergencyStockWarnings = [];
+    private array $stockEmergencyAlertModes = [];
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
@@ -558,12 +558,12 @@ class Type {
     /**
      * @return array<int, String>
      */
-    public function getEmergencyStockWarnings(): array {
-        return $this->emergencyStockWarnings;
+    public function getStockEmergencyAlertModes(): array {
+        return $this->stockEmergencyAlertModes;
     }
 
-    public function setEmergencyStockWarnings(array $emergencyStockWarnings): self {
-        $this->emergencyStockWarnings = $emergencyStockWarnings;
+    public function setStockEmergencyAlertModes(array $stockEmergencyAlertModes): self {
+        $this->stockEmergencyAlertModes = $stockEmergencyAlertModes;
 
         return $this;
     }
