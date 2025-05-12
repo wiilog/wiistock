@@ -216,6 +216,7 @@ final class Version20250506124113 extends AbstractMigration {
                 $standardEmergencyExist = true;
             }
 
+        foreach ($urgentArrivals as $urgentArrival) {
             $trackingEmergencyId = $urgentArrival["tracking_emergency_id"] ? "'".$urgentArrival["tracking_emergency_id"]."'"  : "(SELECT id FROM emergency WHERE comment = '$standardEmergencyComment' ORDER BY id DESC LIMIT 1)";
 
             $this->addSql(
@@ -232,7 +233,9 @@ final class Version20250506124113 extends AbstractMigration {
                     "arrivalId" => $urgentArrival['arrival_id'],
                 ]
             );
+
         }
+
     }
 
     public function down(Schema $schema): void {}
