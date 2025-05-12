@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategoryType;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Type;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use WiiCommon\Helper\Stream;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
@@ -35,8 +35,24 @@ final class Version20250408103807 extends AbstractMigration {
             'categoryTypeLabel' => CategoryType::TRACKING_EMERGENCY
         ]);
 
-        $emergencyTypeValuesDecoded = @json_decode($emergencyTypeValues[0]['elements'], true)
-            ?: [Type::LABEL_STANDARD];
+        $emergencyTypeValuesDecoded = @json_decode($emergencyTypeValues[0]['elements'], true);
+        $emergencyTypeValuesDecoded[]= Type::LABEL_STANDARD;
+
+        $emergencyTypes = $this->connection
+            ->executeQuery('
+                SELECT DISTINCT type
+                FROM urgence
+            ', [])
+            ->fetchAllAssociative();
+
+        $emergencyTypes = Stream::from($emergencyTypes)
+            ->map(fn(array $emergencyType) => $emergencyType['type'])
+            ->toArray();
+
+        $emergencyTypeValuesDecoded = Stream::from($emergencyTypes, $emergencyTypeValuesDecoded)
+            ->unique()
+            ->filter()
+            ->toArray();
 
         foreach ($emergencyTypeValuesDecoded as $emergencyTypeValue) {
             $this->addSql("
