@@ -42,6 +42,7 @@ use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type\CategoryType;
+use App\Entity\Type\StockEmergencyAlertMode;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -894,10 +895,6 @@ class SettingsService {
                 }
             }
 
-            if(isset($data["emergencyStockWarning"])){
-                $type->setStockEmergencyAlertModes(Stream::explode(",", $data["emergencyStockWarning"])->toArray());
-            }
-
             $newLabel = $data["label"] ?? $type->getLabel();
             $type
                 ->setLabel($newLabel)
@@ -924,6 +921,15 @@ class SettingsService {
                 $type->setCreatedIdentifierNature($nature);
             } else {
                 $type->setCreatedIdentifierNature(null);
+            }
+
+            // array_key_exists instead of isset to clear database column if input cleared
+            if(array_key_exists("stockEmergencyAlertModes", $data)){
+                $stockEmergencyAlertModes = Stream::explode(",", $data["stockEmergencyAlertModes"] ?? "")
+                    ->filter() // ignore empty items
+                    ->filterMap(static fn (string $value) => StockEmergencyAlertMode::tryFrom($value))
+                    ->values();
+                $type->setStockEmergencyAlertModes($stockEmergencyAlertModes);
             }
 
 
