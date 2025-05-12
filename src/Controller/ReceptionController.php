@@ -270,8 +270,7 @@ class ReceptionController extends AbstractController {
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
                           Request                $request,
-                          PurchaseRequest        $purchaseRequest = null): Response
-    {
+                          PurchaseRequest        $purchaseRequest = null): Response {
         $arrivageData = null;
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -285,6 +284,7 @@ class ReceptionController extends AbstractController {
                 ];
             }
         }
+        $emergencyIdFilter = $request->query->getInt('emergency') ?: null;
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -314,6 +314,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
             'arrivageToReception' => $arrivageData,
+            'emergencyIdFilter' => $emergencyIdFilter,
         ]);
     }
 
