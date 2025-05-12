@@ -152,7 +152,7 @@ final class Version20250506124113 extends AbstractMigration {
         $standardEmergencyExist = false;
 
         foreach ($urgentArrivals as $urgentArrival) {
-            if (!$urgentArrival["tracking_emergency_id"]) {
+            if (!$urgentArrival["tracking_emergency_id"] && !$standardEmergencyExist) {
                 $this->addSql(
                     "
                     INSERT INTO emergency (
