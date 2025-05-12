@@ -24,6 +24,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -77,18 +78,28 @@ class ReceptionService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
+    public function getDataForDatatable(Utilisateur $user, InputBag $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
+        $emergencyIdFilter = $params->getInt('emergencyId');
         if ($purchaseRequestFilter) {
             $filters = [
                 [
                     'field' => 'purchaseRequest',
-                    'value' => $purchaseRequestFilter
-                ]
+                    'value' => $purchaseRequestFilter,
+                ],
             ];
-        } else {
+        }
+        elseif ($emergencyIdFilter) {
+            $filters = [
+                [
+                    'field' => 'emergencyId',
+                    'value' => $emergencyIdFilter,
+                ],
+            ];
+        }
+        else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 

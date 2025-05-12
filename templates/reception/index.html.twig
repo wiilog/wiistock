@@ -1,13 +1,16 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réceptions', false) }}{% endblock %}
 {% block title_tooltip %}Ordre | Réceptions{% endblock %}
+
+{% set hasPurchaseRequestFilter = purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 %}
 
 {% block page_filter %}
     {% include 'filters/filtersReception.html.twig' with {
         page: 'PAGE_RECEPTION',
         tableSelector: '#tableReception_id',
-        disabled: purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0,
+        disabled: hasPurchaseRequestFilter or emergencyIdFilter  ,
     } %}
 {% endblock %}
 
@@ -17,110 +20,58 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 %}
-                <div class="btn-group">
-                    <div class="btn btn-primary split-button">
-                        <a href="{{ path('reception_index') }}">Voir toutes les réceptions</a>
-                    </div>
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
-                        <a href="{{ path('purchase_request_show', {'id': purchaseRequest}) }}"
-                           class='dropdown-item pointer'>
-                            <i class="fas fa-undo-alt"></i>
-                            Retour à la demande d'achat
-                        </a>
-                    </div>
-                </div>
-                {% else %}
-                <div class="btn-group">
-                    {% if hasRightCreate and hasRightExport %}
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalNewReception"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
-                        </button>
-                        <button type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="saveExportFile('get_receptions_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                            <a class="dropdown-item pointer"
-                               data-toggle="modal"
-                               data-target="#modalFieldModes">
-                                <i class="fa fa-cog mr-2"></i>
-                                Gestion des colonnes
-                            </a>
-                        </div>
-                    {% else %}
-                        {% if hasRightCreate %}
-                            <div data-toggle="modal"
-                                 data-target="#modalNewReception"
-                                 class="btn btn-primary split-button d-flex align-items-center"
-                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                                <span class="wii-icon wii-icon-plus mr-2"></span>
-                                {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
-                            </div>
-                            <button type="button"
-                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                <span class="fa fa-angle-down"></span>
-                            </button>
-                            <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
-                                <a class="dropdown-item pointer"
-                                   data-toggle="modal"
-                                   data-target="#modalFieldModes">
-                                    <i class="fa fa-cog mr-2"></i>
-                                    Gestion des colonnes
-                                </a>
-                            </div>
-                        {% endif %}
-                        {% if hasRightExport %}
-                            <div class="btn btn-primary" onclick="saveExportFile('get_receptions_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                            <button type="button"
-                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                <span class="fa fa-angle-down"></span>
-                            </button>
-                            <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
-                                <a class="dropdown-item pointer"
-                                   data-toggle="modal"
-                                   data-target="#modalFieldModes">
-                                    <i class="fa fa-cog mr-2"></i>
-                                    Gestion des colonnes
-                                </a>
-                            </div>
-                        {% else %}
-                            <button type="button"
-                                    data-toggle="modal"
-                                    data-target="#modalFieldModes"
-                                    class="btn btn-primary">
-                                <i class="fa fa-cog mr-2"></i>Gestion des colonnes
-                            </button>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                {% endif %}
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasPurchaseRequestFilter or emergencyIdFilter,
+                            title: "Voir toutes les réceptions",
+                            href: path('reception_index'),
+                        },
+                        {
+                            hasRight: hasPurchaseRequestFilter,
+                            title: "Retour à la demande d'achat",
+                            href: path('purchase_request_show', {'id': purchaseRequest}),
+                        },
+                        {
+                            hasRight: hasPurchaseRequestFilter,
+                            title: "Retour à la liste des urgences",
+                            href: path('emergency_index'),
+                        },{
+                            hasRight: hasRightCreate,
+                            title: trans('Ordre','Réceptions', 'nouvelle réception', false) | capitalize,
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewReception",
+                                "onclick": "clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();",
+                            },
+                        },
+                        {
+                            hasRight: hasRightExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon : "fa fa-file-csv",
+                            attributes: {
+                                "onclick" : "saveExportFile('get_receptions_csv')",
+                            },
+                        },
+
+                        {
+                            hasRight: true,
+                            title: trans('Général', null, 'Zone liste', 'Gestion des colonnes'),
+                            icon : "fa fa-cog",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
+                            },
+                        },
+                        {
+                            hasRight: not emergencyIdFilter,
+                            title: trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer'),
+                            icon : "fa fa-cog",
+                            class: "dispatch-mode-button d-none",
+                        },
+                    ]
+                } %}
             </div>
         </div>
         <div class="row">
@@ -136,8 +87,11 @@
             </div>
         </div>
     </div>
-    <input type="hidden" value="{{ purchaseRequestFilter }}" id="purchaseRequestFilter">
-    <input type="hidden" value="{{ purchaseRequest }}" id="purchaseRequest">
+
+    {{ form.hidden('purchaseRequestFilter', purchaseRequestFilter) }}
+    {{ form.hidden('emergencyIdFilter', emergencyIdFilter) }}
+    {{ form.hidden('purchaseRequest', purchaseRequest) }}
+
     {% include "reception/modalNewReception.html.twig" with {
         arrivageToReception: arrivageToReception
     } %}

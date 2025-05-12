@@ -234,6 +234,16 @@ class ReceptionRepository extends EntityRepository
                         $qb->andWhere('reception.urgentArticles = true OR reception.manualUrgent = true');
                     }
                     break;
+                case 'emergencyId':
+                    $valueFilter = ((int)($filter['value'] ?? 0));
+                    if ($valueFilter) {
+                        $qb
+                            ->innerJoin("reception.lines", "receptionLine")
+                            ->innerJoin("receptionLine.receptionReferenceArticles", "receptionReferenceArticles")
+                            ->innerJoin("receptionReferenceArticles.stockEmergencies", "stockEmergency",Join::WITH, "stockEmergency.id = :emergencyId")
+                            ->setParameter('emergencyId', $valueFilter);
+                    }
+                    break;
             }
         }
         //Filter search
