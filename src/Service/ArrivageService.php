@@ -25,7 +25,6 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
-use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
