@@ -2418,26 +2418,21 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $sendMailToBuyerLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value];
-                $sendMailToBuyerValue = StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value;
-                $sendMailToRequesterLabel = $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value];
-                $sendMailToRequesterValue = StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value;
-
                 $data[] = [
                     "label" => "Alert email",
-                    "value" => $formService->macro("select", "emergencyStockWarning", null, false, [
+                    "value" => $formService->macro("select", "stockEmergencyAlertModes", null, false, [
                         "type" => "",
                         "multiple" => true,
                         "items" => [
                             [
-                                "value" => $sendMailToBuyerValue,
-                                "label" => $sendMailToBuyerLabel,
-                                "selected" => in_array($sendMailToRequesterValue, $type?->getStockEmergencyAlertModes()),
+                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value,
+                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER),
+                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER, $type?->getStockEmergencyAlertModes() ?? []),
                             ],
                             [
-                                "value" => $sendMailToRequesterValue,
-                                "label" => $sendMailToRequesterLabel,
-                                "selected" => in_array($sendMailToRequesterValue, $type?->getStockEmergencyAlertModes()),
+                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value,
+                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER),
+                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER, $type?->getStockEmergencyAlertModes() ?? []),
                             ]
                         ],
                     ]),
@@ -2635,14 +2630,11 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
-                $emergencyWarning = Stream::from($type ? $type->getStockEmergencyAlertModes() : [])
-                    ->map(fn(String $emergencyStockWarningEnum)
-                        => $this->formatService::EMERGENCY_STOCK_WARNING_LABELS[$emergencyStockWarningEnum])
-                    ->toArray();
-
                 $data[] = [
                     "label" => "Alert Email" . $formService->macro("tooltip", "L’email sera envoyé à chaque nouvelle réception concernant l’urgence à l’acheteur et / ou demandeur de l’urgence ou de la référence"),
-                    "value" => Stream::from($emergencyWarning)->filter()->join(","),
+                    "value" => Stream::from($type ? $type->getStockEmergencyAlertModes() : [])
+                        ->filterMap(fn(StockEmergencyAlertMode $mode) => $this->formatService->stockEmergencyAlertMode($mode))
+                        ->join(", "),
                 ];
             }
 

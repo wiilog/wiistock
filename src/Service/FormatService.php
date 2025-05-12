@@ -83,10 +83,6 @@ class FormatService
         Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
     ];
 
-    public const EMERGENCY_STOCK_WARNING_LABELS = [
-        StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value => 'Acheteur',
-        StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value => 'Demandeur'
-    ];
     public const SECONDS_IN_DAY = 86400;
 
     #[Required]
@@ -499,5 +495,14 @@ class FormatService
                 return "$key : $value";
             })
             ->join("\n");
+    }
+
+    public function stockEmergencyAlertMode(?StockEmergencyAlertMode $mode,
+                                            ?string                  $else = null): ?string {
+        return match ($mode) {
+            StockEmergencyAlertMode::SEND_MAIL_TO_BUYER => 'Acheteur',
+            StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER => 'Demandeur',
+            default => $else,
+        };
     }
 }

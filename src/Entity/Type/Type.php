@@ -30,6 +30,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
 class Type {
@@ -99,7 +101,7 @@ class Type {
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Demande::class)]
     private Collection $demandesLivraison;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispute::class)]
@@ -123,7 +125,7 @@ class Type {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendMailReceiver = null;
 
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::JSON, nullable: false)]
     private array $stockEmergencyAlertModes = [];
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
@@ -556,14 +558,31 @@ class Type {
     }
 
     /**
-     * @return array<int, String>
+     * @return array<StockEmergencyAlertMode>
      */
     public function getStockEmergencyAlertModes(): array {
-        return $this->stockEmergencyAlertModes;
+        return Stream::from($this->stockEmergencyAlertModes ?? [])
+            ->filterMap(static fn (string $value) => StockEmergencyAlertMode::tryFrom($value))
+            ->values();
     }
 
+    /**
+     * @param array<StockEmergencyAlertMode> $stockEmergencyAlertModes
+     */
     public function setStockEmergencyAlertModes(array $stockEmergencyAlertModes): self {
-        $this->stockEmergencyAlertModes = $stockEmergencyAlertModes;
+        $stockEmergencyAlertModesStream = Stream::from($stockEmergencyAlertModes);
+
+        // test item type
+        $hasInvalidMode = !$stockEmergencyAlertModesStream->every(static fn($value) => $value instanceof StockEmergencyAlertMode);
+        if ($hasInvalidMode) {
+            throw new Exception("Invalid stock emergency mode");
+        }
+
+        $this->stockEmergencyAlertModes = $stockEmergencyAlertModesStream
+            // we can't call unique on array<Enum> only array<string> or array<int>
+            ->map(static fn (StockEmergencyAlertMode $mode) => $mode->value)
+            ->unique()
+            ->values();
 
         return $this;
     }
