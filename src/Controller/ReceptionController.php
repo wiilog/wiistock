@@ -245,14 +245,15 @@ class ReceptionController extends AbstractController {
 
     #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
-    public function api(Request $request,
-                        ReceptionService $receptionService): Response {
+    public function api(Request                $request,
+                        ReceptionService       $receptionService,
+                        EntityManagerInterface $entityManager): Response {
         $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
+        $data = $receptionService->getDataForDatatable($entityManager, $user, $request->request, $purchaseRequestFilter);
 
         return new JsonResponse($data);
     }

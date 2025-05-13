@@ -24,7 +24,7 @@ class StockEmergencyRepository extends EntityRepository {
 
         $queryBuilder
             ->leftJoin('stock_emergency.referenceArticle', 'join_emergency_reference_article')
-            ->leftJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH, 'join_reference_article = :referenceArticle')
+            ->leftJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH, $exprBuilder->eq("join_reference_article", ":referenceArticle"))
             ->leftJoin('join_reference_article.articlesFournisseur', 'join_article_fournisseur')
             ->andWhere($exprBuilder->orX(
                 // when emergencyTrigger is reference

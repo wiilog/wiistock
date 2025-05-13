@@ -435,7 +435,7 @@ function articleChanged($select) {
         const $emergencyCommentContainer =  $(`.emergency-comment`);
         if (emergencyId) {
             $emergencyContainer.removeClass(`d-none`);
-            $emergencyCommentContainer.text(emergencyComment);
+            $emergencyCommentContainer.html(emergencyComment);
         } else {
             $emergencyContainer.addClass(`d-none`);
             $emergencyCommentContainer.text(``);

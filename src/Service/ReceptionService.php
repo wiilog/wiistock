@@ -77,7 +77,7 @@ class ReceptionService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
@@ -98,7 +98,7 @@ class ReceptionService
 
         $rows = [];
         foreach ($receptions as $reception) {
-            $rows[] = $this->dataRowReception($reception);
+            $rows[] = $this->dataRowReception($entityManager, $reception);
         }
 
         return [
