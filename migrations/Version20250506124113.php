@@ -232,9 +232,7 @@ final class Version20250506124113 extends AbstractMigration {
                     "arrivalId" => $urgentArrival['arrival_id'],
                 ]
             );
-
         }
-
     }
 
     public function down(Schema $schema): void {}
