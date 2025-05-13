@@ -437,12 +437,12 @@ class ReceptionRepository extends EntityRepository
             ->getResult();
     }
 
-    public function countStockEmergenciesByReception(Reception $reception): int
-    {
+    public function countStockEmergenciesByReception(Reception $reception): int {
         $queryBuilder = $this->createQueryBuilder('reception');
+        $exprBuilder = $queryBuilder->expr();
 
         $queryBuilder
-            ->select('COUNT(join_stock_emergency)')
+            ->select($exprBuilder->count('join_stock_emergency'))
             ->leftJoin('reception.lines', 'join_reception_lines')
             ->leftJoin('join_reception_lines.receptionReferenceArticles', 'join_reception_references_articles')
             ->leftJoin('join_reception_references_articles.stockEmergencies', 'join_stock_emergency')
