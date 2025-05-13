@@ -286,16 +286,14 @@ class ReceptionService
         }
     }
 
-    public function dataRowReception(Reception $reception): array
-    {
-        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+    public function dataRowReception(EntityManagerInterface $entityManager,
+                                     Reception              $reception): array {
+        $receptionRepository = $entityManager->getRepository(Reception::class);
 
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
             ->filter(static fn(PurchaseRequest $request) => $request)
             ->first();
-
-        $hasReferenceArticleEmergencies = $receptionRepository->countStockEmergenciesByReception($reception) > 0;
 
         return [
             "id" => ($reception->getId()),
@@ -319,7 +317,7 @@ class ReceptionService
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
-            "emergency" => $reception->isManualUrgent() || $hasReferenceArticleEmergencies,
+            "emergency" => $reception->isManualUrgent() || $receptionRepository->countStockEmergenciesByReception($reception) > 0,
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),
