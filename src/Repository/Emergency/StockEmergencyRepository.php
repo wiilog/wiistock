@@ -6,7 +6,6 @@ namespace App\Repository\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\ReferenceArticle;
-use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -16,9 +15,8 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class StockEmergencyRepository extends EntityRepository {
 
-    public function getEmergencyTriggeredByRefArticle(FormatService    $formatService,
-                                                      ReferenceArticle $referenceArticle,
-                                                      DateTime         $now) {
+    public function findEmergencyTriggeredByRefArticle(ReferenceArticle $referenceArticle,
+                                                       DateTime         $now) {
         $queryBuilder = $this->createQueryBuilder('stock_emergency');
         $exprBuilder = $queryBuilder->expr();
 

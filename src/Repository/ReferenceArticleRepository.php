@@ -22,6 +22,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
+use App\Repository\Emergency\StockEmergencyRepository;
 use App\Service\FormatService;
 use App\Service\FieldModesService;
 use DateTime;
@@ -204,18 +205,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
-            ->leftJoin("reference.articlesFournisseur", "supplierArticle")
-            ->leftJoin("supplierArticle.fournisseur", "supplier")
-            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.referenceArticle = reference OR stock_emergency.supplier = supplier")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options["multipleFields"] || $options["needEmergencyComment"]) {
-            $queryBuilder
-                ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.comment SEPARATOR ', ') AS emergencyComment")
-                ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.id SEPARATOR ', ') AS emergencyId");
-            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ["emergencyComment", "emergencyId"]);
+        if($options["multipleFields"]) {
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder);
         }
 
         return $queryBuilder

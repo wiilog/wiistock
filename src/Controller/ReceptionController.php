@@ -1532,7 +1532,6 @@ class ReceptionController extends AbstractController {
                                    LivraisonsManagerService   $livraisonsManagerService,
                                    NotificationService        $notificationService,
                                    TranslationService         $translationService,
-                                   FormatService              $formatService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -1749,7 +1748,7 @@ class ReceptionController extends AbstractController {
             $referenceArticle = $articleArray['refArticle'];
             $quantityReceived = intval($articleArray['quantityReceived']);
 
-            $emergenciesTriggeredByRefArticleOrSupplier = $stockEmergencyRepository->getEmergencyTriggeredByRefArticle($formatService, $referenceArticle, $now);
+            $emergenciesTriggeredByRefArticleOrSupplier = $stockEmergencyRepository->findEmergencyTriggeredByRefArticle($referenceArticle, $now);
 
             /** @var StockEmergency $stockEmergency */
             foreach ($emergenciesTriggeredByRefArticleOrSupplier as $stockEmergency) {
@@ -2215,6 +2214,25 @@ class ReceptionController extends AbstractController {
                 "pageLength" => $listLength,
                 "pagesCount" => ceil($result["total"] / $listLength),
             ]),
+        ]);
+    }
+
+    #[Route("/{referenceArticle}/reference-stock-emergencies", name: "reference_stock_emergencies", options: ['expose' => true], methods: "GET")]
+    public function referenceStockEmergencies(ReferenceArticle       $referenceArticle,
+                                              EntityManagerInterface $entityManager): Response {
+        $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
+
+        $stockEmergerciesTriggeredByRef = $stockEmergencyRepository->findEmergencyTriggeredByRefArticle($referenceArticle, new DateTime());
+
+        $emergencyComment = Stream::from($stockEmergerciesTriggeredByRef)
+            ->map(static fn(StockEmergency $stockEmergency) => $stockEmergency->getComment())
+            ->filter()
+            ->join(', ');
+
+        return $this->json([
+            'success' => true,
+            'emergencyComment' => $emergencyComment,
+            'hasEmergencies' => count($stockEmergerciesTriggeredByRef) > 0,
         ]);
     }
 

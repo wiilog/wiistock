@@ -426,25 +426,35 @@ function articleChanged($select) {
     let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantite, emergencyComment, emergencyId} = selectedReference[0];
+        wrapLoadingOnActionButton($('.modal-body'), () => (
+            AJAX.route(GET, `reference_stock_emergencies`, {referenceArticle: selectedReference[0].id})
+                .json()
+                .then(({emergencyComment, hasEmergencies}) => {
+                    const {typeQuantite} = selectedReference[0];
 
-        $addArticleLigneSubmit.prop(`disabled`, false);
-        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
+                    $addArticleLigneSubmit.prop(`disabled`, false);
+                    $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
 
-        const $emergencyContainer = $(`.emergency`);
-        const $emergencyCommentContainer =  $(`.emergency-comment`);
-        if (emergencyId) {
-            $emergencyContainer.removeClass(`d-none`);
-            $emergencyCommentContainer.html(emergencyComment);
-        } else {
-            $emergencyContainer.addClass(`d-none`);
-            $emergencyCommentContainer.text(``);
-        }
+                    const $emergencyContainer = $(`.emergency`);
+                    const $emergencyCommentContainer =  $(`.commentOverflow`);
+                    const $emergencyComment =  $(`.emergency-comment`);
 
-        $modal.find(`.body-add-ref`)
-            .removeClass(`d-none`)
-            .addClass(`d-flex`);
-        $('#innerNewRef').html(``);
+                    if (hasEmergencies) {
+                        $emergencyContainer.removeClass(`d-none`);
+                        $emergencyCommentContainer.toggleClass('d-none', emergencyComment.length === 0);
+                        $emergencyComment.html(emergencyComment);
+                    } else {
+                        $emergencyContainer.addClass(`d-none`);
+                        $emergencyCommentContainer.addClass(`d-none`);
+                        $emergencyComment.text(``);
+                    }
+
+                    $modal.find(`.body-add-ref`)
+                        .removeClass(`d-none`)
+                        .addClass(`d-flex`);
+                    $('#innerNewRef').html(``);
+                })
+        ));
     }
     else {
         $addArticleAndRedirectSubmit.addClass(`d-none`);
