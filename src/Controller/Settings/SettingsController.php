@@ -197,8 +197,8 @@ class SettingsController extends AbstractController {
                             "label" => "Pays d'origine",
                             "save" => true,
                         ],
-                        self::MENU_SLEEPING_STOCK_ALERT => [
-                            "label" => "Alerte stock dormant",
+                        self::MENU_SLEEPING_STOCK_ => [
+                            "label" => "e stock dormant",
                             "save" => true,
                         ]
                     ],
@@ -595,9 +595,9 @@ class SettingsController extends AbstractController {
             "label" => "Modèles de notifications",
             "icon" => "menu-notification",
             "menus" => [
-                self::MENU_ALERTS => [
-                    "label" => "Alertes",
-                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
+                self::MENU_S => [
+                    "label" => "es",
+                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_S,
                     "wrapped" => false,
                 ],
                 self::MENU_PUSH_NOTIFICATIONS => [
@@ -739,7 +739,7 @@ class SettingsController extends AbstractController {
 
     public const MENU_CONFIGURATIONS = "configurations";
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
-    public const MENU_ALERTS = "alertes";
+    public const MENU_S = "es";
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
 
     public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "demande_collecte_et_creation_reference";
@@ -818,7 +818,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
-    public const MENU_SLEEPING_STOCK_ALERT = "alerte_stock_dormant";
+    public const MENU_SLEEPING_STOCK_ = "e_stock_dormant";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
 
     #[Route('/', name: 'settings_index')]
@@ -1172,7 +1172,7 @@ class SettingsController extends AbstractController {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $subLineFieldParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
-        $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
+        $TemplateRepository = $entityManager->getRepository(Template::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
@@ -1240,7 +1240,7 @@ class SettingsController extends AbstractController {
                             "categories" => "<select name='category' class='form-control data'>$categories</select>",
                         ];
                     },
-                    self::MENU_SLEEPING_STOCK_ALERT => fn () => [
+                    self::MENU_SLEEPING_STOCK_ => fn () => [
                         "types" => $this->typeGenerator(CategoryType::ARTICLE),
                         "deleveryRequestTemplatesSleepingStock" => $deleveryRequestTemplateSleepingStockRepository->getForSelect(),
                     ],
@@ -1825,8 +1825,8 @@ class SettingsController extends AbstractController {
                 },
             ],
             self::CATEGORY_NOTIFICATIONS => [
-                self::MENU_ALERTS => function() use ($alertTemplateRepository) {
-                    return $this->getAlertTemplates($alertTemplateRepository);
+                self::MENU_S => function() use ($TemplateRepository) {
+                    return $this->getTemplates($TemplateRepository);
                 },
             ],
             self::CATEGORY_USERS => [
@@ -2431,14 +2431,14 @@ class SettingsController extends AbstractController {
                         "multiple" => true,
                         "items" => [
                             [
-                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value,
-                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER),
-                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER, $type?->getStockEmergencyAlertModes() ?? []),
+                                "value" => StockEmergencyMode::SEND_MAIL_TO_BUYER->value,
+                                "label" => $this->formatService->stockEmergencyMode(StockEmergencyMode::SEND_MAIL_TO_BUYER),
+                                "selected" => in_array(StockEmergencyMode::SEND_MAIL_TO_BUYER, $type?->getStockEmergencyModes() ?? []),
                             ],
                             [
-                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value,
-                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER),
-                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER, $type?->getStockEmergencyAlertModes() ?? []),
+                                "value" => StockEmergencyMode::SEND_MAIL_TO_REQUESTER->value,
+                                "label" => $this->formatService->stockEmergencyMode(StockEmergencyMode::SEND_MAIL_TO_REQUESTER),
+                                "selected" => in_array(StockEmergencyMode::SEND_MAIL_TO_REQUESTER, $type?->getStockEmergencyAlertModes() ?? []),
                             ]
                         ],
                     ]),
