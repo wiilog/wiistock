@@ -199,8 +199,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
-            ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.comment SEPARATOR ', ') AS emergencyComment")
-            ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.id SEPARATOR ', ') AS emergencyId")
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -214,6 +212,9 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setMaxResults(100);
 
         if($options["multipleFields"] || $options["needEmergencyComment"]) {
+            $queryBuilder
+                ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.comment SEPARATOR ', ') AS emergencyComment")
+                ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.id SEPARATOR ', ') AS emergencyId");
             $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ["emergencyComment", "emergencyId"]);
         }
 

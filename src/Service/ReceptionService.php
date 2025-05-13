@@ -288,13 +288,14 @@ class ReceptionService
 
     public function dataRowReception(Reception $reception): array
     {
+        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
             ->filter(static fn(PurchaseRequest $request) => $request)
             ->first();
 
-        $hasReferenceArticleEmergencies = Stream::from($reception->getReceptionReferenceArticles())
-            ->some(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => !empty($receptionReferenceArticle->getStockEmergencies()->toArray()));
+        $hasReferenceArticleEmergencies = $receptionRepository->countStockEmergenciesByReception($reception) > 0;
 
         return [
             "id" => ($reception->getId()),

@@ -23,7 +23,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Type;
-use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
@@ -273,7 +272,7 @@ class EmergencyService {
         }
 
         if ($data->has(FixedFieldEnum::comment->name)) {
-            $emergency->setComment(strip_tags($data->get(FixedFieldEnum::comment->name)));
+            $emergency->setComment($data->get(FixedFieldEnum::comment->name));
         }
     }
 

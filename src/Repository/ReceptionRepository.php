@@ -236,8 +236,8 @@ class ReceptionRepository extends EntityRepository
                             ->leftJoin('reception.lines', 'join_reception_lines')
                             ->leftJoin('join_reception_lines.receptionReferenceArticles', 'join_reception_references_articles')
                             ->andWhere($exprBuilder->orX(
-                                'join_reception_references_articles.stockEmergencies IS NOT EMPTY ',
-                                ' reception.manualUrgent = true')
+                                'join_reception_references_articles.stockEmergencies IS NOT EMPTY',
+                                'reception.manualUrgent = true')
                             );
                     }
                     break;
@@ -435,6 +435,23 @@ class ReceptionRepository extends EntityRepository
             ])
             ->getQuery()
             ->getResult();
+    }
+
+    public function countStockEmergenciesByReception(Reception $reception): int
+    {
+        $queryBuilder = $this->createQueryBuilder('reception');
+
+        $queryBuilder
+            ->select('COUNT(join_stock_emergency)')
+            ->leftJoin('reception.lines', 'join_reception_lines')
+            ->leftJoin('join_reception_lines.receptionReferenceArticles', 'join_reception_references_articles')
+            ->leftJoin('join_reception_references_articles.stockEmergencies', 'join_stock_emergency')
+            ->andWhere('reception = :reception')
+            ->setParameter("reception", $reception);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

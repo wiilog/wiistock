@@ -796,6 +796,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
 
         $typesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
@@ -815,8 +816,7 @@ class ReceptionController extends AbstractController {
             default => $translation->translate("Demande", "Livraison", "Livraison", false),
         };
 
-        $hasReferenceArticleEmergencies = Stream::from($reception->getReceptionReferenceArticles())
-            ->some(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => !empty($receptionReferenceArticle->getStockEmergencies()->toArray()));
+        $hasReferenceArticleEmergencies = $receptionRepository->countStockEmergenciesByReception($reception) > 0;
 
         return $this->render("reception/show/index.html.twig", [
             'reception' => $reception,
@@ -1531,6 +1531,7 @@ class ReceptionController extends AbstractController {
                                    LivraisonsManagerService   $livraisonsManagerService,
                                    NotificationService        $notificationService,
                                    TranslationService         $translationService,
+                                   FormatService              $formatService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -1747,25 +1748,23 @@ class ReceptionController extends AbstractController {
             $referenceArticle = $articleArray['refArticle'];
             $quantityReceived = intval($articleArray['quantityReceived']);
 
-            $emergenciesTriggeredByRefArticleOrSupplier = $stockEmergencyRepository->getEmergencyTriggeredByRefArticle($referenceArticle);
+            $emergenciesTriggeredByRefArticleOrSupplier = $stockEmergencyRepository->getEmergencyTriggeredByRefArticle($formatService, $referenceArticle, $now);
 
             /** @var StockEmergency $stockEmergency */
             foreach ($emergenciesTriggeredByRefArticleOrSupplier as $stockEmergency) {
                 $emergencyTrigger = $stockEmergency->getEmergencyTrigger();
                 $alreadyReceivedQuantity = $stockEmergency->getAlreadyReceivedQuantity();
 
-                if($emergencyTrigger === EmergencyTriggerEnum::SUPPLIER || $alreadyReceivedQuantity < $stockEmergency->getExpectedQuantity()) {
-                    if($emergencyTrigger === EmergencyTriggerEnum::REFERENCE) {
-                        $stockEmergency->setAlreadyReceivedQuantity($alreadyReceivedQuantity + $quantityReceived);
-                    }
-
-                    $stockEmergenciesTriggered[] = [
-                        "stockEmergencyTriggered" => $stockEmergency,
-                        "referenceArticle" => $referenceArticle,
-                    ];
-
-                    $receptionReferenceArticle->addStockEmergency($stockEmergency);
+                if($emergencyTrigger === EmergencyTriggerEnum::REFERENCE) {
+                    $stockEmergency->setAlreadyReceivedQuantity($alreadyReceivedQuantity + $quantityReceived);
                 }
+
+                $stockEmergenciesTriggered[] = [
+                    "stockEmergencyTriggered" => $stockEmergency,
+                    "referenceArticle" => $referenceArticle,
+                ];
+
+                $receptionReferenceArticle->addStockEmergency($stockEmergency);
             }
 
             $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
@@ -1990,7 +1989,8 @@ class ReceptionController extends AbstractController {
                 $article = $articleRepository->find($articleId);
                 $dispute->addArticle($article);
 
-                $lineIsUrgent = $article->getReceptionReferenceArticle() && !empty($article->getReceptionReferenceArticle()->getStockEmergencies()->toArray());
+                $lineIsUrgent = $article->getReceptionReferenceArticle()
+                    && !$article->getReceptionReferenceArticle()->getStockEmergencies()->isEmpty();
                 if($lineIsUrgent) {
                     $dispute->setEmergencyTriggered(true);
                 }
