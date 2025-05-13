@@ -1907,13 +1907,13 @@ class TrackingMovementService {
             $trackingEvent = TrackingEvent::START;
         }
 
-        // see WIIS-12751 example 2
         else if ($trackingMovement->isPicking()
             && $trackingLocation->isStartTrackingTimerOnPicking()
             && !$manualDelayStart) {
             $isStopEvent = $trackingLocation->isStopTrackingTimerOnDrop();
             $isPauseEvent = $trackingLocation->isPauseTrackingTimerOnDrop();
 
+            // see WIIS-12751 example 2
             if ((!$isStopEvent && !$isPauseEvent)
                 || ($isStopEvent && !$isPauseEvent)) {
                 $pack = $trackingMovement->getPack();
