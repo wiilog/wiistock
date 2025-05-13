@@ -160,7 +160,6 @@ function onNewEmergencySubmit(form,
     const $type = $modal.find('[name="type"]');
     const $selectedTypeOption = $type.find('option:selected');
     const emergencyCategoryType = $selectedTypeOption.data('category-type');
-    console.log(data.asObject());
 
     if (emergencyCategoryType === STOCK_EMERGENCY
         && data.has("supplier")) {
