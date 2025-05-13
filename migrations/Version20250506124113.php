@@ -148,7 +148,7 @@ final class Version20250506124113 extends AbstractMigration {
 
         $now = (new DateTime("now"))->format('Y-m-d H:i:s');
 
-        $standardEmergencyComment = "ggagagagaagagagagaagagag"; //TODO
+        $standardEmergencyComment = uniqid();
         $standardEmergencyExist = false;
 
         foreach ($urgentArrivals as $urgentArrival) {
@@ -234,9 +234,7 @@ final class Version20250506124113 extends AbstractMigration {
                     "arrivalId" => $urgentArrival['arrival_id'],
                 ]
             );
-
         }
-
     }
 
     public function down(Schema $schema): void {}
