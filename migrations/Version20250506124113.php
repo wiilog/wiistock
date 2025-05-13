@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\CategoryType;
+use App\Entity\Type\CategoryType;
 use App\Entity\Emergency\EmergencyDiscrEnum;
-use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
-use App\Entity\Type;
 use DateTime;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
