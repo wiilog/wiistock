@@ -225,7 +225,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true])]
+    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true], methods: [self::GET])]
     public function references(Request $request, EntityManagerInterface $manager): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
@@ -242,6 +242,7 @@ class SelectController extends AbstractController {
             'multipleFields' => $request->query->getBoolean('multipleFields'),
             'visibilityGroup' => $request->query->get('visibilityGroup'),
             'filterFields' => $request->query->get('filterFields'),
+            'supplier' => $request->query->get('supplier'),
         ];
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
@@ -261,8 +262,10 @@ class SelectController extends AbstractController {
                 ]);
         }
 
+        $dataKey = $request->query->get("data-key") ?? "result";
+
         return $this->json([
-            "results" => $results->toArray(),
+            $dataKey => $results->toArray(),
         ]);
     }
 

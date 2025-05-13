@@ -78,6 +78,35 @@ class ReferenceArticleRepository extends EntityRepository {
         // add more columns here with their respective weighting (higher = more relevant)
     ];
 
+    /**
+     * @param array{
+     *     visibilityGroup?: boolean,
+     *     needsOnlyMobileSyncReference?: boolean,
+     *     supplier?: int,
+     *     filterFields?: string,
+     *     multipleFields?: boolean,
+     *     ignoredShippingRequest?: boolean,
+     *     ignoredDeliveryRequest?: boolean,
+     *     visibilityGroup?: int,
+     *     status?: string,
+     *     active-only?: boolean,
+     *     type-quantity?: string,
+     *     needsOnlyMobileSyncReference?: boolean,
+     * } $options
+     *
+     * @return array<array{
+     *     id: int,
+     *     label: string,
+     *     text: string,
+     *     location: string,
+     *     description: array,
+     *     typeQuantite: string,
+     *     barCode: string,
+     *     typeId: string,
+     *     dangerousGoods: int,
+     *     quantiteDisponible: int,
+     * }>
+     */
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
@@ -96,7 +125,8 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['type-quantity'] ?? false) {
-            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+            $queryBuilder
+                ->andWhere('reference.typeQuantite = :typeQuantity')
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
@@ -155,13 +185,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->distinct()
             ->select("reference.id AS id");
 
-        if($options['multipleFields']) {
+        if($options['multipleFields'] ?? false) {
             $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ', '), reference.barCode) AS text");
         } else {
             $queryBuilder->addSelect('reference.reference AS text');
         }
 
-        if($options['filterFields']) {
+        if($options['filterFields'] ?? null) {
             $filterFields = json_decode($options['filterFields'], true);
 
             $expression = Stream::from($filterFields ?: [])
@@ -193,6 +223,12 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
+        if ($options['supplier'] ?? null) {
+            $queryBuilder
+                ->andWhere('supplier.id = :supplierId')
+                ->setParameter('supplierId', $options['supplier']);
+        }
+
         $queryBuilder
             ->addSelect('reference.libelle AS label')
             ->addSelect('emplacement.label AS location')
@@ -202,18 +238,22 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
-            ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
             ->leftJoin("reference.articlesFournisseur", "supplierArticle")
             ->leftJoin("supplierArticle.fournisseur", "supplier")
-            ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options['multipleFields']) {
+        if ($term) {
+            $queryBuilder
+                ->andHaving("text LIKE :term")
+                ->setParameter("term", "%$term%");
+        }
+
+        if($options['multipleFields'] ?? false) {
             Stream::from($queryBuilder->getDQLParts()['select'])
                 ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
                 ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))

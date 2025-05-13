@@ -1,5 +1,5 @@
 import {showAndRequireInputByType} from "@app/utils";
-import {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import FixedFieldEnum from "@generated/fixed-field-enum";
@@ -22,8 +22,8 @@ $(function() {
 
     getUserFiltersByPage(PAGE_EMERGENCIES);
 
-    const table = initializeTable();
-    initializeModals(table);
+    const $table = initializeTable();
+    initializeModals($table);
 });
 
 /**
@@ -61,8 +61,8 @@ function onEmergencyTriggerChange($modal) {
     const $endEmergencyCriteriaSwitch = $modal.find('[name="endEmergencyCriteria"]:checked');
     const selectedEndCriteriaValue = $endEmergencyCriteriaSwitch.val();
 
-    const remainingQuantiySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
-    remainingQuantiySwitch
+    const remainingQuantitySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
+    remainingQuantitySwitch
         .next()
         .toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE);
 
@@ -81,7 +81,7 @@ function onEmergencyTriggerChange($modal) {
 }
 
 /**
- * @param {JQueryDataTableApi|JQueryDataTableApi[]} $tableEmergencies
+ * @param {JQueryDataTableApi} $tableEmergencies
  */
 function initializeModals($tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
@@ -96,9 +96,8 @@ function initializeModals($tableEmergencies) {
         .onOpen(() => {
             onEmergencyTypeChange($modalNewEmergency, 'create');
         })
-        .submitTo(POST, 'emergency_new', {
-            tables: $tableEmergencies,
-            clearFields: true,
+        .onSubmit((data, form) => {
+            onNewEmergencySubmit(form, data, $tableEmergencies);
         });
 
     let $modalEditEmergency = $('#modalEditEmergency');
@@ -119,23 +118,8 @@ function initializeModals($tableEmergencies) {
         });
 
     $(document).on('click', '.close-emergency', (event) => {
-        const emergencyId = $(event.target).data('id');
-        Modal.confirm({
-            ajax: {
-                method: POST,
-                route: 'emergency_close',
-                params: {
-                    emergency: emergencyId
-                },
-            },
-            message: "Voulez-vous vraiment cloturer l'urgence ?",
-            title:  "Cloturer l'urgence",
-            validateButton: {
-                color: 'success',
-                label: Translation.of('Général', null, 'Modale', 'Oui'),
-            },
-            table: $tableEmergencies,
-        });
+        const emergency = $(event.target).data('id');
+        onCloseEmergency(emergency, $tableEmergencies);
     });
 }
 
@@ -160,5 +144,116 @@ function initializeTable() {
             needsRowClickAction: true,
         },
         page: 'emergency',
+    });
+}
+
+/**
+ * @param {FormData} data
+ * @param {Form} form
+ * @param {JQueryDataTableApi} $tableEmergencies
+ */
+function onNewEmergencySubmit(form,
+                              data,
+                              $tableEmergencies) {
+
+    const $modal = form.element;
+    const $type = $modal.find('[name="type"]');
+    const $selectedTypeOption = $type.find('option:selected');
+    const emergencyCategoryType = $selectedTypeOption.data('category-type');
+    console.log(data.asObject());
+
+    if (emergencyCategoryType === STOCK_EMERGENCY
+        && data.has("supplier")) {
+
+        const $table = $('<table/>');
+
+        Modal.confirm({
+            message: $('<div>', {
+                html: [
+                    '<p>Vous allez créer une urgence qui impactera les références suivantes :</p>',
+                    '<br/><br/>',
+                    $table
+                ]
+            }),
+            title:  "Confirmation de la création de l'urgence",
+            validateButton: {
+                color: 'success',
+                label: 'Confirmer',
+            },
+            onSuccess: () => {
+                form.loading(() => submitNewEmergency(form, data, $tableEmergencies));
+            }
+        });
+
+        initDataTable($table, {
+            ajax: {
+                "url": Routing.generate('ajax_select_references', {
+                    supplier: data.get("supplier"),
+                    "data-key": "data",
+                }),
+                "type": GET,
+            },
+            domConfig: {
+                removeInfo: true,
+                removeLength: true,
+                removeTableHeader: true,
+            },
+            processing: true,
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            columns: [
+                {data: 'barCode', title: 'Code barre'},
+                {data: 'text', title: 'Référence'},
+                {data: 'label', title: 'Libellé'},
+            ],
+            ordering: false,
+        });
+    }
+    else {
+        form.loading(() => submitNewEmergency(form, data, $tableEmergencies));
+    }
+}
+
+/**
+ * @param {Form} form
+ * @param {FormData} data
+ * @param {JQueryDataTableApi} $tableEmergencies
+ */
+function submitNewEmergency(form,
+                            data,
+                            $tableEmergencies) {
+    return AJAX.route(POST, 'emergency_new')
+        .json(data)
+        .then(({success}) => {
+            if (success) {
+                form.element.modal(`hide`);
+                form.clear();
+                $tableEmergencies.ajax.reload();
+            }
+        });
+}
+
+/**
+ * @param {int} emergency
+ * @param {JQueryDataTableApi} $tableEmergencies
+ */
+function onCloseEmergency(emergency,
+                          $tableEmergencies) {
+    Modal.confirm({
+        ajax: {
+            method: POST,
+            route: 'emergency_close',
+            params: {
+                emergency
+            },
+        },
+        message: "Voulez-vous vraiment clôturer l'urgence ?",
+        title:  "Clôturer l'urgence",
+        validateButton: {
+            color: 'success',
+            label: Translation.of('Général', null, 'Modale', 'Oui'),
+        },
+        table: $tableEmergencies,
     });
 }
