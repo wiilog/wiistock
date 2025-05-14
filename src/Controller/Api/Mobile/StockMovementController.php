@@ -13,7 +13,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
 use App\Service\ProjectHistoryRecordService;
@@ -35,7 +35,7 @@ class StockMovementController extends AbstractController {
     #[Route("/stock-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postStockMovements(Request                     $request,
-                                       EmplacementDataService      $locationDataService,
+                                       LocationService             $locationService,
                                        ExceptionLoggerService      $exceptionLoggerService,
                                        TrackingMovementService     $trackingMovementService,
                                        FreeFieldService            $freeFieldService,
@@ -103,7 +103,7 @@ class StockMovementController extends AbstractController {
                     $articleRepository,
                     $statutRepository,
                     $trackingMovementRepository,
-                    $locationDataService,
+                    $locationService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
                 ) {
@@ -122,7 +122,7 @@ class StockMovementController extends AbstractController {
 
                         /** @var Statut $type */
                         $type = $trackingTypes[$mvt['type']];
-                        $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
+                        $location = $locationService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
 
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);

@@ -18,6 +18,7 @@ class FieldModesController extends AbstractController {
     public const PAGE_PRODUCTION_REQUEST_LIST = "productionRequest";
     public const PAGE_PRODUCTION_REQUEST_PLANNING = "productionRequestPlanning";
     public const PAGE_PACK_LIST = "packList";
+    public const PAGE_EMPLACEMENT = "emplacement";
     public const PAGE_EMERGENCY_LIST = "emergency";
 
     private const PAGES = [
@@ -41,6 +42,7 @@ class FieldModesController extends AbstractController {
         "shippingRequest",
         self::PAGE_PACK_LIST,
         self::PAGE_EMERGENCY_LIST,
+        self::PAGE_EMPLACEMENT,
     ];
 
     #[Route("/{page}/save", name: "save", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]

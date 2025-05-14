@@ -276,7 +276,7 @@ class ImportService
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmplacementDataService $emplacementDataService,
+        private LocationService $locationService,
         private SettingsService $settingService,
         private Twig_Environment $templating,
         private ArticleDataService $articleDataService,
@@ -2156,7 +2156,7 @@ class ImportService
                 if (empty($defaultZoneLocation)) {
                     throw new ImportException('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
-                $location = $this->emplacementDataService->persistLocation($this->entityManager, [
+                $location = $this->locationService->persistLocation($this->entityManager, [
                     FixedFieldEnum::name->name => $data['emplacement'],
                     FixedFieldEnum::status->name => true,
                     FixedFieldEnum::isDeliveryPoint->name => false,

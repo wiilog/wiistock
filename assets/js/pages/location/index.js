@@ -31,24 +31,7 @@ const locationsTableConfig = {
     drawCallback: () => {
         const datatable = $(`#locationsTable`).DataTable();
         togglePrintButton(datatable, $(`.printButton`), () => datatable.search());
-    },
-    columns: [
-        {data: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'name', title: 'Nom'},
-        {data: 'description', title: 'Description'},
-        {data: 'isDeliveryPoint', title: 'Point de ' + Translation.of('Demande', 'Livraison', 'Livraison', false).toLowerCase()},
-        {data: 'isOngoingVisibleOnMobile', title: 'Encours visible sur nomade'},
-        {data: 'maximumTrackingDelay', title: 'Délai maximum de Tracabilité'},
-        {data: 'status', title: 'Statut'},
-        {data: 'allowedNatures', title: `Natures autorisées`, orderable: false},
-        {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
-        {data: 'signatories', title: 'Signataires', orderable: false},
-        {data: 'email', title: 'Email'},
-        {data: 'zone', title: 'Zone'},
-        {data: 'sendEmailToManagers', title: 'Envoi d\'email à chaque dépose aux responsables de l\'emplacement', orderable: false},
-        {data: 'managers', title: 'Responsables', orderable: false},
-    ]
+    }
 };
 
 const groupsTableConfig = {
