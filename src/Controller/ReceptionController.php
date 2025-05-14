@@ -2217,9 +2217,9 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    #[Route("/{referenceArticle}/reference-stock-emergencies", name: "reference_stock_emergencies", options: ['expose' => true], methods: "GET")]
+    #[Route("/{referenceArticle}/reference-stock-emergencies", name: "reference_stock_emergencies", options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function referenceStockEmergencies(ReferenceArticle       $referenceArticle,
-                                              EntityManagerInterface $entityManager): Response {
+                                              EntityManagerInterface $entityManager): JsonResponse {
         $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
         $stockEmergerciesTriggeredByRef = $stockEmergencyRepository->findEmergencyTriggeredByRefArticle($referenceArticle, new DateTime());
@@ -2227,12 +2227,12 @@ class ReceptionController extends AbstractController {
         $emergencyComment = Stream::from($stockEmergerciesTriggeredByRef)
             ->map(static fn(StockEmergency $stockEmergency) => $stockEmergency->getComment())
             ->filter()
-            ->join(', ');
+            ->join("<br>");
 
         return $this->json([
             'success' => true,
             'emergencyComment' => $emergencyComment,
-            'hasEmergencies' => count($stockEmergerciesTriggeredByRef) > 0,
+            'hasEmergencies' => !empty($stockEmergerciesTriggeredByRef),
         ]);
     }
 
