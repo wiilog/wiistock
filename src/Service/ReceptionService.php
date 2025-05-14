@@ -78,7 +78,7 @@ class ReceptionService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable(Utilisateur $user, InputBag $params = null, $purchaseRequestFilter = null): array {
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Utilisateur $user,InputBag $params, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
@@ -109,7 +109,7 @@ class ReceptionService
 
         $rows = [];
         foreach ($receptions as $reception) {
-            $rows[] = $this->dataRowReception($reception);
+            $rows[] = $this->dataRowReception($entityManager, $reception);
         }
 
         return [
@@ -297,12 +297,15 @@ class ReceptionService
         }
     }
 
-    public function dataRowReception(Reception $reception): array
-    {
+    public function dataRowReception(EntityManagerInterface $entityManager,
+                                     Reception              $reception): array {
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
             ->filter(static fn(PurchaseRequest $request) => $request)
             ->first();
+
         return [
             "id" => ($reception->getId()),
             "Statut" => $this->formatService->status($reception->getStatut()),
@@ -325,7 +328,7 @@ class ReceptionService
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
-            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            "emergency" => $reception->isManualUrgent() || $receptionRepository->countStockEmergenciesByReception($reception) > 0,
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),

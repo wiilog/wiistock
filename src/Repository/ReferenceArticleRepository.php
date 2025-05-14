@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField\FreeField;
@@ -21,8 +22,8 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
-use App\Service\FieldModesService;
 use App\Service\FormatService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -203,18 +204,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
-            ->leftJoin("reference.articlesFournisseur", "supplierArticle")
-            ->leftJoin("supplierArticle.fournisseur", "supplier")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options['multipleFields']) {
-            Stream::from($queryBuilder->getDQLParts()['select'])
-                ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
-                ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))
-                ->filter(static fn($selectAlias) => !in_array($selectAlias, ['text']))
-                ->each(static fn($field) => $queryBuilder->addGroupBy($field));
+        if($options["multipleFields"]) {
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder);
         }
 
         return $queryBuilder

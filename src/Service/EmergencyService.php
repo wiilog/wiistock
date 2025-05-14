@@ -192,7 +192,7 @@ class EmergencyService {
 
         $emergency->setEndEmergencyCriteria($data->get("endEmergencyCriteria")
             ? EndEmergencyCriteriaEnum::from($data->get("endEmergencyCriteria"))
-            : EndEmergencyCriteriaEnum::REMAINING_QUANTITY);
+            : EndEmergencyCriteriaEnum::END_DATE);
 
         if ($data->has(FixedFieldEnum::supplier->name)) {
             $provider = $data->get(FixedFieldEnum::supplier->name)

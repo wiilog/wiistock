@@ -89,9 +89,6 @@ class Reception implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $storageLocation = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $urgentArticles = null;
-
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
@@ -399,16 +396,6 @@ class Reception implements AttachmentContainer {
 
     public function setManualUrgent(?bool $manualUrgent): self {
         $this->manualUrgent = $manualUrgent;
-        return $this;
-    }
-
-    public function hasUrgentArticles(): ?bool {
-        return $this->urgentArticles;
-    }
-
-    public function setUrgentArticles(?bool $urgentArticles): self {
-        $this->urgentArticles = $urgentArticles;
-
         return $this;
     }
 
