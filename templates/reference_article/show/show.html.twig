@@ -316,6 +316,21 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% if hasOnGoingEmergencies%}
+                        <div class="col-12 my-2 d-flex galin-items-center">
+                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                            <div class="d-flex flex-column ml-3">
+                                <span class="wii-field-name">Référence urgente</span>
+                                <a
+                                    class="btn btn-primary btn-sm d-flex align-items-center mt-2"
+                                    href="{{ path('emergency_index', {'referenceArticle': referenceArticle.id}) }}"
+                                >
+                                    <i class="fa fa-up-right-from-square"></i>
+                                    Voir les urgences
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
                     <div class="details-page-dropdown mt-3">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}

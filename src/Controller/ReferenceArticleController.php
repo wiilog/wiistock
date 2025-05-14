@@ -10,6 +10,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Fournisseur;
@@ -35,10 +36,10 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\FormException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
+use App\Repository\Emergency\StockEmergencyRepository;
 use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
 use App\Service\AttachmentService;
-use App\Service\DateTimeService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\Kiosk\KioskService;
@@ -659,14 +660,16 @@ class ReferenceArticleController extends AbstractController
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
-                             EntityManagerInterface $entityManager,
-                             DateTimeService $dateTimeService): Response {
+                             EntityManagerInterface $entityManager): Response {
         $hasIaParams = $_SERVER['STOCK_FORECAST_URL'] ?? false;
 
         $type = $referenceArticle->getType();
+        $now = new DateTime();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $articleRepository = $entityManager->getRepository(Article::class);
+        /** @var StockEmergencyRepository $stockEmergencyRepository */
+        $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
@@ -679,6 +682,8 @@ class ReferenceArticleController extends AbstractController
                 ];
                 return $carry;
                 }, []);
+        $onGoingEmergencies = $stockEmergencyRepository->findEmergencyTriggeredByRefArticle($referenceArticle, $now);
+
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
@@ -686,6 +691,7 @@ class ReferenceArticleController extends AbstractController
             'showOnly' => $showOnly,
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
             'hasIaParams' => $hasIaParams,
+            'hasOnGoingEmergencies' => !empty($onGoingEmergencies),
         ]);
     }
 

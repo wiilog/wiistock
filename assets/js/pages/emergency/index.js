@@ -17,9 +17,16 @@ $(function() {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-    getUserFiltersByPage(PAGE_EMERGENCIES);
+    const referenceArticleIdFilter = $('[name="referenceArticleIdFilter"]').val();
+    const filters = {
+        ...referenceArticleIdFilter ? {referenceArticleId: referenceArticleIdFilter,} : {},
+    }
 
-    const table = initializeTable();
+    if (!Object.keys(filters).length) {
+        getUserFiltersByPage(PAGE_EMERGENCIES);
+    }
+
+    const table = initializeTable(filters);
     initializeModals(table);
 });
 
@@ -120,7 +127,7 @@ function initializeModals(tableEmergencies) {
     });
 }
 
-function initializeTable() {
+function initializeTable(filters) {
     return initDataTable('tableEmergency', {
         pageLength: 10,
         processing: true,
@@ -132,6 +139,7 @@ function initializeTable() {
         ajax: {
             url: Routing.generate('emergency_api_list', true),
             type: POST,
+            data: filters,
         },
         drawConfig: {
             needsResize: true,

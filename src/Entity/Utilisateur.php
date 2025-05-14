@@ -267,6 +267,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         FixedFieldEnum::type->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::internalArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::supplierArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::quantity->name => [FieldModesService::FIELD_MODE_VISIBLE],
     ];
 
     const DEFAULT_FIELDS_MODES = [
