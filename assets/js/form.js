@@ -135,7 +135,7 @@ export default class Form {
      *    success?: function,
      *    error?: function
      *    routeParams?: {[param: string]: string},
-     *    tables?: JQueryDataTableApi|JQueryDataTableApi[],
+     *    tables?: *|*[],
      *    clearFields?: boolean,
      * }} options
      * @returns {Form}

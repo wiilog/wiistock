@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
@@ -1448,35 +1449,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
     }
 
-    public function findInCart(Utilisateur $user, array $params) {
-        $qb = $this->createQueryBuilder("reference_article");
-
-        $qb
-            ->innerJoin('reference_article.carts', 'cart')
-            ->where("cart.user = :user")
-            ->setParameter("user", $user);
-
-        foreach($params["order"] as $order) {
-            $column = $params["columns"][$order["column"]]['name'];
-            $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
-
-            if($column === "type") {
-                $qb->join("reference_article.type", "search_type")
-                    ->addOrderBy("search_type.label", $order["dir"]);
-            } else if ($column !== 'supplierReference') {
-                $qb->addOrderBy("reference_article.$column", $order["dir"]);
-            }
-        }
-
-        $countTotal = QueryBuilderHelper::count($qb, "reference_article");
-
-        return [
-            "data" => $qb->getQuery()->getResult(),
-            "count" => $countTotal,
-            "total" => $countTotal
-        ];
-    }
-
     public function isUsedInQuantityChangingProcesses(ReferenceArticle $referenceArticle): bool {
         $queryBuilder = $this->createQueryBuilder('reference');
         $exprBuilder = $queryBuilder->expr();
@@ -1542,5 +1514,19 @@ class ReferenceArticleRepository extends EntityRepository {
         $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
+    }
+
+    /**
+     * @return array<ReferenceArticle>
+     */
+    public function findBySupplier(Fournisseur $supplier): array {
+        return $this->createQueryBuilder('reference_article')
+            ->innerJoin('reference_article.articlesFournisseur', 'supplier_article')
+            ->innerJoin('supplier_article.fournisseur', 'supplier')
+            ->andWhere('supplier = :supplier_filter')
+            ->setParameter('supplier_filter', $supplier)
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getResult();
     }
 }

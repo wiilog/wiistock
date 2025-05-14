@@ -5,14 +5,11 @@ import Modal from "@app/modal";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
 import Routing from "@app/fos-routing";
+import EmergencyTriggerEnum from "@generated/emergency-trigger-enum";
+import EndEmergencyCriteriaEnum from "@generated/end-emergency-criteria-enum";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
-const EMERGENCY_TRIGGER_SUPPLIER = 'supplier';
-const EMERGENCY_TRIGGER_REFERENCE = 'reference';
-const END_EMERGENCY_CRITERIA_MANUAL = 'manual';
-const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
-const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
     const $userFormat = $('#userDateFormat');
@@ -22,8 +19,8 @@ $(function() {
 
     getUserFiltersByPage(PAGE_EMERGENCIES);
 
-    const $table = initializeTable();
-    initializeModals($table);
+    const table = initializeTable();
+    initializeModals(table);
 });
 
 /**
@@ -61,10 +58,10 @@ function onEmergencyTriggerChange($modal) {
     const $endEmergencyCriteriaSwitch = $modal.find('[name="endEmergencyCriteria"]:checked');
     const selectedEndCriteriaValue = $endEmergencyCriteriaSwitch.val();
 
-    const remainingQuantitySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
-    remainingQuantitySwitch
+    const $remainingQuantitySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
+    $remainingQuantitySwitch
         .next()
-        .toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE);
+        .toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value);
 
     const $dateContainer = $modal.find('.date-container');
 
@@ -73,17 +70,17 @@ function onEmergencyTriggerChange($modal) {
     const $supplierSelect = $modal.find('.stock-emergency-container  [name="supplier"]').closest('div');
     const $manualDateStartSelect = $modal.find('[name="manual"]').closest('div');
 
-    $referenceSelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE);
-    $supplierSelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_SUPPLIER);
-    $quantitySelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE || selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_REMAINING_QUANTITY);
-    $dateContainer.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_END_DATE);
-    $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_MANUAL);
+    $referenceSelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value);
+    $supplierSelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.SUPPLIER.value);
+    $quantitySelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value || selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.REMAINING_QUANTITY.value);
+    $dateContainer.toggleClass('d-none', selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.END_DATE.value);
+    $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.MANUAL.value);
 }
 
 /**
- * @param {JQueryDataTableApi} $tableEmergencies
+ * @param {*} tableEmergencies Datatable
  */
-function initializeModals($tableEmergencies) {
+function initializeModals(tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
     Form
         .create($modalNewEmergency, {resetView: ['open', 'close']})
@@ -97,7 +94,7 @@ function initializeModals($tableEmergencies) {
             onEmergencyTypeChange($modalNewEmergency, 'create');
         })
         .onSubmit((data, form) => {
-            onNewEmergencySubmit(form, data, $tableEmergencies);
+            onNewEmergencySubmit(form, data, tableEmergencies);
         });
 
     let $modalEditEmergency = $('#modalEditEmergency');
@@ -114,12 +111,12 @@ function initializeModals($tableEmergencies) {
         })
         .submitTo(POST, 'emergency_edit', {
             clearFields: true,
-            tables: $tableEmergencies,
+            tables: tableEmergencies,
         });
 
     $(document).on('click', '.close-emergency', (event) => {
         const emergency = $(event.target).data('id');
-        onCloseEmergency(emergency, $tableEmergencies);
+        onCloseEmergency(emergency, tableEmergencies);
     });
 }
 
@@ -150,11 +147,11 @@ function initializeTable() {
 /**
  * @param {FormData} data
  * @param {Form} form
- * @param {JQueryDataTableApi} $tableEmergencies
+ * @param {*} tableEmergencies Datatable
  */
 function onNewEmergencySubmit(form,
                               data,
-                              $tableEmergencies) {
+                              tableEmergencies) {
 
     const $modal = form.element;
     const $type = $modal.find('[name="type"]');
@@ -180,15 +177,14 @@ function onNewEmergencySubmit(form,
                 label: 'Confirmer',
             },
             onSuccess: () => {
-                form.loading(() => submitNewEmergency(form, data, $tableEmergencies));
+                form.loading(() => submitNewEmergency(form, data, tableEmergencies));
             }
         });
 
         initDataTable($table, {
             ajax: {
-                "url": Routing.generate('ajax_select_references', {
+                "url": Routing.generate('emergency_linked_reference_article_api', {
                     supplier: data.get("supplier"),
-                    "data-key": "data",
                 }),
                 "type": GET,
             },
@@ -202,43 +198,43 @@ function onNewEmergencySubmit(form,
                 needsRowClickAction: true
             },
             columns: [
-                {data: 'barCode', title: 'Code barre'},
-                {data: 'text', title: 'Référence'},
+                {data: 'barcode', title: 'Code barre'},
+                {data: 'reference', title: 'Référence'},
                 {data: 'label', title: 'Libellé'},
             ],
             ordering: false,
         });
     }
     else {
-        form.loading(() => submitNewEmergency(form, data, $tableEmergencies));
+        form.loading(() => submitNewEmergency(form, data, tableEmergencies));
     }
 }
 
 /**
  * @param {Form} form
  * @param {FormData} data
- * @param {JQueryDataTableApi} $tableEmergencies
+ * @param {*} tableEmergencies Datatable
  */
 function submitNewEmergency(form,
                             data,
-                            $tableEmergencies) {
+                            tableEmergencies) {
     return AJAX.route(POST, 'emergency_new')
         .json(data)
         .then(({success}) => {
             if (success) {
                 form.element.modal(`hide`);
                 form.clear();
-                $tableEmergencies.ajax.reload();
+                tableEmergencies.ajax.reload();
             }
         });
 }
 
 /**
  * @param {int} emergency
- * @param {JQueryDataTableApi} $tableEmergencies
+ * @param {*} tableEmergencies
  */
 function onCloseEmergency(emergency,
-                          $tableEmergencies) {
+                          tableEmergencies) {
     Modal.confirm({
         ajax: {
             method: POST,
@@ -253,6 +249,6 @@ function onCloseEmergency(emergency,
             color: 'success',
             label: Translation.of('Général', null, 'Modale', 'Oui'),
         },
-        table: $tableEmergencies,
+        table: tableEmergencies,
     });
 }
