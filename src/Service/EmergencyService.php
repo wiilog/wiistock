@@ -25,6 +25,8 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Repository\Emergency\EmergencyRepository;
+use App\Repository\FiltreSupRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -401,7 +403,9 @@ class EmergencyService {
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, ParameterBag $request): array {
+        /** @var EmergencyRepository $emergencyRepository */
         $emergencyRepository = $entityManager->getRepository(Emergency::class);
+        /** @var FiltreSupRepository $filtreSupRepository */
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EMERGENCIES, $this->userService->getUser());

@@ -76,6 +76,7 @@ class EmergencyRepository extends EntityRepository {
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select("emergency.id AS id")
+            ->distinct()
             ->addSelect("emergency.freeFields AS freeFields")
             ->addSelect("emergency_category.label AS emergency_category_label");
         $exprBuilder = $queryBuilder->expr();
@@ -165,6 +166,16 @@ class EmergencyRepository extends EntityRepository {
                 case FiltreSup::FIELD_COMMANDE:
                     $queryBuilder->andWhere('emergency.orderNumber = :filter_orderNumber ')
                         ->setParameter('filter_orderNumber', $filter['value']);
+                    break;
+                case "referenceArticle":
+                    $queryBuilder
+                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id");
+                    StockEmergencyRepository::filterByReferenceByRefArticle(
+                        $queryBuilder,
+                        new DateTime("now"),
+                        $filter['value'],
+                        "stock_emergency",
+                    );
                     break;
             }
         }

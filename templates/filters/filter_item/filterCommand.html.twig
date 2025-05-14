@@ -4,6 +4,7 @@
                class="form-control data cursor-default filter-input"
                name="commande"
                id="commande"
+               {{ disabled is defined and disabled ? 'disabled' }}
                placeholder="{{ trans('Traçabilité', 'Urgences', 'N° de commande', false) }}">
     </div>
 </div>

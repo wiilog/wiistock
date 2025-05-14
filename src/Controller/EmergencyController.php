@@ -34,11 +34,13 @@ class EmergencyController extends AbstractController {
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function index(EntityManagerInterface $entityManager,
                           UserService            $userService,
-                          EmergencyService       $emergencyService): Response {
+                          EmergencyService       $emergencyService,
+                          Request                $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $currentUser = $userService->getUser();
         $columns = $emergencyService->getVisibleColumnsConfig($entityManager, $currentUser);
+        $referenceArticleIdFilter = $request->query->getInt('referenceArticle') ?: null;
 
         $emergencyTypes = $typeRepository->findByCategoryLabels([CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY], null, [
             'onlyActive' => true,
@@ -53,6 +55,7 @@ class EmergencyController extends AbstractController {
                 ]),
             "carriers" => $carrierRepository->findAllSorted(),
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
+            'referenceArticleIdFilter' => $referenceArticleIdFilter
         ]);
     }
 

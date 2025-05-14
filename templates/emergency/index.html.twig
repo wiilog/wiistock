@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Qualité & Urgences', 'Urgences', 'Urgences') }}{% endblock %}
 {% block title_tooltip %}Qualité & Urgences | Urgences{% endblock %}
@@ -10,7 +11,9 @@
         callback: 'null',
         needsDateFormatting: true,
         types,
+        disabled: referenceArticleIdFilter is not null
     } %}
+    {{ form.hidden('referenceArticleIdFilter', referenceArticleIdFilter) }}
 {% endblock %}
 
 {% block page_content %}
@@ -21,6 +24,17 @@
             <div class="col-auto ml-auto">
                 {% include('utils/action-buttons/header-buttons.html.twig') with {
                     actions: [
+                        {
+                            hasRight: referenceArticleIdFilter is not null,
+                            title: "Voir toutes les urgences",
+                            href: path('emergency_index'),
+                        },
+                        {
+                            hasRight: referenceArticleIdFilter is not null,
+                            title: "Retour à l'article de référence",
+                            icon : "fa fa-rotate-left",
+                            href: path('reference_article_show_page', { id: referenceArticleIdFilter }),
+                        },
                         {
                             hasRight: hasRightToCreate,
                             title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
