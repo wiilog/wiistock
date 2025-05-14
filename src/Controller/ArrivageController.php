@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
@@ -27,7 +26,8 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ArrivageService;
@@ -70,19 +70,13 @@ use WiiCommon\Helper\Stream;
 
 
 #[Route('/arrivage')]
-class ArrivageController extends AbstractController
-{
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public LanguageService $languageService;
+class ArrivageController extends AbstractController {
 
     #[Route('/', name: 'arrivage_index', options: ["expose" => true])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
     public function index(Request                $request,
                           EntityManagerInterface $entityManager,
+                          UserService            $userService,
                           TagTemplateService     $tagTemplateService,
                           ArrivageService        $arrivageService,
                           FilterSupService       $filterSupService): Response {
@@ -104,6 +98,13 @@ class ArrivageController extends AbstractController
                 'truckArrivalNumber' => $truckArrival?->getNumber(),
             ];
         }
+
+        $emergencyIdFilter = $request->query->getInt('emergency') ?: null;
+
+        if ($emergencyIdFilter) {
+            $request->request->add(['emergency' => $emergencyIdFilter]);
+        }
+
         $user = $this->getUser();
 
         $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
@@ -127,12 +128,13 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
-            "initial_arrivals" => $this->api($request, $arrivageService, $entityManager)->getContent(),
+            "initial_arrivals" => $this->api($request, $arrivageService, $userService, $entityManager)->getContent(),
             "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
             "openNewModal" => count($fromTruckArrivalOptions) > 0,
+            "emergencyIdFilter" => $emergencyIdFilter,
         ]);
     }
 
@@ -140,8 +142,9 @@ class ArrivageController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         ArrivageService        $arrivageService,
+                        UserService            $userService,
                         EntityManagerInterface $entityManager): Response {
-        if ($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
+        if ($userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
         } else {
             $userId = $this->getUser()->getId();
@@ -422,9 +425,10 @@ class ArrivageController extends AbstractController
     #[Route("/api-modifier", name: "arrivage_edit_api", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function editApi(Request                $request,
+                            UserService            $userService,
                             EntityManagerInterface $entityManager): Response {
         if ($data = $request->query->all()) {
-            if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+            if ($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $arrivageRepository = $entityManager->getRepository(Arrivage::class);
                 $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -808,11 +812,12 @@ class ArrivageController extends AbstractController
                          ArrivageService        $arrivageDataService,
                          PackService            $packService,
                          Request                $request,
+                         UserService            $userService,
                          TagTemplateService     $tagTemplateService,
                          Arrivage               $arrivage): Response
     {
         // HasPermission annotation impossible
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
             && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->render('securite/access_denied.html.twig');
         }
@@ -1133,6 +1138,7 @@ class ArrivageController extends AbstractController
                                 ArrivageService        $arrivageDataService,
                                 EntityManagerInterface $entityManager,
                                 DisputeService         $disputeService,
+                                UserService            $userService,
                                 AttachmentService      $attachmentService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1143,8 +1149,8 @@ class ArrivageController extends AbstractController
         $data = $request->request;
 
         $currentUser = $this->getUser();
-        $hasRightToEditDispute = $this->userService->hasRightFunction(Menu::QUALI, Action::EDIT, $currentUser);
-        $hasRightToTreatDispute = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
+        $hasRightToEditDispute = $userService->hasRightFunction(Menu::QUALI, Action::EDIT, $currentUser);
+        $hasRightToTreatDispute = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
 
         $dispute = $disputeRepository->find($data->get('disputeId'));
 

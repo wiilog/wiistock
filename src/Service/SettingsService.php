@@ -6,7 +6,6 @@ use App\Controller\Settings\StatusController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -17,12 +16,12 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
@@ -42,14 +41,15 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\StockEmergencyAlertMode;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Service\IOT\AlertTemplateService;
-use App\Service\ScheduleRuleService;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateInterval;
 use DateTime;
@@ -921,6 +921,15 @@ class SettingsService {
                 $type->setCreatedIdentifierNature($nature);
             } else {
                 $type->setCreatedIdentifierNature(null);
+            }
+
+            // array_key_exists instead of isset to clear database column if input cleared
+            if(array_key_exists("stockEmergencyAlertModes", $data)){
+                $stockEmergencyAlertModes = Stream::explode(",", $data["stockEmergencyAlertModes"] ?? "")
+                    ->filter() // ignore empty items
+                    ->filterMap(static fn (string $value) => StockEmergencyAlertMode::tryFrom($value))
+                    ->values();
+                $type->setStockEmergencyAlertModes($stockEmergencyAlertModes);
             }
 
 

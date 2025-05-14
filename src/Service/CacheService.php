@@ -3,10 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Throwable;
 use WiiCommon\Helper\Stream;
 

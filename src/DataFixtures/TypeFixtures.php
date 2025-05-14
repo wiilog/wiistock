@@ -2,9 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
 use App\Entity\IOT\Sensor;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;

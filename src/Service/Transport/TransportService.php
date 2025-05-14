@@ -3,7 +3,6 @@
 namespace App\Service\Transport;
 
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Nature;
 use App\Entity\Setting;
@@ -19,7 +18,8 @@ use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRequestContact;
 use App\Entity\Transport\TransportRound;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\GeoException;

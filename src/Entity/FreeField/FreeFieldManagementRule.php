@@ -2,7 +2,7 @@
 
 namespace App\Entity\FreeField;
 
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Repository\FreeField\FreeFielsManagementRuleRepository;
 use Doctrine\ORM\Mapping as ORM;
 

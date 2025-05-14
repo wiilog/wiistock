@@ -243,6 +243,16 @@ class ReceptionRepository extends EntityRepository
                             );
                     }
                     break;
+                case 'emergencyId':
+                    $valueFilter = ((int)($filter['value'] ?? 0));
+                    if ($valueFilter) {
+                        $qb
+                            ->innerJoin("reception.lines", "receptionLine")
+                            ->innerJoin("receptionLine.receptionReferenceArticles", "receptionReferenceArticles")
+                            ->innerJoin("receptionReferenceArticles.stockEmergencies", "stockEmergency",Join::WITH, "stockEmergency.id = :emergencyId")
+                            ->setParameter('emergencyId', $valueFilter);
+                    }
+                    break;
             }
         }
         //Filter search

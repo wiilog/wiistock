@@ -2,13 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
+use App\Entity\CategorieCL;
+use App\Entity\Type\CategoryType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-
-use App\Entity\CategorieCL;
 
 class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 {

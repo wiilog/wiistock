@@ -16,7 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;

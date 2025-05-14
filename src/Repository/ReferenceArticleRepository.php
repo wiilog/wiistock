@@ -22,7 +22,6 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
-use App\Repository\Emergency\StockEmergencyRepository;
 use App\Service\FormatService;
 use App\Service\FieldModesService;
 use DateTime;

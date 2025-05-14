@@ -9,7 +9,6 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emergency\EmergencyTriggerEnum;
@@ -36,7 +35,8 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
@@ -273,8 +273,7 @@ class ReceptionController extends AbstractController {
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
                           Request                $request,
-                          PurchaseRequest        $purchaseRequest = null): Response
-    {
+                          PurchaseRequest        $purchaseRequest = null): Response {
         $arrivageData = null;
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -288,6 +287,7 @@ class ReceptionController extends AbstractController {
                 ];
             }
         }
+        $emergencyIdFilter = $request->query->getInt('emergency') ?: null;
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -317,6 +317,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
             'arrivageToReception' => $arrivageData,
+            'emergencyIdFilter' => $emergencyIdFilter,
         ]);
     }
 

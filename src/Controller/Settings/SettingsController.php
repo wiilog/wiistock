@@ -8,7 +8,6 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
@@ -22,13 +21,13 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -46,7 +45,9 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\StockEmergencyAlertMode;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
@@ -1048,26 +1049,26 @@ class SettingsController extends AbstractController {
         $translations = json_decode($data->get('translations'));
 
         foreach ($translations as $translation) {
-           $id = $translation->id;
-           $value = strip_tags($translation->value);
-           $source = $translationSourceRepository->find($translation->source);
-           if ($id != null or $id != '') {
-               $translation= $translationRepository->find($id);
-               if($value != null or $value != '') {
-                   $translation->setTranslation($value);
-               }
-               else {
-                   $entityManager->remove($translation);
-               }
-           }
-           elseif ($value != null or $value != '') {
-               $translation = new Translation();
-               $translation
-                   ->setTranslation($value)
-                   ->setSource($source)
-                   ->setLanguage($language);
+            $id = $translation->id;
+            $value = strip_tags($translation->value);
+            $source = $translationSourceRepository->find($translation->source);
+            if ($id != null or $id != '') {
+                $translation= $translationRepository->find($id);
+                if($value != null or $value != '') {
+                    $translation->setTranslation($value);
+                }
+                else {
+                    $entityManager->remove($translation);
+                }
+            }
+            elseif ($value != null or $value != '') {
+                $translation = new Translation();
+                $translation
+                    ->setTranslation($value)
+                    ->setSource($source)
+                    ->setLanguage($language);
                 $entityManager->persist($translation);
-           }
+            }
         }
 
         $entityManager->flush();
@@ -1550,13 +1551,13 @@ class SettingsController extends AbstractController {
                                         "type" => Stream::from([$type])->map(fn($typeId) => [
                                             "value" => $typeId,
                                             "label" => $typeRepository->find($typeId)->getLabel(),
-                                            ])
+                                        ])
                                             ->toArray(),
                                         "users" => Stream::from($users)->map(fn($user) => [
                                             "value" => $user,
                                             "label" => $userRepository->find($user)->getUsername(),
                                             'selected' => true,
-                                            ])
+                                        ])
                                             ->toArray(),
                                         "selected" => true,
                                     ])
@@ -1651,7 +1652,7 @@ class SettingsController extends AbstractController {
                                             "value" => $element,
                                             "selected" => true,
                                         ])
-                                    ->toArray()
+                                        ->toArray()
                                     : []
                             ],
                             "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
@@ -2277,13 +2278,13 @@ class SettingsController extends AbstractController {
 
                 $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
                     ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
-                    ->map(fn(Emplacement $location) => [
-                        "value" => $location->getId(),
-                        "label" => $location->getLabel(),
-                        "selected" => true,
-                    ])
-                    ->toArray()
-                : [];
+                        ->map(fn(Emplacement $location) => [
+                            "value" => $location->getId(),
+                            "label" => $location->getLabel(),
+                            "selected" => true,
+                        ])
+                        ->toArray()
+                    : [];
 
                 $data = array_merge($data, [
                     [
@@ -2412,6 +2413,28 @@ class SettingsController extends AbstractController {
                     "value" => $formService->macro("switch", "isDefault", null, true, [
                         ["label" => "Oui", "value" => 1, "checked" => (bool) ($type?->isDefault())],
                         ["label" => "Non", "value" => 0, "checked" => $type ? !$type->isDefault() : null],
+                    ]),
+                ];
+            }
+
+            if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $data[] = [
+                    "label" => "Alerte email",
+                    "value" => $formService->macro("select", "stockEmergencyAlertModes", null, false, [
+                        "type" => "",
+                        "multiple" => true,
+                        "items" => [
+                            [
+                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_BUYER->value,
+                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER),
+                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_BUYER, $type?->getStockEmergencyAlertModes() ?? []),
+                            ],
+                            [
+                                "value" => StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER->value,
+                                "label" => $this->formatService->stockEmergencyAlertMode(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER),
+                                "selected" => in_array(StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER, $type?->getStockEmergencyAlertModes() ?? []),
+                            ]
+                        ],
                     ]),
                 ];
             }
@@ -2603,6 +2626,15 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type?->isDefault()) ?: "Non",
+                ];
+            }
+
+            if ($categoryLabel === CategoryType::STOCK_EMERGENCY) {
+                $data[] = [
+                    "label" => "Alerte Email" . $formService->macro("tooltip", "L’email sera envoyé à chaque nouvelle réception concernant l’urgence à l’acheteur et / ou demandeur de l’urgence ou de la référence"),
+                    "value" => Stream::from($type ? $type->getStockEmergencyAlertModes() : [])
+                        ->filterMap(fn(StockEmergencyAlertMode $mode) => $this->formatService->stockEmergencyAlertMode($mode))
+                        ->join(", "),
                 ];
             }
 
@@ -3020,11 +3052,11 @@ class SettingsController extends AbstractController {
                     "conditionFixedFieldValue" => $isDisplayUnderConditionDisabled
                         ? ''
                         : $formService->macro("select", "conditionFixedFieldValue", null, false, [
-                        "type" => "referenceType",
-                        "items" => $conditionFixedFieldOptionsSelected,
-                        "hidden" => !$isDisplayUnderConditionDisplayed,
-                        "multiple" => true,
-                    ]),
+                            "type" => "referenceType",
+                            "items" => $conditionFixedFieldOptionsSelected,
+                            "hidden" => !$isDisplayUnderConditionDisplayed,
+                            "multiple" => true,
+                        ]),
                     "required" => $formService->macro("checkbox", "required", null, false, $field->isRequired(), [
                         "disabled" => $isRequiredDisabled,
                     ]),
@@ -3039,9 +3071,9 @@ class SettingsController extends AbstractController {
 
     #[Route("/champ-fixe/{entity}", name: "settings_fixed_field_api", options: ['expose' => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     public function fixedFieldApi(Request                 $request,
-                                        EntityManagerInterface  $entityManager,
-                                        FormService             $formService,
-                                        string                  $entity): JsonResponse {
+                                  EntityManagerInterface  $entityManager,
+                                  FormService             $formService,
+                                  string                  $entity): JsonResponse {
         $type = $request->query->has("type") ? $entityManager->getRepository(Type::class)->find($request->query->get("type")) : null;
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -3633,20 +3665,20 @@ class SettingsController extends AbstractController {
                 $isArticle = $tagTemplate->getModule() === 'article' ? 'selected' : '';
 
                 $natureOrTypeOptions = $tagTemplate->getModule() === CategoryType::ARRIVAGE ?
-                        Stream::from($natures)
-                            ->map(fn(Nature $n) => [
-                                "id" => $n->getId(),
-                                "label" => $n->getLabel(),
-                                "selected" => $tagTemplate->getNatures()->contains($n),
-                            ])
-                            ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]) :
-                        Stream::from($types)
-                            ->map(fn(Type $t) => [
-                                "id" => $t->getId(),
-                                "label" => $t->getLabel(),
-                                "selected" => $tagTemplate->getTypes()->contains($t),
-                            ])
-                            ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]);
+                    Stream::from($natures)
+                        ->map(fn(Nature $n) => [
+                            "id" => $n->getId(),
+                            "label" => $n->getLabel(),
+                            "selected" => $tagTemplate->getNatures()->contains($n),
+                        ])
+                        ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]) :
+                    Stream::from($types)
+                        ->map(fn(Type $t) => [
+                            "id" => $t->getId(),
+                            "label" => $t->getLabel(),
+                            "selected" => $tagTemplate->getTypes()->contains($t),
+                        ])
+                        ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]);
                 $selectContent = Stream::from($natureOrTypeOptions)
                     ->map(function(array $n) {
                         $selected = $n['selected'] ? "selected" : '';
@@ -3701,10 +3733,10 @@ class SettingsController extends AbstractController {
                             Stream::from($tagTemplate->getNatures())
                                 ->map(fn(Nature $nature) => $nature->getLabel())
                                 ->join(", ") :
-                                ($tagTemplate->getTypes() ?
-                                    Stream::from($tagTemplate->getTypes())
-                                        ->map(fn(Type $type) => $type->getLabel())
-                                        ->join(", ") :
+                            ($tagTemplate->getTypes() ?
+                                Stream::from($tagTemplate->getTypes())
+                                    ->map(fn(Type $type) => $type->getLabel())
+                                    ->join(", ") :
                                 ''),
                 ];
             }
@@ -3730,7 +3762,7 @@ class SettingsController extends AbstractController {
     #[Route('/tag-template/supprimer/{entity}', name: 'settings_delete_tag_template', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function deleteTagTemplate(EntityManagerInterface $entityManager,
-                                   TagTemplate $entity): Response {
+                                      TagTemplate $entity): Response {
 
         $entityManager->remove($entity);
         $entityManager->flush();

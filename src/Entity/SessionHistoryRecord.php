@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Type\Type;
 use App\Repository\SessionHistoryRecordRepository;
 use App\Service\FormatService;
 use DateTime;

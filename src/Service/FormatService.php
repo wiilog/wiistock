@@ -21,7 +21,8 @@ use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\StockEmergencyAlertMode;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
@@ -494,5 +495,14 @@ class FormatService
                 return "$key : $value";
             })
             ->join("\n");
+    }
+
+    public function stockEmergencyAlertMode(?StockEmergencyAlertMode $mode,
+                                            ?string                  $else = null): ?string {
+        return match ($mode) {
+            StockEmergencyAlertMode::SEND_MAIL_TO_BUYER => 'Acheteur',
+            StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER => 'Demandeur',
+            default => $else,
+        };
     }
 }

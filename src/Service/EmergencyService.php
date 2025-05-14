@@ -7,7 +7,6 @@ use App\Entity\Arrivage;
 use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
@@ -22,13 +21,15 @@ use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 use App\Entity\FreeField\FreeField;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -47,6 +48,7 @@ class EmergencyService {
         private UserService       $userService,
         private Twig_Environment  $templating,
         private FreeFieldService  $freeFieldService,
+        private RouterInterface   $router,
     ) {}
 
     /**
@@ -433,41 +435,51 @@ class EmergencyService {
                          ],
                          [
                              "title" => "Cloturer",
-                             "hasRight" => !($data["closedAt"] ?? false) &&  $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
+                             "hasRight" => !($data["closedAt"] ?? false) && $this->userService->hasRightFunction(Menu::QUALI, Action::CREATE_EMERGENCY),
                              "icon" => "fa-solid fa-ban",
                              "class" => "close-emergency",
                              "attributes" => [
                                  "data-id" => $data["id"],
                              ],
+                         ], [
+                             "title" => "Aller vers les arrivages",
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI),
+                             "icon" => "fa fa-up-right-from-square",
+                             "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
+                         ], [
+                             "title" => "Aller vers les réceptions",
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::STOCK_EMERGENCY && $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE),
+                             "icon" => "fa fa-up-right-from-square",
+                             "href" => $this->router->generate('reception_index', ["emergency" => $data["id"]]),
                          ],
                      ],
                  ]);
 
-                $dateFields = [
-                    FixedFieldEnum::dateStart->name,
-                    FixedFieldEnum::dateEnd->name,
-                    "closedAt",
-                    "lastTriggeredAt",
-                    FixedFieldEnum::createdAt->name,
-                ];
+                 $dateFields = [
+                     FixedFieldEnum::dateStart->name,
+                     FixedFieldEnum::dateEnd->name,
+                     "closedAt",
+                     "lastTriggeredAt",
+                     FixedFieldEnum::createdAt->name,
+                 ];
 
-                foreach ($dateFields as $field) {
-                    $data[$field] = !empty($data[$field])
-                        ? $this->formatService->date($data[$field])
-                        : "";
-                }
+                 foreach ($dateFields as $field) {
+                     $data[$field] = !empty($data[$field])
+                         ? $this->formatService->datetime($data[$field])
+                         : "";
+                 }
 
-                foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
-                    $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
-                    $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
-                    $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
-                }
+                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
+                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
+                 }
 
-                $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
+                 $data["lastEntityNumber"] = $data["lastArrivalNumber"] ?? $data["lastReceptionNumber"] ?? "";
 
-                return $data;
-            })
-            ->toArray();
+                 return $data;
+             })
+             ->toArray();
 
         return [
             'data' => $datum,
