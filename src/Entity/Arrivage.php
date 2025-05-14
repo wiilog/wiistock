@@ -87,9 +87,6 @@ class Arrivage implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'arrivages')]
     private ?Statut $statut = null;
 
-    #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Urgence::class)]
-    private Collection $urgences; //TODO WIIS-12734
-
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $customs = null;
 
@@ -124,7 +121,6 @@ class Arrivage implements AttachmentContainer {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
-        $this->urgences = new ArrayCollection(); // TODO WIIS-12734
         $this->trackingEmergencies = new ArrayCollection();
         $this->numeroCommandeList = [];
         $this->truckArrivalLines = new ArrayCollection();
@@ -212,19 +208,6 @@ class Arrivage implements AttachmentContainer {
         return Stream::from($this->getInitialAcheteurs()->toArray())
             ->concat($this->getEmergencyBuyers())
             ->toArray();
-    }
-
-    /**
-     * @return Collection|Utilisateur[]
-     */
-    public function getUrgencesAcheteurs(): Collection { // TODO WIIS-12734
-        $emergencyBuyer = $this->urgences
-            ->map(function(Urgence $urgence) {
-                return $urgence->getBuyer();
-            })
-            ->filter(fn($buyer) => $buyer !== null);
-
-        return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
     }
 
     /**

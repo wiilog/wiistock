@@ -5,11 +5,11 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Reception;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
-use App\Entity\Urgence;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -21,7 +21,7 @@ class CarrierService {
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
-        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
         $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
 
         return [
