@@ -13,6 +13,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
+use DateTime;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -46,8 +47,8 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::dateStart->name => "emergency.dateStart",
             FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
             "lastEntityNumber"=> [
-                "lastArrivalNumber"=> "FIRST($lastArrivalNumberSubquery)",
-                "lastReceptionNumber"=> "FIRST($lastReceptionNumberSubquery)",
+                "lastArrivalNumber" => "FIRST($lastArrivalNumberSubquery)",
+                "lastReceptionNumber" => "FIRST($lastReceptionNumberSubquery)",
             ],
             FixedFieldEnum::createdAt->name => "emergency.createdAt",
             "lastTriggeredAt" => "emergency.lastTriggeredAt",
@@ -235,5 +236,52 @@ class EmergencyRepository extends EntityRepository {
             'count' => $filtered,
             'total' => $total
         ];
+    }
+
+    public function countUntriggered(bool $daily = false,
+                                     bool $active = false): ?int {
+        $queryBuilder = $this->createQueryBuilder('emergency');
+
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder = $queryBuilder
+            ->select('COUNT(emergency)')
+            ->leftJoin(StockEmergency::class, 'stock_emergency', Join::WITH, 'emergency.id = stock_emergency.id')
+            ->andWhere('tracking_emergency.arrivals IS EMPTY')
+            ->andWhere($exprBuilder->orX(
+                'tracking_emergency IS NOT NULL AND tracking_emergency.dateStart < :now',
+                // TODO WIIS-12769 for stock emergency
+            ))
+            ->setParameter('now', new DateTime('now'))
+        ;
+
+        /*
+         TODO WIIS-12769 for stock emergency
+            ->leftJoin(TrackingEmergency::class, 'tracking_emergency', Join::WITH, 'emergency.id = tracking_emergency.id')
+            ->andWhere('stock_emergency.receptionReferenceArticles IS EMPTY AND tracking_emergency.arrivals IS EMPTY') -> replace existing andWhere tracking_emergency.arrivals IS EMPTY'
+         */
+
+        if ($daily) {
+            $todayEvening = new DateTime('now');
+            $todayEvening->setTime(23, 59, 59, 59);
+            $todayMorning = new DateTime('now');
+            $todayMorning->setTime(0, 0, 0, 1);
+            $queryBuilder
+                ->andWhere('emergency.dateEnd < :todayEvening')
+                ->andWhere('emergency.dateEnd > :todayMorning')
+                ->setParameter('todayEvening', $todayEvening)
+                ->setParameter('todayMorning', $todayMorning);
+        }
+
+        if ($active) {
+            $today = new DateTime('now');
+            $queryBuilder
+                ->andWhere('emergency.dateEnd >= :todayEvening')
+                ->setParameter('todayEvening', $today);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
