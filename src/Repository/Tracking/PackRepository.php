@@ -11,8 +11,10 @@ use App\Entity\LocationGroup;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
+use App\Service\Tracking\TrackingTimerEvent;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Criteria;
@@ -176,8 +178,7 @@ class PackRepository extends EntityRepository
 
 
     public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
-        $queryBuilder = $this->createQueryBuilder('pack')
-            ->groupBy('pack.id');
+        $queryBuilder = $this->createQueryBuilder('pack');
 
         $queryBuilder
             ->leftJoin('pack.article', 'article')
@@ -411,9 +412,13 @@ class PackRepository extends EntityRepository
                             ->leftJoin('pack.arrivage', 'order_truckArrivalNumber_pack_arrivage')
                             ->orderBy('order_truckArrivalNumber_pack_arrivage.noTracking', $order);
                     } else if ($column === 'limitTreatmentDate') {
+                        // Group by limit treatment date with not pause event first in ASC ordering
                         $queryBuilder
                             ->leftJoin('pack.currentTrackingDelay', 'order_trackingDelay')
-                            ->orderBy('order_trackingDelay.limitTreatmentDate', $order);
+                            ->orderBy('IF(order_trackingDelay IS NOT NULL, 0, 1)', $order)
+                            ->addOrderBy('IF(order_trackingDelay.lastTrackingEvent IS NULL OR order_trackingDelay.lastTrackingEvent != :orderBy_pauseTrackingEvent, 0, 1)', $order)
+                            ->addOrderBy('order_trackingDelay.limitTreatmentDate', $order)
+                            ->setParameter('orderBy_pauseTrackingEvent', TrackingEvent::PAUSE);
                     } else if ($column === 'supplier') {
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'order_supplier_arrival')
@@ -436,13 +441,22 @@ class PackRepository extends EntityRepository
             }
         }
         // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'pack');
+        $countFiltered = QueryBuilderHelper::count(
+            $queryBuilder,
+            'pack',
+            parametersToReset: ['orderBy_pauseTrackingEvent']
+        );
 
         $queryBuilder
             ->select('pack');
 
-        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
+
+        if ($params->getInt('length')) {
+            $queryBuilder->setMaxResults($params->getInt('length'));
+        }
 
         $query = $queryBuilder->getQuery();
         return [
