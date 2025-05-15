@@ -8,37 +8,27 @@ use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public CacheService $cacheService;
-
-    #[Required]
-    public EntityManagerInterface $manager;
-
-    #[Required]
-    public TokenStorageInterface $tokenStorage;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public UserService $userService;
-
     private array $translations = [];
+
+    public function __construct(
+        private KernelInterface        $kernel,
+        private CacheService           $cacheService,
+        private EntityManagerInterface $manager,
+        private TokenStorageInterface  $tokenStorage,
+        private LanguageService        $languageService,
+        private FormatService          $formatService,
+    ) {
+    }
 
     /**
      * Translates the given input
@@ -232,11 +222,11 @@ class TranslationService {
 
     public function generateCache(?string $slug = null, ?bool $force = false) {
         if($force) {
-            $this->cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $this->cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
         }
 
         if($slug) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::COLLECTION_TRANSLATIONS, $slug, function() use($slug) {
+            $this->translations[$slug] = $this->cacheService->get(CacheNamespaceEnum::TRANSLATIONS, $slug, function() use($slug) {
                 $this->loadTranslations($slug);
                 return $this->translations[$slug];
             });

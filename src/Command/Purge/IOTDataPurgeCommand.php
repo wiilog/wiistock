@@ -2,8 +2,6 @@
 
 namespace App\Command\Purge;
 
-use App\Entity\IoT\Actuator;
-use App\Entity\IoT\IoTMessage;
 use App\Entity\IoT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Repository\IOT\SensorMessageRepository;

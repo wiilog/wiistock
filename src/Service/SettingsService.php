@@ -49,6 +49,8 @@ use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateInterval;
@@ -101,7 +103,7 @@ class SettingsService {
                              string                 $settingLabel,
                              string|int|null|bool   $default = null): mixed {
         return $this->cacheService->get(
-            CacheService::COLLECTION_SETTINGS,
+            CacheNamespaceEnum::SETTINGS,
             $settingLabel,
             static function () use ($settingLabel, $entityManager, $default) {
                 $settingRepository = $entityManager->getRepository(Setting::class);
@@ -1280,7 +1282,7 @@ class SettingsService {
         }
 
         if (isset($tables["requestTemplates"])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class);
+            $this->cacheService->delete(CacheNamespaceEnum::SETTINGS, SleepingStockRequestInformation::class);
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -1420,7 +1422,7 @@ class SettingsService {
         }
 
         if (isset($tables["sleepingStockRequestInformations"])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class);
+            $this->cacheService->delete(CacheNamespaceEnum::SETTINGS, SleepingStockRequestInformation::class);
 
             $sleepingStockRequestInformationRepository = $entityManager->getRepository(SleepingStockRequestInformation::class);
 
@@ -1463,9 +1465,7 @@ class SettingsService {
                                        array                  $updated): void {
         $this->getTimestamp(true);
 
-        foreach ($updated as $setting) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, $setting);
-        }
+        $this->cacheService->delete(CacheNamespaceEnum::SETTINGS);
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig($entityManager);
@@ -1512,10 +1512,10 @@ class SettingsService {
 
     public function getTimestamp(bool $reset = false): string {
         if ($reset) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "timestamp");
+            $this->cacheService->delete(CacheNamespaceEnum::SETTINGS, "timestamp");
         }
 
-        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, "timestamp", fn() => time());
+        return $this->cacheService->get(CacheNamespaceEnum::SETTINGS, "timestamp", fn() => time());
     }
 
     public function cacheClear(): void {

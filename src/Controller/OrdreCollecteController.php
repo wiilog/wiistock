@@ -20,7 +20,7 @@ use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\NotificationService;

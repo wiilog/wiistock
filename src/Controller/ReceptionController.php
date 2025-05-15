@@ -41,7 +41,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;

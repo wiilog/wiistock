@@ -17,7 +17,7 @@ use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;

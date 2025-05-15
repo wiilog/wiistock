@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Exceptions\FormException;
+use App\Service\Cache\CacheService;
 use DateTime;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;

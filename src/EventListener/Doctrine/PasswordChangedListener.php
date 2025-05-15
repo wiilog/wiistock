@@ -6,7 +6,7 @@ namespace App\EventListener\Doctrine;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
-use App\Service\CacheService;
+use App\Service\Cache\CacheService;
 use App\Service\SessionHistoryRecordService;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;

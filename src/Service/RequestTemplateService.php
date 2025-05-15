@@ -23,6 +23,7 @@ use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
+use App\Service\Cache\CacheService;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

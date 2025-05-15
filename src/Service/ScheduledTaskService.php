@@ -10,6 +10,8 @@ use App\Entity\ScheduledTask\ScheduledTask;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -240,15 +242,15 @@ class ScheduledTaskService {
         return $dateTime->format("Y-m-d-H-i");
     }
 
-    private function getCacheCollection(string $class): string {
+    private function getCacheCollection(string $class): CacheNamespaceEnum {
         $this->validateClass($class);
 
         return match ($class) {
-            Import::class               => CacheService::COLLECTION_IMPORTS,
-            Export::class               => CacheService::COLLECTION_EXPORTS,
-            PurchaseRequestPlan::class  => CacheService::COLLECTION_PURCHASE_REQUEST_PLANS,
-            InventoryMissionPlan::class => CacheService::COLLECTION_INVENTORY_MISSION_PLANS,
-            SleepingStockPlan::class    => CacheService::COLLECTION_SLEEPING_STOCK_PLANS,
+            Import::class               => CacheNamespaceEnum::IMPORTS,
+            Export::class               => CacheNamespaceEnum::EXPORTS,
+            PurchaseRequestPlan::class  => CacheNamespaceEnum::PURCHASE_REQUEST_PLANS,
+            InventoryMissionPlan::class => CacheNamespaceEnum::INVENTORY_MISSION_PLANS,
+            SleepingStockPlan::class    => CacheNamespaceEnum::SLEEPING_STOCK_PLANS,
             default                     => throw new Exception("Not implemented yet")
         };
     }

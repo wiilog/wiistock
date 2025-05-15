@@ -1906,33 +1906,40 @@ class TrackingMovementService {
         if ($trackingMovement->isInitTrackingDelay()) {
             $trackingEvent = TrackingEvent::START;
         }
+
         else if ($trackingMovement->isPicking()
             && $trackingLocation->isStartTrackingTimerOnPicking()
             && !$manualDelayStart) {
-            $pack = $trackingMovement->getPack();
-            $location = $trackingMovement->getEmplacement();
-            $lastOngoingDrop = $pack->getLastOngoingDrop();
+            $isStopEvent = $trackingLocation->isStopTrackingTimerOnDrop();
+            $isPauseEvent = $trackingLocation->isPauseTrackingTimerOnDrop();
 
-            // the last ongoing drop is defined,
-            // AND its location is same as the current movement location,
-            // AND he hasn't a tracking event OR he has a STOP tracking event (see WIIS-12750 / case 1)
-            // => then we set the start event on the drop movement
-            if ($location?->getId()
-                && $lastOngoingDrop
-                && in_array($lastOngoingDrop->getEvent(), [null, TrackingEvent::STOP])
-                && $location->getId() === $lastOngoingDrop->getEmplacement()?->getId()) {
-                $trackingToSetEvent = $lastOngoingDrop;
+            // see WIIS-12751 example 2
+            if ((!$isStopEvent && !$isPauseEvent)
+                || ($isStopEvent && !$isPauseEvent)) {
+                $pack = $trackingMovement->getPack();
+                $location = $trackingMovement->getEmplacement();
+                $lastOngoingDrop = $pack->getLastOngoingDrop();
+
+                // IF the last ongoing drop is defined,
+                //    AND its location is same as the current movement location,
+                // THEN we set the start event on the drop movement instead of current movement
+                if ($location?->getId()
+                    && $lastOngoingDrop
+                    && $location->getId() === $lastOngoingDrop->getEmplacement()?->getId()) {
+                    $trackingToSetEvent = $lastOngoingDrop;
+                }
             }
 
             $trackingEvent = TrackingEvent::START;
         }
-        else if ($trackingMovement->isDrop()
-            && $trackingLocation->isStopTrackingTimerOnDrop()) {
-            $trackingEvent = TrackingEvent::STOP;
-        }
-        else if ($trackingMovement->isDrop()
-            && $trackingLocation->isPauseTrackingTimerOnDrop()) {
-            $trackingEvent = TrackingEvent::PAUSE;
+        else if ($trackingMovement->isDrop()) {
+            // priority to stop setting
+            if ($trackingLocation->isStopTrackingTimerOnDrop()) {
+                $trackingEvent = TrackingEvent::STOP;
+            }
+            else if ($trackingLocation->isPauseTrackingTimerOnDrop()) {
+                $trackingEvent = TrackingEvent::PAUSE;
+            }
         }
 
         $trackingToSetEvent->setEvent($trackingEvent ?? null);

@@ -96,19 +96,26 @@ class DashboardSettingsController extends AbstractController {
                 throw new FormException("Vous avez un trop grand nombre de composant sur vos dashboards, la limite est de $componentLimit");
             }
             else {
-                $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
-                if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
-                    $unknownComponentLabel = $matches[1] ?? '';
-                    throw new FormException("Type de composant {$unknownComponentLabel} inconnu");
+                $imageCountExceededCode = DashboardSettingsService::IMAGE_COUNT_EXCEEDED;
+                if (preg_match("/$imageCountExceededCode-(.*)/", $message, $matches)) {
+                    $imageLimit = $matches[1] ?? '';
+                    throw new FormException("Vous avez un trop grand nombre d'image sur vos dashboards, la limite est de $imageLimit");
                 }
                 else {
-                    $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
-                    if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
-                        $title = $matches[1] ?? '';
-                        throw new FormException('Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides');
+                    $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
+                    if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
+                        $unknownComponentLabel = $matches[1] ?? '';
+                        throw new FormException("Type de composant {$unknownComponentLabel} inconnu");
                     }
                     else {
-                        throw $exception;
+                        $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
+                        if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
+                            $title = $matches[1] ?? '';
+                            throw new FormException('Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides');
+                        }
+                        else {
+                            throw $exception;
+                        }
                     }
                 }
             }

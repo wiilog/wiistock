@@ -7,11 +7,13 @@ use App\Entity\Action;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
-use Doctrine\ORM\EntityManagerInterface;
 
 class RoleService
 {
@@ -28,7 +30,7 @@ class RoleService
     public function getPermissions(Utilisateur $user, $bool = false): array {
         $role = $user->getRole();
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        return $this->cacheService->get(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
+        return $this->cacheService->get(CacheNamespaceEnum::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
             return Stream::from($role->getActions())
                 ->keymap(function(Action $action) use ($bool) {
                     $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel());
@@ -45,8 +47,8 @@ class RoleService
     public function onRoleUpdate(int $roleId): void {
         $menuPrefix = self::MENU_CACHE_PREFIX;
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$roleId}");
-        $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheNamespaceEnum::PERMISSIONS, "{$menuPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheNamespaceEnum::PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
     }
 
     public function updateRole(EntityManagerInterface $entityManager,

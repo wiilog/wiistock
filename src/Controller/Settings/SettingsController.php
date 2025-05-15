@@ -57,7 +57,8 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\RequestTemplate\RequestTemplateRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
@@ -951,8 +952,8 @@ class SettingsController extends AbstractController {
             $defaultLanguage->setSelected(true);
             $manager->flush();
 
-            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+            $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -998,8 +999,8 @@ class SettingsController extends AbstractController {
             $manager->remove($language);
             $manager->flush();
 
-            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+            $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+            $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -1073,8 +1074,8 @@ class SettingsController extends AbstractController {
 
         $entityManager->flush();
 
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
-        $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES);
+        $cacheService->delete(CacheNamespaceEnum::TRANSLATIONS);
 
         $settingsService->getTimestamp(true);
 
@@ -1898,8 +1899,11 @@ class SettingsController extends AbstractController {
 
     #[Route("/enregistrer/champ-fixe/{field}", name: "settings_save_field_param", options: ["expose" => true], methods: ["POST"])]
     #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function saveFieldParam(Request $request, EntityManagerInterface $manager, int $field): Response {
-        $entity = match($request->request->get('fixedFieldType')) {
+    public function saveFieldParam(CacheService           $cacheService,
+                                   Request                $request,
+                                   EntityManagerInterface $manager,
+                                   int                    $field): Response {
+        $entity = match ($request->request->get('fixedFieldType')) {
             FixedFieldByType::FIELD_TYPE => FixedFieldByType::class,
             SubLineFixedField::FIELD_TYPE => SubLineFixedField::class,
             default => FixedFieldStandard::class
@@ -1987,6 +1991,8 @@ class SettingsController extends AbstractController {
             }
         }
         $manager->flush();
+
+        $cacheService->delete(CacheNamespaceEnum::SETTINGS);
 
         return $this->json([
             "success" => true,

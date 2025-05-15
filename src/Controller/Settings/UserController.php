@@ -18,7 +18,8 @@ use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
-use App\Service\CacheService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PasswordService;
@@ -356,7 +357,7 @@ class UserController extends AbstractController {
 
         $entityManager->persist($user);
         $entityManager->flush();
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES, 'languagesSelector'.$user->getId());
 
         $dataResponse = ['success' => true];
 
@@ -629,7 +630,7 @@ class UserController extends AbstractController {
             ->setLanguage($newLanguage);
 
         $manager->flush();
-        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
+        $cacheService->delete(CacheNamespaceEnum::LANGUAGES, 'languagesSelector'.$user->getId());
 
         return $this->json([
             "success" => true,
