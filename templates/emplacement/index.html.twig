@@ -96,7 +96,7 @@
 
         <div class="row">
             <div class="col-12 locationsTableContainer">
-                <table id="locationsTable" class="table w-100"></table>
+                <table id="locationsTable" data-initial-visible="{{ fields | json_encode }}" class="table w-100"></table>
             </div>
             <div class="col-12 groupsTableContainer">
                 <table id="groupsTable" class="table w-100"></table>
@@ -135,6 +135,20 @@
         }
     } %}
 
+    {% include "utils/fields-modes.html.twig" with {
+        fields,
+        table: 'locationsTable',
+        page: 'emplacement',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
+    } %}
 
     {% include "location_group/new.html.twig" %}
     {% include "location_group/edit.html.twig" %}

@@ -29,26 +29,18 @@ use WiiCommon\Helper\Stream;
 class EmplacementDataService {
 
     const PAGE_EMPLACEMENT = 'emplacement';
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public UserService $userService;
-
     private array $labeledCacheLocations = [];
+
+    public function __construct(
+        private FieldModesService      $fieldModesService,
+        private UserService            $userService,
+        private FormatService          $formatService,
+        private EntityManagerInterface $entityManager,
+        private Security               $security,
+        private RouterInterface        $router,
+        private Twig_Environment       $templating,
+
+    ){}
 
     public function persistLocation(EntityManagerInterface $entityManager,
                                     ParameterBag|array     $data,
@@ -277,6 +269,16 @@ class EmplacementDataService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
+            'startTrackingTimerOnPicking' => $this->formatService->bool($location->isStartTrackingTimerOnPicking()),
+            'stopTrackingTimerOnDrop' => $this->formatService->bool($location->isStopTrackingTimerOnDrop()),
+            'pauseTrackingTimerOnDrop' => $this->formatService->bool($location->isPauseTrackingTimerOnDrop()),
+            'enableNewNatureOnPick' => $this->formatService->bool($location->isNewNatureOnPickEnabled()),
+            'enableNewNatureOnDrop' => $this->formatService->bool($location->isNewNatureOnDropEnabled()),
+            'allowedDeliveryTypes' => Stream::from($location->getAllowedDeliveryTypes())
+                ->map(fn(Type $allowedDeliveryTypes): string => $this->formatService->type($allowedDeliveryTypes))
+                ->join(", "),
+            'newNatureOnPick' => $this->formatService->nature($location->getNewNatureOnPick()),
+            'newNatureOnDrop' => $this->formatService->nature($location->getNewNatureOnDrop()),
         ];
     }
 
@@ -353,5 +355,41 @@ class EmplacementDataService {
         } else {
             throw new FormException("Vous devez donner un nom valide.");
         }
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           ?Utilisateur $currentUser,
+                                           EmplacementDataService $emplacementDataService,
+                                           string $page): array {
+
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
+
+        $columns = [
+            ['name' => 'actions','class' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],
+            ['name' => 'pairing', 'class' => 'pairing-now', 'orderable' => false],
+            ['name' => 'name', 'title' => 'Nom', 'orderable' => true],
+            ['name' => 'description', 'title' => 'Description', 'orderable' => true],
+            ['name' => 'isDeliveryPoint', 'title' => 'Point de livraison', 'orderable' => true],
+            ['name' => 'isOngoingVisibleOnMobile', 'title' => 'Encours visible sur nomade', 'orderable' => true],
+            ['name' => 'maximumTrackingDelay', 'title' => 'Délai maximum de traçabilité', 'orderable' => true],
+            ['name' => 'status', 'title' => 'Statut', 'orderable' => true],
+            ['name' => 'allowedNatures', 'title' => 'Natures autorisées', 'orderable' => false],
+            ['name' => 'allowedTemperatures', 'title' => 'Températures autorisées', 'orderable' => false],
+            ['name' => 'signatories', 'title' => 'Signataires', 'orderable' => false],
+            ['name' => 'email', 'title' => 'Email'],
+            ['name' => 'zone', 'title' => 'Zone'],
+            ['name' => 'sendEmailToManagers', 'title' => "Envoi d'email à chaque dépose aux responsables de l'emplacement", 'orderable' => false],
+            ['name' => 'managers', 'title' => 'Responsables', 'ordorable' => false],
+            ['name' => 'allowedDeliveryTypes', 'title' => 'Types de livraison autorisés'],
+            ['name' => 'startTrackingTimerOnPicking', 'title' => 'Emplacement de prise initiale'],
+            ['name' => 'stopTrackingTimerOnDrop', 'title' => 'Emplacement de dépose finale'],
+            ['name' => 'pauseTrackingTimerOnDrop', 'title' => 'Emplacement de pause'],
+            ['name' => 'enableNewNatureOnPick', 'title' => 'Activer le changement de nature à la prise'],
+            ['name' => 'enableNewNatureOnDrop', 'title' => 'Activer le changement de nature à la dépose'],
+            ['name' => 'newNatureOnPick', 'title' => 'Nouvelle nature à la prise sur emplacement'],
+            ['name' => 'newNatureOnDrop', 'title' => 'Nouvelle nature à la dépose sur emplacement'],
+        ];
+
+        return $this->fieldModesService->getArrayConfig($columns, [], $fieldsModes);
     }
 }

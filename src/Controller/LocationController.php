@@ -25,6 +25,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\EmplacementDataService;
@@ -54,15 +55,22 @@ class LocationController extends AbstractController {
 
     #[Route("/index", name: "emplacement_index", methods: ["GET"])]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION])]
-    public function index(EntityManagerInterface $entityManager): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          EmplacementDataService $emplacementDataService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $fields = $emplacementDataService->getColumnVisibleConfig($entityManager, $currentUser, $emplacementDataService, FieldModesController::PAGE_EMPLACEMENT);
+
         return $this->render("emplacement/index.html.twig", [
             "newZone" => new Zone(),
             "active" => $active,
+            "fields" => $fields,
         ]);
     }
 
