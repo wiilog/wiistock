@@ -12,6 +12,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emergency\EmergencyTriggerEnum;
+use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
@@ -1902,7 +1903,9 @@ class ReceptionController extends AbstractController {
                 'receptionReferenceArticle' => $receptionReferenceArticle,
                 'referenceArticle' => $referenceArticle,
                 'title' => 'Votre article urgent a bien été réceptionné.',
-                'newEmergencyQuantity' => 1,
+                'newEmergencyQuantity' => $stockEmergencyTriggered->getEndEmergencyCriteria() === EndEmergencyCriteriaEnum::REMAINING_QUANTITY
+                    ? $stockEmergencyTriggered->getExpectedQuantity() - $stockEmergencyTriggered->getAlreadyReceivedQuantity()
+                    : 0,
             ]);
 
             $destinataires = [];

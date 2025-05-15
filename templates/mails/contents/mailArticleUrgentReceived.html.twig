@@ -2,7 +2,7 @@
 
 {% block content %}
     <div>Référence : {{ referenceArticle ? referenceArticle|format_helper('referenceArticle')}}</div>
-    {% if receptionReferenceArticle and newEmergencyQuantity and newEmergencyQuantity > 0 %}
+    {% if emergency and newEmergencyQuantity > 0 %}
         <div>Nombre d'article(s) restant(s) à recevoir : {{ newEmergencyQuantity }}</div>
     {% endif %}
     <div>Numéro de commande : {{ receptionReferenceArticle ? receptionReferenceArticle.commande }}</div>
