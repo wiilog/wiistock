@@ -248,12 +248,15 @@ class EmergencyRepository extends EntityRepository {
             ->select('COUNT(emergency)')
             ->leftJoin(StockEmergency::class, 'stock_emergency', Join::WITH, 'emergency.id = stock_emergency.id')
             ->andWhere('tracking_emergency.arrivals IS EMPTY')
+            ->andWhere($exprBuilder->isNotNull('tracking_emergency.closedAt'))
             ->andWhere($exprBuilder->orX(
-                'tracking_emergency IS NOT NULL AND tracking_emergency.dateStart < :now',
+                $exprBuilder->andX(
+                    $exprBuilder->isNotNull('tracking_emergency '),
+                    $exprBuilder->lt("tracking_emergency.dateStart ", ":now")
+                ),
                 // TODO WIIS-12769 for stock emergency
             ))
-            ->setParameter('now', new DateTime('now'))
-        ;
+            ->setParameter('now', new DateTime('now'));
 
         /*
          TODO WIIS-12769 for stock emergency
