@@ -36,6 +36,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type\CategoryType;
+use App\Entity\Type\StockEmergencyAlertMode;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -1763,6 +1764,7 @@ class ReceptionController extends AbstractController {
 
                 $stockEmergenciesTriggered[] = [
                     "stockEmergencyTriggered" => $stockEmergency,
+                    "receptionReferenceArticle" => $receptionReferenceArticle,
                     "referenceArticle" => $referenceArticle,
                 ];
 
@@ -1882,47 +1884,45 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        // TODO WIIS-12644: extract in other function ? + rebrancher l'envoi de mail avec le nouveau parametrage sur le type "Alerte email"
         // clean code
         foreach($stockEmergenciesTriggered as $stockEmergencyTriggeredArray) {
-//            /**
-//             * @var StockEmergency $stockEmergencyTriggered
-//             * @var ReferenceArticle $referenceArticle
-//             */
-//            [$referenceArticle, $stockEmergencyTriggered] = $stockEmergencyTriggeredArray;
+            /**
+             * @var StockEmergency $stockEmergencyTriggered
+             * @var ReceptionReferenceArticle $receptionReferenceArticle
+             * @var ReferenceArticle $referenceArticle
+             */
+            [
+                "stockEmergencyTriggered" => $stockEmergencyTriggered,
+                "receptionReferenceArticle" => $receptionReferenceArticle,
+                "referenceArticle" => $referenceArticle
+            ] = $stockEmergencyTriggeredArray;
 
-//            $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
-//                'emergency' => $referenceArticle->getEmergencyComment(),
-//                'article' => $article,
-//                'title' => 'Votre article urgent a bien été réceptionné.',
-//                'newEmergencyQuantity' => $newEmergencyQuantity,
-//            ]);
-//
-//            $destinataires = '';
-//            $userThatTriggeredEmergency = $referenceArticle->getUserThatTriggeredEmergency();
-//            if($userThatTriggeredEmergency) {
-//                if(isset($demande) && $demande->getUtilisateur()) {
-//                    $destinataires = [
-//                        $userThatTriggeredEmergency,
-//                        $demande->getUtilisateur(),
-//                    ];
-//                } else {
-//                    $destinataires = [$userThatTriggeredEmergency];
-//                }
-//            } else {
-//                if(isset($demande) && $demande->getUtilisateur()) {
-//                    $destinataires = [$demande->getUtilisateur()];
-//                }
-//            }
-//
-//            if(!empty($destinataires)) {
-//                // on envoie un mail aux demandeurs
-//                $mailerService->sendMail(
-//                    $entityManager,
-//                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Article urgent réceptionné', $mailContent,
-//                    $destinataires
-//                );
-//            }
+            $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                'emergency' => $stockEmergencyTriggered,
+                'receptionReferenceArticle' => $receptionReferenceArticle,
+                'referenceArticle' => $referenceArticle,
+                'title' => 'Votre article urgent a bien été réceptionné.',
+                'newEmergencyQuantity' => 1,
+            ]);
+
+            $destinataires = [];
+            $stockEmergencyAlertModes = $stockEmergencyTriggered->getType()->getStockEmergencyAlertModes();
+
+            foreach ($stockEmergencyAlertModes as $stockEmergencyAlertMode) {
+                $destinataires[] = match($stockEmergencyAlertMode) {
+                    StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER => $stockEmergencyTriggered->getCreatedBy(),
+                    StockEmergencyAlertMode::SEND_MAIL_TO_BUYER => $referenceArticle->getBuyer(),
+                };
+            }
+
+            if(!empty($destinataires)) {
+                // on envoie un mail aux demandeurs
+                $mailerService->sendMail(
+                    $entityManager,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Article urgent réceptionné', $mailContent,
+                    $destinataires
+                );
+            }
             $entityManager->flush();
         }
 
