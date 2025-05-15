@@ -7,7 +7,6 @@ use App\Entity\Arrivage;
 use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
@@ -22,8 +21,8 @@ use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
-use App\Entity\Type;
-use App\Entity\Urgence;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
@@ -193,7 +192,7 @@ class EmergencyService {
 
         $emergency->setEndEmergencyCriteria($data->get("endEmergencyCriteria")
             ? EndEmergencyCriteriaEnum::from($data->get("endEmergencyCriteria"))
-            : EndEmergencyCriteriaEnum::REMAINING_QUANTITY);
+            : EndEmergencyCriteriaEnum::END_DATE);
 
         if ($data->has(FixedFieldEnum::supplier->name)) {
             $provider = $data->get(FixedFieldEnum::supplier->name)
@@ -444,12 +443,14 @@ class EmergencyService {
                              ],
                          ], [
                              "title" => "Aller vers les arrivages",
-                             "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_EMERGENCY),
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI),
                              "icon" => "fa fa-up-right-from-square",
                              "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
-                             "attributes" => [
-                                 "data-id" => $data["id"],
-                             ],
+                         ], [
+                             "title" => "Aller vers les réceptions",
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::STOCK_EMERGENCY && $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE),
+                             "icon" => "fa fa-up-right-from-square",
+                             "href" => $this->router->generate('reception_index', ["emergency" => $data["id"]]),
                          ],
                      ],
                  ]);

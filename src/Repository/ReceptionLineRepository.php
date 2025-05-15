@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\Tracking\Pack;
@@ -43,6 +44,8 @@ class ReceptionLineRepository extends EntityRepository {
             ->addSelect('join_receptionReferenceArticle.quantiteAR AS quantityToReceive')
             ->addSelect('join_receptionReferenceArticle.quantite AS receivedQuantity')
             ->addSelect('join_receptionReferenceArticle.unitPrice AS unitPrice')
+            ->addSelect('IF(join_receptionReferenceArticle.stockEmergencies IS NOT EMPTY, 1, 0) AS emergency')
+            ->addSelect("GROUP_CONCAT(DISTINCT stock_emergency.comment SEPARATOR ', ') AS emergencyComment")
             ->leftJoin('line.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
             ->leftJoin('join_pack.lastOngoingDrop', 'join_lastOngoingDrop')
@@ -50,6 +53,9 @@ class ReceptionLineRepository extends EntityRepository {
             ->leftJoin('join_pack.project', 'join_project')
             ->leftJoin('line.receptionReferenceArticles', 'join_receptionReferenceArticle')
             ->leftJoin('join_receptionReferenceArticle.referenceArticle', 'join_referenceArticle')
+            ->leftJoin('join_referenceArticle.articlesFournisseur', 'join_supplierArticles')
+            ->leftJoin('join_supplierArticles.fournisseur', 'join_supplier')
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.referenceArticle = join_referenceArticle OR stock_emergency.supplier = join_supplier")
             ->andWhere('line.reception = :reception')
             ->addOrderBy('IF(join_pack.id IS NULL, 0, 1)') // show receptionLine without pack first
             ->addOrderBy('line.id')
@@ -74,6 +80,7 @@ class ReceptionLineRepository extends EntityRepository {
                 ->setFirstResult($start)
                 ->setMaxResults($length);
         }
+        $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ["emergencyComment"]);
 
         $queryResult = $queryBuilder->getQuery()->getResult();
 
@@ -114,6 +121,8 @@ class ReceptionLineRepository extends EntityRepository {
                                     "quantityType" => $reference["quantityType"],
                                     "barCode" => $reference["barCode"],
                                     "label" => $reference["label"],
+                                    "emergency" => boolval($reference["emergency"]),
+                                    "emergencyComment" => $reference["emergencyComment"],
                                 ]
                                 : null
                         ))

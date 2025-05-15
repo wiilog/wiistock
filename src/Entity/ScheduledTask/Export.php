@@ -3,7 +3,7 @@
 namespace App\Entity\ScheduledTask;
 
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ScheduledTask\ExportRepository;
 use DateTime;

@@ -5,14 +5,12 @@ namespace App\Controller\IOT;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
-use App\Entity\FreeField\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
 use App\Service\FreeFieldService;
@@ -24,7 +22,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use WiiCommon\Helper\Stream;
 
 
 #[Route('/iot/capteur')]

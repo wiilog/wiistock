@@ -6,7 +6,7 @@ namespace App\Entity\Emergency;
 use App\Entity\Fournisseur;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\Emergency\EmergencyRepository;
 use DateTime;

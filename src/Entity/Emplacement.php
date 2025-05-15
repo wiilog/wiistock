@@ -17,6 +17,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
+use App\Entity\Type\Type;
 use App\Repository\EmplacementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

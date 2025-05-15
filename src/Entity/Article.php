@@ -12,6 +12,7 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LastMovementTrait;
+use App\Entity\Type\Type;
 use App\Repository\ArticleRepository;
 use DateTime;
 use DateTimeInterface;

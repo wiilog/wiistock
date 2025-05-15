@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Fournisseur;
@@ -12,15 +13,12 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
-use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
@@ -30,7 +28,6 @@ use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -248,11 +245,7 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['multipleFields'] ?? false) {
-            Stream::from($queryBuilder->getDQLParts()['select'])
-                ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
-                ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))
-                ->filter(static fn($selectAlias) => !in_array($selectAlias, ['text']))
-                ->each(static fn($field) => $queryBuilder->addGroupBy($field));
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder);
         }
 
         return $queryBuilder

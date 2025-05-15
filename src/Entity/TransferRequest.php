@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
 use App\Entity\Traits\CleanedCommentTrait;
+use App\Entity\Type\Type;
 use App\Helper\FormatHelper;
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
