@@ -4,7 +4,7 @@ namespace App\Service\Dashboard\DashboardComponentGenerator;
 
 use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
-use App\Entity\Urgence;
+use App\Entity\Emergency\Emergency;
 use App\Service\Dashboard\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -25,8 +25,8 @@ class ArrivalsEmergenciesComponentGenerator implements DashboardComponentGenerat
 
         $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
-        $emergencyRepository = $entityManager->getRepository(Urgence::class);
-        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily, $active);
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
+        $unsolvedEmergencies = $emergencyRepository->countUntriggered($daily, $active);
         $meter
             ->setCount($unsolvedEmergencies ?? 0);
     }
