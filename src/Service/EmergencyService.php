@@ -408,7 +408,14 @@ class EmergencyService {
         /** @var FiltreSupRepository $filtreSupRepository */
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EMERGENCIES, $this->userService->getUser());
+        $referenceArticleIdFilter = $request->getInt('referenceArticleId') ?: null;
+        $filters = match (true) {
+            $referenceArticleIdFilter !== null => [[
+                    "field" => "referenceArticle",
+                    "value" => $referenceArticleIdFilter
+            ]],
+            default => $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EMERGENCIES, $this->userService->getUser())
+        };
 
         $queryResult = $emergencyRepository->findByParamsAndFilters(
             $request,
