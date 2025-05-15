@@ -12,9 +12,6 @@ use WiiCommon\Helper\Stream;
 
 class QueryBuilderHelper {
 
-    /**
-     * @param array<string> $parametersToReset
-     */
     public static function count(QueryBuilder $query,
                                  string       $alias,
                                  bool         $distinct = true): int {
