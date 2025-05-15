@@ -133,6 +133,35 @@
                 {{ form.input(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, emergency.orderNumber ?? null) }}
             </div>
         {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedEmergencyLocation') %}
+        {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
+                    type: 'location',
+                    items: isEdit and not isTrackingEmergency and emergency.expectedLocation ? [{
+                        label: emergency.expectedLocation.label,
+                        value: emergency.expectedLocation.id,
+                        selected: true
+                    }] : [],
+                }) }}
+            </div>
+        {% endif %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrier') %}
+        {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
+            <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">
+                {{ form.select(fieldCode.name, trans('Qualité & Urgences', 'Urgences', fieldCode.value, false), false, {
+                    type: 'carrier',
+                    items: isEdit and not isTrackingEmergency and emergency.carrier ? [{
+                        label: emergency.carrier.label,
+                        value: emergency.carrier.id,
+                        selected: true
+                    }] : [],
+                }) }}
+            </div>
+        {% endif %}
+
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber') %}
         {% if fieldParams|isFieldRequired(fieldCode.name, displayAction) %}
             <div {{ macros.dataAttributesFieldbyType(fieldParams, fieldCode.name) }} class="col-6 mb-2">

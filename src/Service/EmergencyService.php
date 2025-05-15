@@ -12,6 +12,7 @@ use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
+use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -161,6 +162,7 @@ class EmergencyService {
                                     Request                $request): Emergency {
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
         $type = $typeRepository->find($request->request->get(FixedFieldEnum::type->name));
 
@@ -211,6 +213,13 @@ class EmergencyService {
             $emergency->setCarrierTrackingNumber($data->get(FixedFieldEnum::carrierTrackingNumber->name));
         }
 
+        if ($data->has(FixedFieldEnum::carrier->name)) {
+            $carrier = $data->get(FixedFieldEnum::carrier->name)
+                ? $carrierRepository->find($data->get(FixedFieldEnum::carrier->name))
+                : null;
+            $emergency->setCarrier($carrier);
+        }
+
         if($emergency instanceof TrackingEmergency) {
             $this->updateTrackingEmergency($entityManager, $emergency, $data);
         } else if($emergency instanceof StockEmergency) {
@@ -228,20 +237,12 @@ class EmergencyService {
                                              TrackingEmergency      $emergency,
                                              InputBag               $data): void {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
         if ($data->has(FixedFieldEnum::buyer->name)) {
             $buyer = $data->get(FixedFieldEnum::buyer->name)
                 ? $userRepository->find($data->get(FixedFieldEnum::buyer->name))
                 : null;
             $emergency->setBuyer($buyer);
-        }
-
-        if ($data->has(FixedFieldEnum::carrier->name)) {
-            $carrier = $data->get(FixedFieldEnum::carrier->name)
-                ? $carrierRepository->find($data->get(FixedFieldEnum::carrier->name))
-                : null;
-            $emergency->setCarrier($carrier);
         }
 
         if ($data->has(FixedFieldEnum::postNumber->name)) {
@@ -261,6 +262,7 @@ class EmergencyService {
                                           StockEmergency         $emergency,
                                           InputBag               $data): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $emergency->setEmergencyTrigger(EmergencyTriggerEnum::from($data->get("emergencyTrigger")));
         if ($data->has(EndEmergencyCriteriaEnum::REMAINING_QUANTITY->value)) {
@@ -273,6 +275,14 @@ class EmergencyService {
                 : null;
 
             $emergency->setReferenceArticle($referenceArticle);
+        }
+
+        if ($data->has(FixedFieldEnum::expectedEmergencyLocation->name)) {
+            $location = $data->get(FixedFieldEnum::expectedEmergencyLocation->name)
+                ? $locationRepository->find($data->get(FixedFieldEnum::expectedEmergencyLocation->name))
+                : null;
+
+            $emergency->setExpectedLocation($location);
         }
 
         if ($data->has(FixedFieldEnum::comment->name)) {
