@@ -377,10 +377,7 @@ class PackRepository extends EntityRepository
 
         // count filtered results
         // important to do it before order, because order add unnecessary params that break the count
-        $countFiltered = QueryBuilderHelper::count(
-            $queryBuilder,
-            'pack'
-        );
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         if (!empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
