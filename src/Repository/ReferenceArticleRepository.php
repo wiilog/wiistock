@@ -83,7 +83,6 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param array{
      *     visibilityGroup?: boolean,
      *     needsOnlyMobileSyncReference?: boolean,
-     *     supplier?: int,
      *     filterFields?: string,
      *     multipleFields?: boolean,
      *     ignoredShippingRequest?: boolean,
@@ -222,12 +221,6 @@ class ReferenceArticleRepository extends EntityRepository {
             if(!empty($expression)) {
                 $queryBuilder->andWhere($queryBuilder->expr()->andX(...$expression));
             }
-        }
-
-        if ($options['supplier'] ?? null) {
-            $queryBuilder
-                ->andWhere('supplier.id = :supplierId')
-                ->setParameter('supplierId', $options['supplier']);
         }
 
         $queryBuilder

@@ -44,6 +44,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\LanguageHelper;
+use App\Repository\ReferenceArticleRepository;
 use App\Service\LanguageService;
 use App\Service\SettingsService;
 use App\Service\Tracking\PackService;
@@ -227,6 +228,7 @@ class SelectController extends AbstractController {
 
     #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true], methods: [self::GET])]
     public function references(Request $request, EntityManagerInterface $manager): Response {
+        /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
         /** @var Utilisateur $user */
@@ -242,7 +244,6 @@ class SelectController extends AbstractController {
             'multipleFields' => $request->query->getBoolean('multipleFields'),
             'visibilityGroup' => $request->query->get('visibilityGroup'),
             'filterFields' => $request->query->get('filterFields'),
-            'supplier' => $request->query->get('supplier'),
         ];
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
@@ -262,10 +263,8 @@ class SelectController extends AbstractController {
                 ]);
         }
 
-        $dataKey = $request->query->get("data-key") ?? "result";
-
         return $this->json([
-            $dataKey => $results->toArray(),
+            "results" => $results->toArray(),
         ]);
     }
 
