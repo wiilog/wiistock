@@ -7,6 +7,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
@@ -75,6 +76,34 @@ class ReferenceArticleRepository extends EntityRepository {
         // add more columns here with their respective weighting (higher = more relevant)
     ];
 
+    /**
+     * @param array{
+     *     visibilityGroup?: boolean,
+     *     needsOnlyMobileSyncReference?: boolean,
+     *     filterFields?: string,
+     *     multipleFields?: boolean,
+     *     ignoredShippingRequest?: boolean,
+     *     ignoredDeliveryRequest?: boolean,
+     *     visibilityGroup?: int,
+     *     status?: string,
+     *     active-only?: boolean,
+     *     type-quantity?: string,
+     *     needsOnlyMobileSyncReference?: boolean,
+     * } $options
+     *
+     * @return array<array{
+     *     id: int,
+     *     label: string,
+     *     text: string,
+     *     location: string,
+     *     description: array,
+     *     typeQuantite: string,
+     *     barCode: string,
+     *     typeId: string,
+     *     dangerousGoods: int,
+     *     quantiteDisponible: int,
+     * }>
+     */
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
@@ -93,7 +122,8 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['type-quantity'] ?? false) {
-            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+            $queryBuilder
+                ->andWhere('reference.typeQuantite = :typeQuantity')
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
@@ -152,13 +182,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->distinct()
             ->select("reference.id AS id");
 
-        if($options['multipleFields']) {
+        if($options['multipleFields'] ?? false) {
             $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ', '), reference.barCode) AS text");
         } else {
             $queryBuilder->addSelect('reference.reference AS text');
         }
 
-        if($options['filterFields']) {
+        if($options['filterFields'] ?? null) {
             $filterFields = json_decode($options['filterFields'], true);
 
             $expression = Stream::from($filterFields ?: [])
@@ -199,16 +229,22 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
-            ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
-            ->setParameter("term", "%$term%")
+            ->leftJoin("reference.articlesFournisseur", "supplierArticle")
+            ->leftJoin("supplierArticle.fournisseur", "supplier")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options["multipleFields"]) {
+        if ($term) {
+            $queryBuilder
+                ->andHaving("text LIKE :term")
+                ->setParameter("term", "%$term%");
+        }
+
+        if($options['multipleFields'] ?? false) {
             $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder);
         }
 
@@ -1399,35 +1435,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
     }
 
-    public function findInCart(Utilisateur $user, array $params) {
-        $qb = $this->createQueryBuilder("reference_article");
-
-        $qb
-            ->innerJoin('reference_article.carts', 'cart')
-            ->where("cart.user = :user")
-            ->setParameter("user", $user);
-
-        foreach($params["order"] as $order) {
-            $column = $params["columns"][$order["column"]]['name'];
-            $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
-
-            if($column === "type") {
-                $qb->join("reference_article.type", "search_type")
-                    ->addOrderBy("search_type.label", $order["dir"]);
-            } else if ($column !== 'supplierReference') {
-                $qb->addOrderBy("reference_article.$column", $order["dir"]);
-            }
-        }
-
-        $countTotal = QueryBuilderHelper::count($qb, "reference_article");
-
-        return [
-            "data" => $qb->getQuery()->getResult(),
-            "count" => $countTotal,
-            "total" => $countTotal
-        ];
-    }
-
     public function isUsedInQuantityChangingProcesses(ReferenceArticle $referenceArticle): bool {
         $queryBuilder = $this->createQueryBuilder('reference');
         $exprBuilder = $queryBuilder->expr();
@@ -1493,5 +1500,19 @@ class ReferenceArticleRepository extends EntityRepository {
         $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
+    }
+
+    /**
+     * @return array<ReferenceArticle>
+     */
+    public function findBySupplier(Fournisseur $supplier): array {
+        return $this->createQueryBuilder('reference_article')
+            ->innerJoin('reference_article.articlesFournisseur', 'supplier_article')
+            ->innerJoin('supplier_article.fournisseur', 'supplier')
+            ->andWhere('supplier = :supplier_filter')
+            ->setParameter('supplier_filter', $supplier)
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -10,7 +10,6 @@ export function initCommentHistoryForm($modal, tableHistoLitige) {
         .submitTo(POST, 'dispute_add_comment', {
             tables: [tableHistoLitige],
             success: function () {
-                console.log($commentForm.find('[name="comment"]'))
                 $commentForm.find('[name="comment"]').val('');
             },
             routeParams: {

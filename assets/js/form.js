@@ -107,6 +107,19 @@ export default class Form {
         return this;
     }
 
+    /**
+     * Callback for submit event.
+     *
+     * @callback onSubmitCallback
+     * @param {FormData} data.
+     * @param {Form} form.
+     */
+
+    /**
+     *
+     * @param {onSubmitCallback?} callback
+     * @returns {Form}
+     */
     onSubmit(callback = null) {
         if (callback) {
             this.submitListeners.push(callback);
@@ -121,8 +134,8 @@ export default class Form {
      *    keepModal?: boolean,
      *    success?: function,
      *    error?: function
-     *    routeParams?: {[string]: string},
-     *    tables?: JQueryDataTableApi|JQueryDataTableApi[],
+     *    routeParams?: {[param: string]: string},
+     *    tables?: *|*[],
      *    clearFields?: boolean,
      * }} options
      * @returns {Form}

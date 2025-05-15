@@ -1,18 +1,15 @@
 import {showAndRequireInputByType} from "@app/utils";
-import {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
 import Routing from "@app/fos-routing";
+import EmergencyTriggerEnum from "@generated/emergency-trigger-enum";
+import EndEmergencyCriteriaEnum from "@generated/end-emergency-criteria-enum";
 
 const TRACKING_EMERGENCY = 'trackingEmergency';
 const STOCK_EMERGENCY = 'stockEmergency';
-const EMERGENCY_TRIGGER_SUPPLIER = 'supplier';
-const EMERGENCY_TRIGGER_REFERENCE = 'reference';
-const END_EMERGENCY_CRITERIA_MANUAL = 'manual';
-const END_EMERGENCY_CRITERIA_REMAINING_QUANTITY = 'remaining_quantity';
-const END_EMERGENCY_CRITERIA_END_DATE = 'end_date';
 
 $(function() {
     const $userFormat = $('#userDateFormat');
@@ -61,10 +58,10 @@ function onEmergencyTriggerChange($modal) {
     const $endEmergencyCriteriaSwitch = $modal.find('[name="endEmergencyCriteria"]:checked');
     const selectedEndCriteriaValue = $endEmergencyCriteriaSwitch.val();
 
-    const remainingQuantiySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
-    remainingQuantiySwitch
+    const $remainingQuantitySwitch = $modal.find('[name="endEmergencyCriteria"][value="remaining_quantity"]');
+    $remainingQuantitySwitch
         .next()
-        .toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE);
+        .toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value);
 
     const $dateContainer = $modal.find('.date-container');
 
@@ -73,17 +70,17 @@ function onEmergencyTriggerChange($modal) {
     const $supplierSelect = $modal.find('.stock-emergency-container  [name="supplier"]').closest('div');
     const $manualDateStartSelect = $modal.find('[name="manual"]').closest('div');
 
-    $referenceSelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE);
-    $supplierSelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_SUPPLIER);
-    $quantitySelect.toggleClass('d-none', selectedTriggerValue !== EMERGENCY_TRIGGER_REFERENCE || selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_REMAINING_QUANTITY);
-    $dateContainer.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_END_DATE);
-    $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== END_EMERGENCY_CRITERIA_MANUAL);
+    $referenceSelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value);
+    $supplierSelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.SUPPLIER.value);
+    $quantitySelect.toggleClass('d-none', selectedTriggerValue !== EmergencyTriggerEnum.REFERENCE.value || selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.REMAINING_QUANTITY.value);
+    $dateContainer.toggleClass('d-none', selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.END_DATE.value);
+    $manualDateStartSelect.toggleClass('d-none', selectedEndCriteriaValue !== EndEmergencyCriteriaEnum.MANUAL.value);
 }
 
 /**
- * @param {JQueryDataTableApi|JQueryDataTableApi[]} $tableEmergencies
+ * @param {*} tableEmergencies Datatable
  */
-function initializeModals($tableEmergencies) {
+function initializeModals(tableEmergencies) {
     let $modalNewEmergency = $('#modalNewEmergency');
     Form
         .create($modalNewEmergency, {resetView: ['open', 'close']})
@@ -96,9 +93,8 @@ function initializeModals($tableEmergencies) {
         .onOpen(() => {
             onEmergencyTypeChange($modalNewEmergency, 'create');
         })
-        .submitTo(POST, 'emergency_new', {
-            tables: $tableEmergencies,
-            clearFields: true,
+        .onSubmit((data, form) => {
+            onNewEmergencySubmit(form, data, tableEmergencies);
         });
 
     let $modalEditEmergency = $('#modalEditEmergency');
@@ -115,27 +111,12 @@ function initializeModals($tableEmergencies) {
         })
         .submitTo(POST, 'emergency_edit', {
             clearFields: true,
-            tables: $tableEmergencies,
+            tables: tableEmergencies,
         });
 
     $(document).on('click', '.close-emergency', (event) => {
-        const emergencyId = $(event.target).data('id');
-        Modal.confirm({
-            ajax: {
-                method: POST,
-                route: 'emergency_close',
-                params: {
-                    emergency: emergencyId
-                },
-            },
-            message: "Voulez-vous vraiment cloturer l'urgence ?",
-            title:  "Cloturer l'urgence",
-            validateButton: {
-                color: 'success',
-                label: Translation.of('Général', null, 'Modale', 'Oui'),
-            },
-            table: $tableEmergencies,
-        });
+        const emergency = $(event.target).data('id');
+        onCloseEmergency(emergency, tableEmergencies);
     });
 }
 
@@ -160,5 +141,114 @@ function initializeTable() {
             needsRowClickAction: true,
         },
         page: 'emergency',
+    });
+}
+
+/**
+ * @param {FormData} data
+ * @param {Form} form
+ * @param {*} tableEmergencies Datatable
+ */
+function onNewEmergencySubmit(form,
+                              data,
+                              tableEmergencies) {
+
+    const $modal = form.element;
+    const $type = $modal.find('[name="type"]');
+    const $selectedTypeOption = $type.find('option:selected');
+    const emergencyCategoryType = $selectedTypeOption.data('category-type');
+
+    if (emergencyCategoryType === STOCK_EMERGENCY
+        && data.has("supplier")) {
+
+        const $table = $('<table/>');
+
+        Modal.confirm({
+            message: $('<div>', {
+                html: [
+                    '<p>Vous allez créer une urgence qui impactera les références suivantes :</p>',
+                    '<br/><br/>',
+                    $table
+                ]
+            }),
+            title:  "Confirmation de la création de l'urgence",
+            validateButton: {
+                color: 'success',
+                label: 'Confirmer',
+            },
+            onSuccess: () => {
+                form.loading(() => submitNewEmergency(form, data, tableEmergencies));
+            }
+        });
+
+        initDataTable($table, {
+            ajax: {
+                "url": Routing.generate('emergency_linked_reference_article_api', {
+                    supplier: data.get("supplier"),
+                }),
+                "type": GET,
+            },
+            domConfig: {
+                removeInfo: true,
+                removeLength: true,
+                removeTableHeader: true,
+            },
+            processing: true,
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            columns: [
+                {data: 'barcode', title: 'Code barre'},
+                {data: 'reference', title: 'Référence'},
+                {data: 'label', title: 'Libellé'},
+            ],
+            ordering: false,
+        });
+    }
+    else {
+        form.loading(() => submitNewEmergency(form, data, tableEmergencies));
+    }
+}
+
+/**
+ * @param {Form} form
+ * @param {FormData} data
+ * @param {*} tableEmergencies Datatable
+ */
+function submitNewEmergency(form,
+                            data,
+                            tableEmergencies) {
+    return AJAX.route(POST, 'emergency_new')
+        .json(data)
+        .then(({success}) => {
+            if (success) {
+                form.element.modal(`hide`);
+                form.clear();
+                tableEmergencies.ajax.reload();
+            }
+        });
+}
+
+/**
+ * @param {int} emergency
+ * @param {*} tableEmergencies
+ */
+function onCloseEmergency(emergency,
+                          tableEmergencies) {
+    Modal.confirm({
+        ajax: {
+            method: POST,
+            route: 'emergency_close',
+            params: {
+                emergency
+            },
+        },
+        message: "Voulez-vous vraiment clôturer l'urgence ?",
+        title:  "Clôturer l'urgence",
+        validateButton: {
+            color: 'success',
+            label: Translation.of('Général', null, 'Modale', 'Oui'),
+        },
+        table: tableEmergencies,
     });
 }

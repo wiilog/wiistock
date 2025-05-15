@@ -43,6 +43,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\LanguageHelper;
+use App\Repository\ReferenceArticleRepository;
 use App\Service\LanguageService;
 use App\Service\SettingsService;
 use App\Service\Tracking\PackService;
@@ -224,8 +225,9 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true])]
+    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true], methods: [self::GET])]
     public function references(Request $request, EntityManagerInterface $manager): Response {
+        /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
         /** @var Utilisateur $user */

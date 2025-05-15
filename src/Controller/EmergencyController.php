@@ -10,6 +10,8 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Fournisseur;
+use App\Entity\ReferenceArticle;
 use App\Entity\Transporteur;
 use App\Entity\Type\Type;
 use App\Exceptions\FormException;
@@ -17,9 +19,11 @@ use App\Service\EmergencyService;
 use App\Entity\Menu;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
@@ -49,6 +53,36 @@ class EmergencyController extends AbstractController {
                 ]),
             "carriers" => $carrierRepository->findAllSorted(),
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
+        ]);
+    }
+
+    #[Route('/linked-reference-article', name: 'linked_reference_article_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY])]
+    public function linkedReferenceArticleApi(EntityManagerInterface $entityManager,
+                                              Request                $request): Response {
+
+        $supplierId = $request->query->get('supplier');
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
+
+        $supplier = $supplierId
+            ? $supplierRepository->find($supplierId)
+            : null;
+
+        if (!$supplierId) {
+            throw new RuntimeException("Valid supplier required");
+        }
+
+        $referenceArticles = $referenceArticleRepository->findBySupplier($supplier);
+
+        return $this->json([
+            "data" => Stream::from($referenceArticles)
+                ->map(static fn(ReferenceArticle $referenceArticle) => [
+                    "reference" => $referenceArticle->getReference(),
+                    "label"     => $referenceArticle->getLibelle(),
+                    "barcode"   => $referenceArticle->getBarCode(),
+                ])
+                ->toArray(),
         ]);
     }
 
