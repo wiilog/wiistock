@@ -82,6 +82,8 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                 // We increment counter for group in next foreach
                 // to do not count two times a same group
                 continue;
+            } else if(isset($treatedGroups[$pack->getId()])) {
+                continue;
             }
 
             $this->treatPack($componentsData, $pack, $remainingTimeInSeconds);
