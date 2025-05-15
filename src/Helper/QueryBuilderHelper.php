@@ -10,11 +10,14 @@ use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\QueryBuilder;
 use WiiCommon\Helper\Stream;
 
-class QueryBuilderHelper
-{
+class QueryBuilderHelper {
 
-    public static function count(QueryBuilder $query, string $alias, bool $distinct = true): int
-    {
+    /**
+     * @param array<string> $parametersToReset
+     */
+    public static function count(QueryBuilder $query,
+                                 string       $alias,
+                                 bool         $distinct = true): int {
         $countQuery = clone $query;
 
         $countQuery
