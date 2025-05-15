@@ -16,20 +16,13 @@ class QueryBuilderHelper {
      * @param array<string> $parametersToReset
      */
     public static function count(QueryBuilder $query,
-                                 string $alias,
-                                 bool $distinct = true,
-                                 array $parametersToReset = []): int
-    {
+                                 string       $alias,
+                                 bool         $distinct = true): int {
         $countQuery = clone $query;
 
         $countQuery
             ->resetDQLPart('orderBy')
             ->resetDQLPart('groupBy');
-
-        $parameters = $countQuery->getParameters();
-        foreach ($parametersToReset as $name) {
-            $parameters->remove($name);
-        }
 
         if($distinct) {
             $countQuery->select("COUNT(DISTINCT $alias) AS __query_count");
