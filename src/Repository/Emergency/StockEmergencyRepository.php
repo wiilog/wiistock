@@ -82,14 +82,12 @@ class StockEmergencyRepository extends EntityRepository {
                 ),
             ))
             ->andWhere("stock_emergency.closedAt IS NULL")
-            ->setParameters([
-                "referenceArticleId" => $referenceArticleId,
-                "emergencyTriggerReference" => EmergencyTriggerEnum::REFERENCE,
-                "emergencyTriggerSupplier" => EmergencyTriggerEnum::SUPPLIER,
-                "endEmergencyCriteriaRemainingQuantity" => EndEmergencyCriteriaEnum::REMAINING_QUANTITY,
-                "endEmergencyCriteriaEndDate" => EndEmergencyCriteriaEnum::END_DATE,
-                "endEmergencyCriteriaManual" => EndEmergencyCriteriaEnum::MANUAL,
-                "now" => $now,
-            ]);
+            ->setParameter("referenceArticleId", $referenceArticleId)
+            ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+            ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+            ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+            ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+            ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
+            ->setParameter("now", $now);
     }
 }
