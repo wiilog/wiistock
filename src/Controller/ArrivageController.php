@@ -561,7 +561,6 @@ class ArrivageController extends AbstractController {
 
         $post = $request->request;
 
-
         $arrivage = $arrivageRepository->find($post->get('id'));
 
         $dropLocation = $post->has('dropLocation')
@@ -569,8 +568,6 @@ class ArrivageController extends AbstractController {
             : $arrivage->getDropLocation();
 
         $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
-
-        $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
         $arrivage->setDropLocation($dropLocation);
 
@@ -665,23 +662,8 @@ class ArrivageController extends AbstractController {
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
 
-        $supplierEmergencyAlert = ($oldSupplierId !== $newSupplierId && $newSupplierId)
-            ? $arrivageDataService->createSupplierEmergencyAlert($entityManager, $arrivage)
-            : null;
-        $isArrivalUrgent = isset($supplierEmergencyAlert);
-
         $confirmEmergency = boolval($settingsService->getValue($entityManager, Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
-        $alertConfig = $isArrivalUrgent
-            ? [
-                $supplierEmergencyAlert,
-                $arrivageDataService->createArrivalAlertConfig($entityManager, $arrivage, false)
-            ]
-            : $arrivageDataService->createArrivalAlertConfig($entityManager, $arrivage, $confirmEmergency);
-
-        if ($isArrivalUrgent && !$confirmEmergency) {
-            $arrivageDataService->setArrivalUrgent($entityManager, $arrivage, true);
-            $entityManager->flush();
-        }
+        $alertConfig = $arrivageDataService->createArrivalAlertConfig($entityManager, $arrivage, $confirmEmergency);
 
         if ($sendMail) {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
