@@ -136,100 +136,28 @@ final class Version20250506124113 extends AbstractMigration {
             );
 
         }
-
         $urgentArrivals = $this->connection->fetchAllAssociative('
                 SELECT urgence.id AS tracking_emergency_id, arrivage.id AS arrival_id
                 FROM arrivage
                 LEFT JOIN urgence ON arrivage.id = urgence.last_arrival_id
-                WHERE is_urgent = 1
+                WHERE is_urgent = 1 AND arrivage.id IS NOT NULL
             ');
 
-        $now = (new DateTime("now"))->format('Y-m-d H:i:s');
-
-        $standardEmergencyComment = uniqid();
-        $standardEmergencyExist = false;
-
         foreach ($urgentArrivals as $urgentArrival) {
-            if (!$urgentArrival["tracking_emergency_id"] && !$standardEmergencyExist) {
-                $this->addSql(
-                    "
-                    INSERT INTO emergency (
-                        buyer_id,
-                        supplier_id,
-                        carrier_id,
-                        date_start,
-                        date_end,
-                        created_at,
-                        order_number,
-                        carrier_tracking_number,
-                        type_id,
-                        end_emergency_criteria,
-                        discr,
-                        comment,
-                        closed_at,
-                        last_triggered_at,
-                        free_fields
-                    ) VALUES (
-                        NULL,
-                        NULL,
-                        NULL,
-                        :dateStart,
-                        :dateEnd,
-                        :createdAt,
-                        NULL,
-                        NULL,
-                        :typeId,
-                        :endEmergencyCriteria,
-                        :discr,
-                        :comment,
-                        NULL,
-                        NULL,
-                        NULL
-                    )
-                ",
-                    [
-                        "dateStart" => $now,
-                        "dateEnd" => $now,
-                        "createdAt" => $now,
-                        "typeId" => $typeIdbyName['standard'],
-                        "endEmergencyCriteria" => EndEmergencyCriteriaEnum::END_DATE->value,
-                        "discr" => EmergencyDiscrEnum::TRACKING_EMERGENCY->value,
-                        "comment" => $standardEmergencyComment,
-                    ]
-                );
-
-                $this->addSql(
-                    "
-                    INSERT INTO tracking_emergency (
-                        id,
-                        post_number,
-                        internal_article_code,
-                        supplier_article_code
-                    ) VALUES (
-                        (SELECT LAST_INSERT_ID()),
-                        NULL,
-                        NULL,
-                        NULL
-                    )
-                "
-                );
-                $standardEmergencyExist = true;
-            }
-
-            $trackingEmergencyId = $urgentArrival["tracking_emergency_id"] ? "'".$urgentArrival["tracking_emergency_id"]."'"  : "(SELECT id FROM emergency WHERE comment = '$standardEmergencyComment' ORDER BY id DESC LIMIT 1)";
-
+            $trackingEmergencyId = $urgentArrival["tracking_emergency_id"];
             $this->addSql(
                 "
-                        INSERT INTO arrivage_tracking_emergency (
-                            tracking_emergency_id,
-                            arrivage_id
-                        ) VALUES (
-                            $trackingEmergencyId,
-                            :arrivalId
-                        )
-                    ",
+                    INSERT INTO arrivage_tracking_emergency (
+                        tracking_emergency_id,
+                        arrivage_id
+                    ) VALUES (
+                        :trackingEmergencyId,
+                        :arrivalId
+                    )
+                ",
                 [
                     "arrivalId" => $urgentArrival['arrival_id'],
+                    "trackingEmergencyId" => $trackingEmergencyId
                 ]
             );
         }
