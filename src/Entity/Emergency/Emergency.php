@@ -60,6 +60,10 @@ abstract class Emergency {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $createdAt = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $createdBy = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
 
@@ -185,6 +189,16 @@ abstract class Emergency {
 
     public function setCreatedAt(?DateTime $createdAt): self {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(Utilisateur $createdBy): self {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

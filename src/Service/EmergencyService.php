@@ -462,12 +462,23 @@ class EmergencyService {
                              "attributes" => [
                                  "data-id" => $data["id"],
                              ],
-                         ], [
+                         ],
+                         [
                              "title" => "Aller vers les arrivages",
                              "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI),
                              "icon" => "fa fa-up-right-from-square",
                              "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
-                         ], [
+                             "attributes" => [
+                                 "data-id" => $data["id"],
+                             ],
+                         ],
+                         [
+                             "title" => "Aller vers les arrivages",
+                             "hasRight" => $data["emergency_category_label"] === CategoryType::TRACKING_EMERGENCY && $this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI),
+                             "icon" => "fa fa-up-right-from-square",
+                             "href" => $this->router->generate('arrivage_index', ["emergency" => $data["id"]]),
+                         ],
+                         [
                              "title" => "Aller vers les réceptions",
                              "hasRight" => $data["emergency_category_label"] === CategoryType::STOCK_EMERGENCY && $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE),
                              "icon" => "fa fa-up-right-from-square",
