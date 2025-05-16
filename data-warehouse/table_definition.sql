@@ -146,12 +146,12 @@ CREATE TABLE dw_reception
     quantite_recue           integer,
     quantite_a_recevoir      integer,
     code_barre_reference     varchar(255),
-    urgence_reference        varchar(3),
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
     arrivage_id              integer,
     prix_unitaire            float,
-    frais_livraison          float
+    frais_livraison          float,
+    pieces_jointes           varchar(255)
 );
 
 CREATE TABLE dw_reference_article

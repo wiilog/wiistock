@@ -1,9 +1,5 @@
 SELECT reception.id                                                                   AS id,
-       (SELECT GROUP_CONCAT(item)
-        FROM JSON_TABLE(
-                 reception.order_number,
-                 '$[*]' COLUMNS (rowid FOR ORDINALITY, item VARCHAR(100) PATH '$')
-             ) AS json_parsed)                                                        AS no_commande,
+       REPLACE(REPLACE(REPLACE(reception.order_number, '"', ''), '[', ''), ']', '')   AS no_commande,
        statut.nom                                                                     AS statut,
        reception.cleaned_comment                                                      AS commentaire,
        reception.date                                                                 AS date,
@@ -33,8 +29,6 @@ SELECT reception.id                                                             
        IF(reference_article.id IS NOT NULL, type_reference_article.label,
           IF(article.id IS NOT NULL, type_article.label, NULL))                       AS type_flux,
 
-       IF(reception.urgent_articles = 1, 'oui', 'non')                                AS urgence_reference,
-
        IF(reception.manual_urgent = 1, 'oui', 'non')                                  AS urgence_reception,
        (SELECT purchase_request.number
         FROM purchase_request
@@ -45,7 +39,8 @@ SELECT reception.id                                                             
        (SELECT purchase_request.delivery_fee
         FROM purchase_request
                  INNER JOIN purchase_request_line ON reception.id = purchase_request_line.reception_id
-        LIMIT 1)                                                                      AS frais_livraison
+        LIMIT 1)                                                                      AS frais_livraison,
+       GROUP_CONCAT(attachment.file_name SEPARATOR ', ')                              AS pieces_jointes
 
 FROM reception
          LEFT JOIN statut ON reception.statut_id = statut.id
@@ -61,8 +56,35 @@ FROM reception
                    ON article_reference_article.id = article_fournisseur.reference_article_id
          LEFT JOIN type AS type_article ON article.type_id = type_article.id
          LEFT JOIN type AS type_reference_article ON reference_article.type_id = type_reference_article.id
+         LEFT JOIN reception_attachment ON reception.id = reception_attachment.reception_id
+         LEFT JOIN attachment ON reception_attachment.attachment_id = attachment.id
 
 WHERE (article.id IS NOT NULL
     OR reference_article.type_quantite = 'reference'
     OR reception_reference_article.quantite = 0
     OR reception_reference_article.quantite IS NULL)
+
+GROUP BY id,
+         no_commande,
+         statut,
+         commentaire,
+         date,
+         date_attendue,
+         numero,
+         fournisseur,
+         emplacement,
+         reference,
+         libelle,
+         quantite_recue,
+         quantite_a_recevoir,
+         quantite_reference,
+         quantite_article_associe,
+         code_barre_reference,
+         code_barre_article,
+         code_UL,
+         type_flux,
+         urgence_reception,
+         numero_demande_achat,
+         arrivage_id,
+         prix_unitaire,
+         frais_livraison
