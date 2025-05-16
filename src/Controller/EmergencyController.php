@@ -27,7 +27,7 @@ use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-#[Route('/emergency', name: 'emergency_')]
+#[Route('/urgence', name: 'emergency_')]
 class EmergencyController extends AbstractController {
 
     #[Route('/', name: 'index', methods: [self::GET])]
@@ -114,7 +114,7 @@ class EmergencyController extends AbstractController {
         ]);
     }
 
-    #[Route('/modifier-api/{emergency}', name: 'edit_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route('/edit-api/{emergency}', name: 'edit_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::QUALI, Action::CREATE_EMERGENCY], mode: HasPermission::IN_JSON)]
     public function editApi(EntityManagerInterface $entityManager,
                             EmergencyService       $emergencyService,
