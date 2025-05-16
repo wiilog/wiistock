@@ -178,7 +178,8 @@ class PackRepository extends EntityRepository
 
 
     public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
-        $queryBuilder = $this->createQueryBuilder('pack');
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->groupBy('pack.id');
 
         $queryBuilder
             ->leftJoin('pack.article', 'article')
@@ -289,7 +290,6 @@ class PackRepository extends EntityRepository
                     break;
             }
         }
-
 
         if (!empty($params->all('search'))) {
             $search = $params->all('search')['value'];
@@ -420,6 +420,7 @@ class PackRepository extends EntityRepository
                         ->leftJoin('pack.currentTrackingDelay', 'order_trackingDelay')
                         ->orderBy('IF(order_trackingDelay IS NOT NULL, 0, 1)', $order)
                         ->addOrderBy('IF(order_trackingDelay.lastTrackingEvent IS NULL OR order_trackingDelay.lastTrackingEvent != :orderBy_pauseTrackingEvent, 0, 1)', $order)
+                        ->addOrderBy('IF(order_trackingDelay.limitTreatmentDate IS NOT NULL, 0, 1)', $order)
                         ->addOrderBy('order_trackingDelay.limitTreatmentDate', $order)
                         ->setParameter('orderBy_pauseTrackingEvent', TrackingEvent::PAUSE);
                 } else if ($column === 'supplier') {
