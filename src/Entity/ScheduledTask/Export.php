@@ -32,6 +32,7 @@ class Export extends ScheduledTask {
     const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
     const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
     const ENTITY_DISPUTE = "dispute";
+    const ENTITY_EMERGENCY = "emergency";
 
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
@@ -46,6 +47,7 @@ class Export extends ScheduledTask {
         self::ENTITY_TRUCK_ARRIVAL => "Arrivages Camion",
         self::ENTITY_RECEIPT_ASSOCIATION => "Associations BR",
         self::ENTITY_DISPUTE => "Litiges",
+        self::ENTITY_EMERGENCY => "Urgences",
     ];
 
     const DESTINATION_EMAIL = 1;

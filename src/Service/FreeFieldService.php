@@ -66,7 +66,7 @@ class FreeFieldService {
         $freeFieldCategoryLabel = is_array($freeFieldCategoryLabel) ? $freeFieldCategoryLabel : [$freeFieldCategoryLabel];
         $typeCategoryLabel = is_array($typeCategoryLabel) ? $typeCategoryLabel : [$typeCategoryLabel];
 
-        return Stream::from($freeFieldsRepository->findByCategoriesTypeAndCategoriesCL($typeCategoryLabel, $freeFieldCategoryLabel))
+        return Stream::from($freeFieldsRepository->findByCategoriesTypeAndCategoriesCL($freeFieldCategoryLabel, $typeCategoryLabel))
             ->keymap(fn(FreeField $freeField) => [$freeField->getId(), $freeField])
             ->toArray();
     }

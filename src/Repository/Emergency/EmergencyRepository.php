@@ -12,10 +12,11 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Order;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
@@ -24,24 +25,31 @@ use WiiCommon\Helper\Stream;
  * @extends EntityRepository<EmergencyRepository>
  */
 class EmergencyRepository extends EntityRepository {
-    public function findByParamsAndFilters(ParameterBag $params, array $filters, array $visibleColumnsConfig): array {
+
+    public function getLastArrivalNumberSubquery(): QueryBuilder {
         $entityManager = $this->getEntityManager();
-        $lastArrivalNumberSubquery = $entityManager->createQueryBuilder()
+        return $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
             ->from(Arrivage::class, 'arrival')
             ->innerJoin('arrival.trackingEmergencies', 'emergency_arrival', Join::WITH, 'emergency_arrival = emergency')
-            ->orderBy('arrival.date', Order::Descending->value)
-            ->getDQL();
+            ->orderBy('arrival.date', Order::Descending->value);
+    }
 
-        $lastReceptionNumberSubquery = $entityManager->createQueryBuilder()
+    public function getLastReceptionNumberSubquery(): QueryBuilder {
+        $entityManager = $this->getEntityManager();
+        return $entityManager->createQueryBuilder()
             ->select('reception.number')
             ->from(Reception::class, 'reception')
             ->andWhere('emergency_reception.id = emergency.id')
             ->innerJoin("reception.lines", "reception_line")
             ->innerJoin("reception_line.receptionReferenceArticles", "reception_reference_article")
             ->innerJoin("reception_reference_article.stockEmergencies", "emergency_reception")
-            ->orderBy('reception.date', Order::Descending->value)
-            ->getDQL();
+            ->orderBy('reception.date', Order::Descending->value);
+    }
+
+    public function findByParamsAndFilters(ParameterBag $params, array $filters, array $visibleColumnsConfig): array {
+        $lastArrivalNumberSubquery = $this->getLastArrivalNumberSubquery();
+        $lastReceptionNumberSubquery = $this->getLastReceptionNumberSubquery();
 
         $columns = [
             FixedFieldEnum::dateStart->name => "emergency.dateStart",
@@ -297,5 +305,43 @@ class EmergencyRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): iterable {
+        $lastArrivalNumberSubquery = $this->getLastArrivalNumberSubquery();
+        $lastReceptionNumberSubquery = $this->getLastReceptionNumberSubquery();
+
+        $queryBuilder = $this->createQueryBuilder("emergency")
+            ->select('emergency.id AS id')
+            ->addSelect("emergency.freeFields AS freeFields")
+            ->addSelect('emergency.endEmergencyCriteria AS endEmergencyCriteria')
+            ->addSelect('emergency.comment AS comment')
+            ->addSelect('emergency.carrierTrackingNumber AS carrierTrackingNumber')
+            ->addSelect('emergency.dateStart AS dateStart')
+            ->addSelect('emergency.dateEnd AS dateEnd')
+            ->addSelect('emergency.createdAt AS createdAt')
+            ->addSelect('emergency.closedAt AS closedAt')
+            ->addSelect('emergency.lastTriggeredAt AS lastTriggeredAt')
+            ->addSelect('emergency.orderNumber AS orderNumber')
+            ->addSelect('tracking_emergency.postNumber AS postNumber')
+            ->addSelect('tracking_emergency.internalArticleCode AS internalArticleCode')
+            ->addSelect('tracking_emergency.supplierArticleCode AS supplierArticleCode')
+            ->addSelect("FIRST($lastArrivalNumberSubquery) as lastArrivalNumber")
+            ->addSelect("FIRST($lastReceptionNumberSubquery) as lastReceptionNumber")
+            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+            ->leftJoin("emergency.buyer", "emergency_buyer")
+            ->leftJoin("emergency.supplier", "emergency_supplier")
+            ->leftJoin("emergency.carrier", "emergency_carrier")
+            ->leftJoin("emergency.type", "emergency_type")
+            ->leftJoin("emergency_type.category", "emergency_category")
+            ->andWhere('emergency.createdAt BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax,
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
     }
 }

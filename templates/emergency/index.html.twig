@@ -52,6 +52,14 @@
                                 "data-target": "#modalFieldModes",
                             },
                         },
+                        {
+                            hasRight: hasRightToExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon : "fa fa-file-csv",
+                            attributes: {
+                            "onclick" : "saveExportFile('emergency_get_csv', true, {}, false, '" ~ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) ~ "', true)",
+                            },
+                        }
                     ],
                 } %}
             </div>
