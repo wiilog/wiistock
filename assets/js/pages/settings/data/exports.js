@@ -24,6 +24,7 @@ const ENTITY_PACK = "pack";
 const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
 const ENTITY_DISPUTE = "dispute";
 const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
+const ENTITY_LOCATION = "location";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -178,6 +179,7 @@ function createForm() {
                 }
 
                 const content = data.asObject();
+                console.log(content);
 
                 if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
@@ -335,6 +337,8 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
+                    } else if (content.entityToExport === ENTITY_LOCATION) {
+                        window.open(Routing.generate(`settings_export_locations`));
                     } else {
                         Flash.add(`danger`, `Une erreur est survenue lors de la génération de l'export`);
                     }

@@ -489,4 +489,5 @@ class DataExportService {
 
         $export->setScheduleRule($scheduleRule);
     }
+
 }

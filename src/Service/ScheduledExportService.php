@@ -8,6 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
+use App\Entity\Emplacement;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
@@ -46,6 +47,7 @@ class ScheduledExportService {
         private TruckArrivalService       $truckArrivalService,
         private ReceiptAssociationService $receiptAssociationService,
         private DisputeService            $disputeService,
+        private EmplacementDataService    $locationService,
     ) {}
 
     public function export(EntityManagerInterface $entityManager,
@@ -200,6 +202,9 @@ class ScheduledExportService {
             $this->csvExportService->putLine($output, $this->disputeService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $this->disputeService->getExportGenerator($entityManager, $startDate, $endDate)($output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_LOCATION) {
+            $this->csvExportService->putLine($output, $this->locationService->getCsvHeader());
+            $this->locationService->getExportFunction($entityManager)($output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
