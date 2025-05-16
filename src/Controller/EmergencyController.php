@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Emergency\Emergency;
+use App\Entity\ScheduledTask\Export;
 use App\Entity\Type\CategoryType;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
@@ -15,16 +16,22 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Transporteur;
 use App\Entity\Type\Type;
 use App\Exceptions\FormException;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\EmergencyService;
 use App\Entity\Menu;
+use App\Service\FormatService;
 use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 #[Route('/urgence', name: 'emergency_')]
@@ -169,5 +176,39 @@ class EmergencyController extends AbstractController {
         return $this->json([
             "success" => true,
         ]);
+    }
+
+    #[Route("/csv", name: "get_csv", options: ["expose" => true], methods: [self::GET])]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
+    public function exportEmergencyCsv(Request                $request,
+                                       EmergencyService       $emergencyService,
+                                       EntityManagerInterface $entityManager,
+                                       CSVExportService       $csvExportService,
+                                       DataExportService      $dataExportService,
+                                       FormatService          $formatService)
+    {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+
+        try {
+            $dateTimeMin = $formatService->parseDatetime("$dateMin 00:00:00");
+            $dateTimeMax = $formatService->parseDatetime("$dateMax 23:59:59");
+        } catch (Throwable) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Dates invalides"
+            ]);
+        }
+
+        return $csvExportService->streamResponse(
+            $emergencyService->getExportFunction(
+                $dateTimeMin,
+                $dateTimeMax,
+                $entityManager,
+            ), "export-emergency-$today.csv",
+            $dataExportService->createEmergencyHeader()
+        );
     }
 }
