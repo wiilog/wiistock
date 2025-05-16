@@ -17,7 +17,7 @@ describe('Filter the production request datatable', () => {
         uncaughtException();
         interceptRoute(routes.production_api);
         cy.login(user);
-        cy.visit('/');
+        cy.visit('/.env');
         cy.navigateInNavMenu('menu-production', 'production_request_index');
     });
 
