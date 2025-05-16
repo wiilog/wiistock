@@ -948,7 +948,7 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
         AJAX
             .route(POST, `reception_new_with_packing`, { reception })
             .json(data)
-            .then(({success, articleIds, msg}) => {
+            .then(({success, articleIds, msg, entete}) => {
                 if (success) {
                     let templates;
                     try {
@@ -956,6 +956,8 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     } catch (error) {
                         templates = [];
                     }
+
+                    $('.zone-entete').html(entete);
 
                     // call default template by default
                     templates.push(null);

@@ -1543,6 +1543,7 @@ class ReceptionController extends AbstractController {
         $data = $request->request->all();
 
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
@@ -1955,12 +1956,20 @@ class ReceptionController extends AbstractController {
                 $to
             );
         }
+        $hasReferenceArticleEmergencies = $receptionRepository->countStockEmergenciesByReception($reception) > 0;
+
         $reception->setStatut($receptionService->getNewStatus($reception));
         $entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
             'msg' => 'La réception a bien été effectuée.',
+            'entete' => $this->renderView('reception/show/header.html.twig', [
+                'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+                'reception' => $reception,
+                'hasReferenceArticleEmergencies' => $hasReferenceArticleEmergencies,
+                'showDetails' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
+            ]),
             'articleIds' => Stream::from($createdArticles)
                 ->map(fn(Article $article) => $article->getId())
                 ->json(),
