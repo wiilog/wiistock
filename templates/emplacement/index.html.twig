@@ -138,7 +138,7 @@
     {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'locationsTable',
-        page: 'emplacement',
+        page: constant('App\\Controller\\FieldModesController::PAGE_EMPLACEMENT'),
         config: {
             columns: [
                 {

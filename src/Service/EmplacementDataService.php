@@ -362,7 +362,7 @@ class EmplacementDataService {
                                            EmplacementDataService $emplacementDataService,
                                            string $page): array {
 
-        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_LOCATION_LIST_FIELD_MODES[$page] : [];
 
         $columns = [
             ['name' => 'actions','class' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],
