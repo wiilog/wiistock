@@ -87,6 +87,12 @@
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPUTE'),
                 disabled: export.id is not null
             },
+            {
+                label: 'Urgences',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_EMERGENCY'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_EMERGENCY'),
+                disabled: export.id is not null
+            },
         ], {expanded: true}) }}
 
         <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
