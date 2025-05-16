@@ -826,23 +826,8 @@ class PackService {
      */
     public function formatTrackingDelayData(Pack $pack): array {
         if($pack->isGroup()) {
-            $packChildSortedByDelay = Stream::from($pack->getContent())
-                ->filterMap(function(Pack $pack) {
-                    $remainingTime = $this->getTrackingDelayRemainingTime($pack);
-                    // ignore pack without tracking delay
-                    return isset($remainingTime)
-                        ? [
-                            "pack" => $pack,
-                            "remainingTime" => $remainingTime,
-                        ]
-                        : null;
-                })
-                ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
-
-            $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
-
-            /** @var Pack $pack */
-            $pack = $firstPackChild ?: $pack;
+            $pack = $this->getChildPackToTreatMostRapidly($pack)
+                ?: $pack;
         }
 
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
@@ -875,6 +860,31 @@ class PackService {
             "dateHTML" => $this->formatService->datetime($limitTreatmentDate ?? null, null),
         ];
     }
+
+    /**
+     * Return the child of the group which have the shortest tracking delay.
+     *
+     * @param array<Pack> $inAdditionChildren children not already in the group in database
+     */
+    public function getChildPackToTreatMostRapidly(Pack  $group,
+                                                   array $inAdditionChildren = []): ?Pack {
+        $packChildSortedByDelay = Stream::from($group->getContent(), $inAdditionChildren)
+            ->unique()
+            ->filterMap(function(Pack $pack) {
+                $remainingTime = $this->getTrackingDelayRemainingTime($pack);
+                // ignore pack without tracking delay
+                return isset($remainingTime)
+                    ? [
+                        "pack" => $pack,
+                        "remainingTime" => $remainingTime,
+                    ]
+                    : null;
+            })
+            ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
+
+        return $packChildSortedByDelay->first()["pack"] ?? null;
+    }
+
 
     public function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
