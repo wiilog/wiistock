@@ -84,7 +84,7 @@ function initTableReception() {
                 order: [['Date', "desc"]],
                 ajax: {
                     "url": pathReception,
-                    "type": POST,
+                    "type": AJAX.POST,
                     'data': {
                         'purchaseRequestFilter': $('[name="purchaseRequest"]').val(),
                         ... emergencyIdFilter ? {emergencyId: emergencyIdFilter} : {}
