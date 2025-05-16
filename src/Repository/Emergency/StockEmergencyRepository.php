@@ -41,7 +41,7 @@ class StockEmergencyRepository extends EntityRepository {
             ->leftJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH, $exprBuilder->eq("join_reference_article.id", ":referenceArticleId"))
             ->leftJoin('join_reference_article.articlesFournisseur', 'join_article_fournisseur')
             ->andWhere($exprBuilder->orX(
-            // when emergencyTrigger is reference
+                // when emergencyTrigger is reference
                 $exprBuilder->andX(
                     $exprBuilder->eq("$stockEmergencyAlias.emergencyTrigger", ":emergencyTriggerReference"),
                     $exprBuilder->eq("join_emergency_reference_article.id", ":referenceArticleId"),
@@ -49,7 +49,7 @@ class StockEmergencyRepository extends EntityRepository {
                     // when endEmergencyCriteria is quantity
                         $exprBuilder->andX(
                             $exprBuilder->eq("$stockEmergencyAlias.endEmergencyCriteria", ":endEmergencyCriteriaRemainingQuantity"),
-                            $exprBuilder->gt("$stockEmergencyAlias.expectedQuantity", "$stockEmergencyAlias.alreadyReceivedQuantity")
+                            $exprBuilder->gt("(CASE WHEN $stockEmergencyAlias.expectedQuantity IS NULL THEN 0 ELSE $stockEmergencyAlias.expectedQuantity END)", "$stockEmergencyAlias.alreadyReceivedQuantity")
                         ),
                         // when endEmergencyCriteria is end date
                         $exprBuilder->andX(
@@ -81,7 +81,7 @@ class StockEmergencyRepository extends EntityRepository {
                     ),
                 ),
             ))
-            ->andWhere("stock_emergency.closedAt IS NULL")
+            ->andWhere($exprBuilder->isNull("stock_emergency.closedAt"))
             ->setParameter("referenceArticleId", $referenceArticleId)
             ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
             ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
