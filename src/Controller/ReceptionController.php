@@ -1885,7 +1885,6 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        // clean code
         foreach($stockEmergenciesTriggered as $stockEmergencyTriggeredArray) {
             /**
              * @var StockEmergency $stockEmergencyTriggered
@@ -1908,22 +1907,22 @@ class ReceptionController extends AbstractController {
                     : 0,
             ]);
 
-            $destinataires = [];
+            $recipients = [];
             $stockEmergencyAlertModes = $stockEmergencyTriggered->getType()->getStockEmergencyAlertModes();
 
             foreach ($stockEmergencyAlertModes as $stockEmergencyAlertMode) {
-                $destinataires[] = match($stockEmergencyAlertMode) {
+                $recipients[] = match($stockEmergencyAlertMode) {
                     StockEmergencyAlertMode::SEND_MAIL_TO_REQUESTER => $stockEmergencyTriggered->getCreatedBy(),
                     StockEmergencyAlertMode::SEND_MAIL_TO_BUYER => $referenceArticle->getBuyer(),
                 };
             }
 
-            if(!empty($destinataires)) {
-                // on envoie un mail aux demandeurs
+            if(!empty($recipients)) {
+                // send email to recipients
                 $mailerService->sendMail(
                     $entityManager,
                     $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Article urgent réceptionné', $mailContent,
-                    $destinataires
+                    $recipients
                 );
             }
             $entityManager->flush();
@@ -1938,7 +1937,6 @@ class ReceptionController extends AbstractController {
                 $to[] = $demande->getReceiver();
             }
 
-            $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 $entityManager,
                 $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -1953,7 +1951,7 @@ class ReceptionController extends AbstractController {
                         . ' de type «'
                         . $demande->getType()->getLabel()
                         . '» a été réceptionnée le '
-                        . $nowDate->format('d/m/Y \à H:i')
+                        . $now->format('d/m/Y \à H:i')
                         . '.',
                 ]),
                 $to

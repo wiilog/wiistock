@@ -197,7 +197,7 @@ abstract class Emergency {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?Utilisateur $createdBy): self {
+    public function setCreatedBy(Utilisateur $createdBy): self {
         $this->createdBy = $createdBy;
 
         return $this;
