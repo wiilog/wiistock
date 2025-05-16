@@ -62,7 +62,6 @@ class MobileController extends AbstractController {
                                EntityManagerInterface      $entityManager,
                                MobileApiService            $mobileApiService,
                                UserService                 $userService,
-                               SettingsService             $settingsService,
                                SessionHistoryRecordService $sessionHistoryRecordService,
                                DispatchService             $dispatchService): JsonResponse {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -85,7 +84,7 @@ class MobileController extends AbstractController {
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
-                    $parameters = $mobileApiService->getMobileParameters($settingsService, $entityManager);
+                    $parameters = $mobileApiService->getMobileParameters($entityManager);
 
                     $channels = Stream::from($rights)
                         ->filter(static fn($val, $key) => $val && in_array($key, ["handling", "collectOrder", "transferOrder", "dispatch", "preparation", "deliveryOrder", "group", "ungroup", "notifications"]))
@@ -202,7 +201,7 @@ class MobileController extends AbstractController {
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $rights = $userService->getMobileRights($user);
-        $parameters = $mobileApiService->getMobileParameters($settingsService, $entityManager);
+        $parameters = $mobileApiService->getMobileParameters($entityManager);
 
         $status = $statutRepository->getMobileStatus($rights['dispatch'], $rights['handling']);
 

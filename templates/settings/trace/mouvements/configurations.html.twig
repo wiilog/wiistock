@@ -16,6 +16,11 @@
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
             {{ form.checkbox(setting('RFID_ON_MOBILE_TRACKING_MOVEMENTS'), 'Utilisation RFID sur prise / dépose mobile', false, setting_value('RFID_ON_MOBILE_TRACKING_MOVEMENTS')) }}
         </div>
+        <div class="col-md-6 col-12 d-flex align-items-center my-1">
+            {{ form.checkbox(setting('DROP_MOVEMENT_ON_GROUPING'), "Dépose des groupes automatiquement sur l'emplacement des ULs du groupage et association de la nature de l'UL sur le groupe", false, setting_value('DROP_MOVEMENT_ON_GROUPING'), {
+                tooltip: "Lors de la création d'un groupe sur mouvement de groupage, si au moins une UL a un délai de traitement en cours,<br/>le groupe est déposé sur l'emplacement de l'UL dont le chrono est le plus court ou en retard et prend sa nature."
+            }) }}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Mails de relance</div>
