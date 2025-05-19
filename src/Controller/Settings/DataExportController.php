@@ -64,7 +64,7 @@ class DataExportController extends AbstractController
     public const EXPORT_UNIQUE = "unique";
     public const EXPORT_SCHEDULED = "scheduled";
 
-    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: self::POST)]
+    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: [self::POST])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request                $request,
                         ScheduledTaskService   $scheduledTaskService,
@@ -117,14 +117,13 @@ class DataExportController extends AbstractController
         ]);
     }
 
-    #[Route("/export/new", name: "settings_new_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/new", name: "settings_new_export", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         Security               $security,
                         ScheduledTaskService   $scheduledTaskService,
-                        DataExportService      $dataExportService): JsonResponse
-    {
+                        DataExportService      $dataExportService): JsonResponse {
 
         $data = $request->request->all();
 
@@ -184,14 +183,13 @@ class DataExportController extends AbstractController
         ]);
     }
 
-    #[Route("/export/{export}/edit", name: "settings_edit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/{export}/edit", name: "settings_edit_export", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function editExport(Request                $request,
                                EntityManagerInterface $entityManager,
                                DataExportService      $dataExportService,
                                ScheduledTaskService   $scheduledTaskService,
-                               Export                 $export): Response
-    {
+                               Export                 $export): Response {
 
         $data = $request->request->all();
 
@@ -211,15 +209,14 @@ class DataExportController extends AbstractController
         ]);
     }
 
-    #[Route("/export/unique/reference", name: "settings_export_references", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/reference", name: "settings_export_references", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportReferences(EntityManagerInterface $entityManager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
                                      UserService            $userService,
                                      RefArticleDataService  $refArticleDataService,
-                                     FreeFieldService       $freeFieldService): StreamedResponse
-    {
+                                     FreeFieldService       $freeFieldService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createReferencesHeader($freeFieldsConfig);
 
@@ -237,7 +234,7 @@ class DataExportController extends AbstractController
         }, "export-references-$today.csv", $header);
     }
 
-    #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportArticles(EntityManagerInterface $entityManager,
                                    FreeFieldService       $freeFieldService,
@@ -245,8 +242,7 @@ class DataExportController extends AbstractController
                                    ArticleDataService     $articleDataService,
                                    CSVExportService       $csvService,
                                    Request                $request,
-                                   UserService            $userService): StreamedResponse
-    {
+                                   UserService            $userService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
 
@@ -281,14 +277,13 @@ class DataExportController extends AbstractController
     }
 
 
-    #[Route("/export/unique/rounds", name: "settings_export_round", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/rounds", name: "settings_export_round", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportRounds(CSVExportService       $csvService,
                                  TransportRoundService  $transportRoundService,
                                  DataExportService      $dataExportService,
                                  EntityManagerInterface $entityManager,
-                                 Request                $request): Response
-    {
+                                 Request                $request): Response {
 
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
@@ -310,13 +305,12 @@ class DataExportController extends AbstractController
         }, "export-tournees-$today.csv", $header);
     }
 
-    #[Route("/export/unique/arrivals", name: "settings_export_arrival", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/arrivals", name: "settings_export_arrival", options: ["expose" => true], methods: [self::GET])]
     public function exportArrivals(CSVExportService       $csvService,
                                    ArrivageService        $arrivalService,
                                    DataExportService      $dataExportService,
                                    EntityManagerInterface $entityManager,
-                                   Request                $request): Response
-    {
+                                   Request                $request): Response {
 
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
@@ -342,11 +336,10 @@ class DataExportController extends AbstractController
         }, $nameFile, $csvHeader);
     }
 
-    #[Route("/export/unique/ref-location", name: "settings_export_ref_location", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/ref-location", name: "settings_export_ref_location", options: ["expose" => true], methods: [self::GET])]
     public function exportRefLocation(CSVExportService       $csvService,
                                       DataExportService      $dataExportService,
-                                      EntityManagerInterface $entityManager): Response
-    {
+                                      EntityManagerInterface $entityManager): Response {
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
@@ -363,14 +356,13 @@ class DataExportController extends AbstractController
         }, $nameFile, $csvHeader);
     }
 
-    #[Route("/export/unique/dispatches", name: "settings_export_dispatches", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/dispatches", name: "settings_export_dispatches", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportDispatches(EntityManagerInterface $entityManager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
                                      FreeFieldService       $freeFieldService,
-                                     Request                $request): StreamedResponse
-    {
+                                     Request                $request): StreamedResponse {
         $columnToExport = $request->query->all("columnToExport");
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
         $headers = $dataExportService->createDispatchesHeader($entityManager, $columnToExport);
@@ -403,14 +395,13 @@ class DataExportController extends AbstractController
         );
     }
 
-    #[Route("/export/unique/tracking-movements", name: "settings_export_tracking_movements", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/tracking-movements", name: "settings_export_tracking_movements", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportTrackingMovements(EntityManagerInterface $entityManager,
                                             CSVExportService       $csvService,
                                             DataExportService      $dataExportService,
                                             FreeFieldService       $freeFieldService,
-                                            Request                $request): StreamedResponse
-    {
+                                            Request                $request): StreamedResponse {
         $columnToExport = $request->query->all("columnToExport");
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
         $headers = $dataExportService->createTrackingMovementsHeader($entityManager, $columnToExport);
@@ -439,15 +430,14 @@ class DataExportController extends AbstractController
         );
     }
 
-    #[Route("/export/unique/production-requests", name: "settings_export_production_requests", options: ["expose" => true], methods: self::GET)]
+    #[Route("/export/unique/production-requests", name: "settings_export_production_requests", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportProductionRequests(EntityManagerInterface $manager,
                                              CSVExportService       $csvService,
                                              DataExportService      $dataExportService,
                                              FreeFieldService       $freeFieldService,
                                              Request                $request,
-                                             LanguageService        $languageService): StreamedResponse
-    {
+                                             LanguageService        $languageService): StreamedResponse {
 
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::PRODUCTION_REQUEST]);
         $header = $dataExportService->createProductionRequestsHeader();
@@ -501,8 +491,7 @@ class DataExportController extends AbstractController
                                   PackService            $packService,
                                   EntityManagerInterface $entityManager,
                                   CSVExportService       $CSVExportService,
-                                  DataExportService      $dataExportService): StreamedResponse
-    {
+                                  DataExportService      $dataExportService): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
         $now = new DateTime('now');
@@ -529,8 +518,7 @@ class DataExportController extends AbstractController
                                                EntityManagerInterface    $entityManager,
                                                CSVExportService          $CSVExportService,
                                                DataExportService         $dataExportService,
-                                               ReceiptAssociationService $receiptAssociationService): StreamedResponse
-    {
+                                               ReceiptAssociationService $receiptAssociationService): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -559,8 +547,7 @@ class DataExportController extends AbstractController
                                    Request                 $request,
                                    ArrivageService         $arrivalService,
                                    DispatchService         $dispatchService,
-                                   TrackingMovementService $trackingMovementService): JsonResponse
-    {
+                                   TrackingMovementService $trackingMovementService): JsonResponse {
 
         $exportRepository = $entityManager->getRepository(Export::class);
 
@@ -606,8 +593,7 @@ class DataExportController extends AbstractController
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function cancel(Export                 $export,
                            EntityManagerInterface $entityManager,
-                           ScheduledTaskService   $scheduledTaskService): JsonResponse
-    {
+                           ScheduledTaskService   $scheduledTaskService): JsonResponse {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $exportType = $export->getType();
@@ -634,9 +620,7 @@ class DataExportController extends AbstractController
                                        TruckArrivalService    $truckArrivalService,
                                        EntityManagerInterface $entityManager,
                                        CSVExportService       $CSVExportService,
-                                       DataExportService      $dataExportService): StreamedResponse
-    {
-
+                                       DataExportService      $dataExportService): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
         $now = new DateTime('now');
@@ -664,8 +648,7 @@ class DataExportController extends AbstractController
                                     EntityManagerInterface $entityManager,
                                     CSVExportService       $csvExportService,
                                     DataExportService      $dataExportService,
-                                    FormatService          $formatService): StreamedResponse
-    {
+                                    FormatService          $formatService): StreamedResponse {
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -683,7 +666,7 @@ class DataExportController extends AbstractController
                 $entityManager,
                 $dateTimeMin,
                 $dateTimeMax
-            ), "export-emergency-$today.csv",
+            ), "export-urgences-$today.csv",
             $dataExportService->createEmergencyHeader()
         );
     }

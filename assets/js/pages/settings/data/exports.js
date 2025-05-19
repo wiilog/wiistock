@@ -336,13 +336,12 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
-
                     } else if (content.entityToExport === ENTITY_EMERGENCY) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
                         if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de litiges`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'urgence`);
                             return Promise.resolve();
                         }
 
