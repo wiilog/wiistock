@@ -103,7 +103,9 @@ jobs:
                     docker ps
                     docker exec wiistock-cypress_owasp-modsecurity ls /etc/modsecurity.d/
                     echo "avant ls"
-                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/setup.conf && echo "]"
+                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity-override.conf && echo "]"
+                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity.conf && echo "]"
+                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/owasp-crs && echo "]"
                     echo "apres ls"
                     docker exec wiistock-cypress_owasp-modsecurity ls
                     echo "je passe bien ici et je suis en vie et pourtant je prends de la place"
