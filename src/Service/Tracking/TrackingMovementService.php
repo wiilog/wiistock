@@ -345,6 +345,12 @@ class TrackingMovementService {
                 $groupChildren = $this->findAllPacks($entityManager, $packCodes);
 
                 if ($isNewGroupInstance) {
+                    if ($this->settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
+                        $this->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $date, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
+                        if ($dropTrackingMovement) {
+                            $createdMovements[] = $dropTrackingMovement;
+                        }
+                    }
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $parentPack,
@@ -359,14 +365,6 @@ class TrackingMovementService {
 
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
-
-                    if ($this->settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
-                        $this->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $date, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
-                        if ($dropTrackingMovement) {
-                            $entityManager->persist($groupingTrackingMovement);
-                            $createdMovements[] = $dropTrackingMovement;
-                        }
-                    }
                 }
 
                 $countContent = $parentPack->getContent()->count() + count($packCodes);
