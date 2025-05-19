@@ -81,7 +81,9 @@
                                 </div>
                                 <div class="d-flex align-content-center my-4">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="20px">
-                                    <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastOngoingDrop ? logisticUnit.lastOngoingDrop.emplacement | format_helper('location') }}</span></span>
+                                    <span class="wii-field-name">
+                                        {{ trans('Traçabilité', 'Général', 'Emplacement encours') }}
+                                        <span class="wii-body-text ml-2">{{ (logisticUnit.lastOngoingDrop ? logisticUnit.lastOngoingDrop.emplacement : null) | format_helper('location', '-') }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -95,11 +97,7 @@
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date arrivage camion</span>
                                     <span class="wii-body-text">
-                                        {% if truckArrival is not null %}
-                                            {{ truckArrival.creationDate.format("d-m-Y H:i:s") }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
+                                        {{ (truckArrival ? truckArrival.creationDate : null) | format_helper('datetime', '-') }}
                                     </span>
                                 </label>
                             </div>
@@ -120,7 +118,7 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date arrivage UL</span>
-                                    <span class="wii-body-text">{{ arrival ? arrival.date.format("d-m-Y H:i:s") : "-" }}</span>
+                                    <span class="wii-body-text">{{ (arrival ? arrival.date : null) | format_helper('datetime', '-') }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
@@ -196,13 +194,13 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false) }}</span>
-                                    <span class="wii-body-text">{{ arrival ? arrival.fournisseur|format_helper('supplier', '-') : "-" }}</span>
+                                    <span class="wii-body-text">{{ (arrival ? arrival.fournisseur : null) | format_helper('supplier', '-') }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false) }}</span>
-                                    <span class="wii-body-text">{{ arrival ? arrival.transporteur|format_helper('carrier', '-') : "-" }}</span>
+                                    <span class="wii-body-text">{{ (arrival ? arrival.transporteur : null) | format_helper('carrier', '-') }}</span>
                                 </label>
                             </div>
                         </div>

@@ -242,7 +242,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'project' => [FieldModesService::FIELD_MODE_VISIBLE],
         'lastMovementDate' => [FieldModesService::FIELD_MODE_VISIBLE],
         'origin' => [FieldModesService::FIELD_MODE_VISIBLE],
-        'location' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'ongoingLocation' => [FieldModesService::FIELD_MODE_VISIBLE],
         'receiptAssociation' => [FieldModesService::FIELD_MODE_VISIBLE],
         'truckArrivalNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
         'trackingDelay' => [],
