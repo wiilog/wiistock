@@ -97,8 +97,7 @@ jobs:
             -   name: Test logs in cypress
                 run: |
                   echo "je passe ici aussi s'il y a un problème"
-                  cat .env
-                  docker exec wiistock-cypress_owasp-modsecurity env
+                  cat /etc/modsecurity.d/modsecurity-override.conf
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
