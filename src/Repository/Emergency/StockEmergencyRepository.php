@@ -49,7 +49,7 @@ class StockEmergencyRepository extends EntityRepository {
                     // when endEmergencyCriteria is quantity
                         $exprBuilder->andX(
                             $exprBuilder->eq("$stockEmergencyAlias.endEmergencyCriteria", ":endEmergencyCriteriaRemainingQuantity"),
-                            $exprBuilder->gt("(CASE WHEN $stockEmergencyAlias.expectedQuantity IS NULL THEN 0 ELSE $stockEmergencyAlias.expectedQuantity END)", "$stockEmergencyAlias.alreadyReceivedQuantity")
+                            $exprBuilder->gt("$stockEmergencyAlias.expectedQuantity", "(CASE WHEN $stockEmergencyAlias.alreadyReceivedQuantity IS NULL THEN 0 ELSE $stockEmergencyAlias.alreadyReceivedQuantity END)")
                         ),
                         // when endEmergencyCriteria is end date
                         $exprBuilder->andX(
