@@ -204,9 +204,9 @@ class EmergencyController extends AbstractController {
 
         return $csvExportService->streamResponse(
             $emergencyService->getExportFunction(
+                $entityManager,
                 $dateTimeMin,
                 $dateTimeMax,
-                $entityManager,
             ), "export-emergency-$today.csv",
             $dataExportService->createEmergencyHeader()
         );
