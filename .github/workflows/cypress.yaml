@@ -26,6 +26,7 @@ jobs:
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
 
+
             -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
                 run: |
                     sed -i "s/^FTP_HOST=.*/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
@@ -92,6 +93,12 @@ jobs:
 
             -   name: Build assets in app
                 run: docker exec wiistock-cypress_php yarn build:only:production
+
+            -   name: Test logs in cypress
+                run: |
+                  echo "je passe ici aussi s'il y a un problème"
+                  cat .env
+                  docker exec wiistock-cypress_owasp-modsecurity env
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
