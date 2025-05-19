@@ -154,7 +154,7 @@ function openTableHisto($modalEditLitige, dispute = undefined) {
 function initPackDatatable(arrivalId, columns) {
     return initDataTable('tablePacks', {
         ajax: {
-            "url": Routing.generate('packs_api', {arrivage: arrivalId}),
+            "url": Routing.generate('arrival_packs_api', {arrivage: arrivalId}),
             "type": POST,
         },
         domConfig: {

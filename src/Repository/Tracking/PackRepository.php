@@ -190,14 +190,14 @@ class PackRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
-                    $emplacementValue = !is_array($filter['value'])
+                    $locationValue = !is_array($filter['value'])
                         ? explode(',', $filter['value'])
                         : $filter['value'];
                     $queryBuilder
-                        ->join('pack.lastAction', 'mFilter0')
-                        ->join('mFilter0.emplacement', 'e')
-                        ->andWhere('e.id IN (:location)')
-                        ->setParameter('location', $emplacementValue, Connection::PARAM_INT_ARRAY);
+                        ->join('pack.lastOngoingDrop', 'filter_lastOngoingDrop')
+                        ->join('filter_lastOngoingDrop.emplacement', 'filter_lastOngoingDrop_location')
+                        ->andWhere('filter_lastOngoingDrop_location.id IN (:filter_lastOngoingDrop_location_value)')
+                        ->setParameter('filter_lastOngoingDrop_location_value', $locationValue);
                     break;
                 case 'dateMin':
                     $queryBuilder
@@ -303,6 +303,7 @@ class PackRepository extends EntityRepository
                 $queryBuilder
                     ->leftJoin('pack.arrivage', 'search_arrival')
                     ->leftJoin('pack.lastAction', 'search_last_action')
+                    ->leftJoin('pack.lastOngoingDrop', 'search_lastOngoingDrop')
                     ->leftJoin('search_arrival.type', 'arrival_type')
                     ->leftJoin('pack.childArticles', 'child_articles_search');
 
@@ -313,8 +314,8 @@ class PackRepository extends EntityRepository
                                 $searchParams[] = 'pack.code LIKE :value';
                                 break;
                             case "location":
-                                $queryBuilder->leftJoin('search_last_action.emplacement', 'search_last_action_location');
-                                $searchParams[] = 'search_last_action_location.label LIKE :value';
+                                $queryBuilder->leftJoin('search_lastOngoingDrop.emplacement', 'search_lastOngoingDrop_location');
+                                $searchParams[] = 'search_lastOngoingDrop_location.label LIKE :value';
                                 break;
                             case "nature":
                                 $queryBuilder->leftJoin('pack.nature', 'natureSearch');

@@ -152,10 +152,10 @@ export const routes = {
         route: '/parametrage/champs-libres/api/*',
         alias: 'settings_free_field_api'
     },
-    packs_api: {
+    arrival_packs_api: {
         method: 'POST',
-        route: 'arrivage/packs/api/*',
-        alias: 'packs_api'
+        route: 'arrivage/\d+/packs-api',
+        alias: 'arrival_packs_api'
     },
     print_arrivage_bar_codes_nature_1:{
         method: 'GET',

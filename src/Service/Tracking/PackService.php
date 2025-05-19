@@ -213,11 +213,7 @@ class PackService {
                     : '')
                 : '',
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'location' => $lastPackMovement
-                ? ($lastPackMovement->getEmplacement()
-                    ? $lastPackMovement->getEmplacement()->getLabel()
-                    : '')
-                : '',
+            'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
@@ -573,7 +569,7 @@ class PackService {
                 ["name" => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
                 ["name" => 'project', 'title' => $this->translationService->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
                 ["name" => 'lastMvtDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
-                ["name" => 'lastLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                ["name" => 'ongoingLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'), "searchable" => true],
                 ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
@@ -601,7 +597,7 @@ class PackService {
                 ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
-                ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                ['name' => 'ongoingLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours')],
                 ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
                 ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
                 ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
