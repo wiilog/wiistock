@@ -1,4 +1,4 @@
-import {showAndRequireInputByType} from "@app/utils";
+import {showAndRequireInputByType, exportFile} from "@app/utils";
 import AJAX, {GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
@@ -28,6 +28,7 @@ $(function() {
 
     const table = initializeTable(filters);
     initializeModals(table);
+    initializeExports();
 });
 
 /**
@@ -258,5 +259,15 @@ function onCloseEmergency(emergency,
             label: Translation.of('Général', null, 'Modale', 'Oui'),
         },
         table: tableEmergencies,
+    });
+}
+
+function initializeExports() {
+    $(`.export-button`).on(`click`, function () {
+        exportFile(`emergency_export`, {}, {
+            needsAllFilters: true,
+            needsDateFormatting: true,
+            $button: $(this),
+        });
     });
 }

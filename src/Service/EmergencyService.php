@@ -54,9 +54,7 @@ class EmergencyService
         private FreeFieldService  $freeFieldService,
         private RouterInterface   $router,
         private CSVExportService  $csvExportService,
-    )
-    {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -76,8 +74,7 @@ class EmergencyService
      * }
      */
     public function getEmergencyConfig(EntityManagerInterface $entityManager,
-                                       Emergency              $emergency = null): array
-    {
+                                       Emergency              $emergency = null): array {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -240,8 +237,7 @@ class EmergencyService
 
     private function updateTrackingEmergency(EntityManagerInterface $entityManager,
                                              TrackingEmergency      $emergency,
-                                             InputBag               $data): void
-    {
+                                             InputBag               $data): void {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         if ($data->has(FixedFieldEnum::buyer->name)) {
@@ -266,8 +262,7 @@ class EmergencyService
 
     private function updateStockEmergency(EntityManagerInterface $entityManager,
                                           StockEmergency         $emergency,
-                                          InputBag               $data): void
-    {
+                                          InputBag               $data): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -298,8 +293,7 @@ class EmergencyService
     }
 
     private function checkForDuplicates(EntityManagerInterface $entityManager,
-                                        Emergency              $emergency): void
-    {
+                                        Emergency              $emergency): void {
 
         if ($emergency instanceof TrackingEmergency) {
             $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
@@ -339,8 +333,7 @@ class EmergencyService
                                         Arrivage               $arrival,
                                         ?string                $orderNumber,
                                         ?string                $postNumber,
-                                        bool                   $excludeTriggered = false): array
-    {
+                                        bool                   $excludeTriggered = false): array {
         $trackingEmergencyRepository = $entityManager->getRepository(TrackingEmergency::class);
 
         if (!isset($this->__arrival_emergency_fields)) {
@@ -359,8 +352,7 @@ class EmergencyService
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager,
                                             ?Utilisateur           $currentUser,
-                                            bool $forExport = false): array
-    {
+                                            bool $forExport = false): array {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $page = FieldModesController::PAGE_EMERGENCY_LIST;
@@ -525,8 +517,7 @@ class EmergencyService
         ];
     }
 
-    public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void
-    {
+    public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void {
         $now = new DateTime();
         $emergency->setClosedAt($now);
 

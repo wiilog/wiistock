@@ -178,15 +178,14 @@ class EmergencyController extends AbstractController {
         ]);
     }
 
-    #[Route("/csv", name: "get_csv", options: ["expose" => true], methods: [self::GET])]
+    #[Route("/csv", name: "export", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
     public function exportEmergencyCsv(Request                $request,
                                        EmergencyService       $emergencyService,
                                        EntityManagerInterface $entityManager,
                                        CSVExportService       $csvExportService,
                                        DataExportService      $dataExportService,
-                                       FormatService          $formatService)
-    {
+                                       FormatService          $formatService) {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
         $now = new DateTime('now');
@@ -207,7 +206,7 @@ class EmergencyController extends AbstractController {
                 $entityManager,
                 $dateTimeMin,
                 $dateTimeMax,
-            ), "export-emergency-$today.csv",
+            ), "export-urgences-$today.csv",
             $dataExportService->createEmergencyHeader()
         );
     }
