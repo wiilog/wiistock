@@ -616,6 +616,12 @@ class TrackingMovementController extends AbstractController {
         $groupDate = $formatService->parseDatetime($dateStr);
 
         if ($isNewGroupInstance && !empty($packs)) {
+            if ($settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
+                $trackingMovementService->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $groupDate, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
+                if ($dropTrackingMovement) {
+                    $entityManager->persist($dropTrackingMovement);
+                }
+            }
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
@@ -627,12 +633,6 @@ class TrackingMovementController extends AbstractController {
             );
 
             $entityManager->persist($groupingTrackingMovement);
-            if ($settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
-                $trackingMovementService->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $groupDate, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
-                if ($dropTrackingMovement) {
-                    $entityManager->persist($dropTrackingMovement);
-                }
-            }
         }
 
         $countContent = $parentPack->getContent()->count() + count($packs);
