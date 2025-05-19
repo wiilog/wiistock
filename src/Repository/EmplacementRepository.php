@@ -225,7 +225,6 @@ class EmplacementRepository extends EntityRepository
                             $queryBuilder
                                 ->addOrderBy("location.isActive", $order);
                            break;
-                            break;
                         case 'maximumTrackingDelay':
                             $queryBuilder
                                 ->addOrderBy("location.dateMaxTime", $order);
