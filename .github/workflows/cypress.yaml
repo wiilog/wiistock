@@ -102,7 +102,7 @@ jobs:
                 run: |
                     docker ps
                     echo "avant ls"
-                    docker exec wiistock-cypress_owasp-modsecurity ls /etc/modsecurity.d/
+                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity-override.conf && echo "]"
                     echo "apres ls"
                     docker exec wiistock-cypress_owasp-modsecurity ls
                     echo "je passe bien ici et je suis en vie et pourtant je prends de la place"
