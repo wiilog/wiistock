@@ -173,7 +173,6 @@ class PackService {
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
         $user = $this->userService->getUser();
-        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -187,8 +186,6 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        /** @var TrackingMovement $lastPackMovement */
-        $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
@@ -206,12 +203,9 @@ class PackService {
             ]),
             'nature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
-            'project' => $pack->getProject()?->getCode(),
-            'lastMovementDate' => $lastPackMovement
-                ? ($lastPackMovement->getDatetime()
-                    ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
-                    : '')
-                : '',
+            'project' => $this->formatService->project($pack->getProject()),
+            'lastMovementDate' => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
+
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
