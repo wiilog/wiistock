@@ -50,6 +50,7 @@ class EmergencyRepository extends EntityRepository {
     public function findByParamsAndFilters(ParameterBag $params, array $filters, array $visibleColumnsConfig): array {
         $lastArrivalNumberSubquery = $this->getLastArrivalNumberSubquery();
         $lastReceptionNumberSubquery = $this->getLastReceptionNumberSubquery();
+        $entityManager = $this->getEntityManager();
 
         $columns = [
             FixedFieldEnum::dateStart->name => "emergency.dateStart",

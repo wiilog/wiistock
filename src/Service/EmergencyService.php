@@ -164,8 +164,7 @@ class EmergencyService
 
     public function updateEmergency(EntityManagerInterface $entityManager,
                                     Emergency              $emergency,
-                                    Request                $request): Emergency
-    {
+                                    Request                $request): Emergency {
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
