@@ -318,7 +318,7 @@ class EmplacementDataService {
 
         $allowedNatures = Stream::explode(',', $data->get(FixedFieldEnum::allowedNatures->name, ''))
             ->filter()
-            ->toArray();
+            ->values();
         $newNatureOnDrop = $data->get(FixedFieldEnum::newNatureOnDrop->name);;
         if (!empty($allowedNatures) && $newNatureOnDrop && !in_array($newNatureOnDrop, $allowedNatures)) {
             throw new FormException("La nouvelle nature à la dépose sur emplacement doit être présente dans les natures autorisées.");
@@ -362,12 +362,12 @@ class EmplacementDataService {
                                            EmplacementDataService $emplacementDataService,
                                            string $page): array {
 
-        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_LOCATION_LIST_FIELD_MODES[$page] : [];
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [
             ['name' => 'actions','class' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],
-            ['name' => 'pairing', 'class' => 'pairing-now', 'orderable' => false],
-            ['name' => 'name', 'title' => 'Nom', 'orderable' => true],
+            ['name' => 'pairing', 'class' => 'pairing-now', 'orderable' => false, 'alwaysVisible' => true],
+            ['name' => 'name', 'title' => 'Nom', 'orderable' => true, 'alwaysVisible' => true],
             ['name' => 'description', 'title' => 'Description', 'orderable' => true],
             ['name' => 'isDeliveryPoint', 'title' => 'Point de livraison', 'orderable' => true],
             ['name' => 'isOngoingVisibleOnMobile', 'title' => 'Encours visible sur nomade', 'orderable' => true],
@@ -379,8 +379,8 @@ class EmplacementDataService {
             ['name' => 'email', 'title' => 'Email'],
             ['name' => 'zone', 'title' => 'Zone'],
             ['name' => 'sendEmailToManagers', 'title' => "Envoi d'email à chaque dépose aux responsables de l'emplacement", 'orderable' => false],
-            ['name' => 'managers', 'title' => 'Responsables', 'ordorable' => false],
-            ['name' => 'allowedDeliveryTypes', 'title' => 'Types de livraison autorisés'],
+            ['name' => 'managers', 'title' => 'Responsables', 'orderable' => false],
+            ['name' => 'allowedDeliveryTypes', 'title' => 'Types de livraison autorisés', 'orderable' => false],
             ['name' => 'startTrackingTimerOnPicking', 'title' => 'Emplacement de prise initiale'],
             ['name' => 'stopTrackingTimerOnDrop', 'title' => 'Emplacement de dépose finale'],
             ['name' => 'pauseTrackingTimerOnDrop', 'title' => 'Emplacement de pause'],
