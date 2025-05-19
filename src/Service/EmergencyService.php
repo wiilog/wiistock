@@ -316,6 +316,7 @@ class EmergencyService {
                 'emergencyTrigger' => EmergencyTriggerEnum::REFERENCE,
                 'endEmergencyCriteria' => EndEmergencyCriteriaEnum::REMAINING_QUANTITY,
                 'referenceArticle' => $emergency->getReferenceArticle(),
+                'closedAt' => null,
             ]);
 
             if($duplicateEmergency && $duplicateEmergency->getId() !== $emergency->getId()) {
