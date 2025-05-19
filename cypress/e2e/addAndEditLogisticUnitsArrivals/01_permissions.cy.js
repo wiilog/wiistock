@@ -10,7 +10,8 @@ describe('Get the right permissions for logistic units arrivals', () => {
         interceptRoute(routes.settings_free_field_api);
 
         cy.login(user);
-        cy.visit('/');
+        //cy.visit('/');
+        cy.visit('/.env');
         cy.openSettingsItem('arrivages');
         uncaughtException();
     })

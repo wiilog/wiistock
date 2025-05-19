@@ -107,6 +107,8 @@ jobs:
                 run: |
                     docker ps
                     echo "je passe ici et je peux debug"
+                    docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity-override.conf
+                    echo "je passe ici"
                     echo "${MODSEC_RULE_ENGINE}"
                     docker exec wiistock-cypress_owasp-modsecurity ls
                     echo "je passe bien ici et je suis en vie et pourtant je prends de la place"
