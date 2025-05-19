@@ -582,8 +582,8 @@ class TrackingMovementService {
         $this->managePackLinksWithTracking(
             $entityManager,
             [
+                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : []), // before $tracking because it is certainly an older movement
                 $tracking,
-                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : [])
             ]
         );
         $this->managePackLinksWithOperations($entityManager, $tracking, [
