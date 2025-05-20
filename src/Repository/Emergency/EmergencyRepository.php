@@ -5,12 +5,15 @@ namespace App\Repository\Emergency;
 
 use App\Command\Users\DeactivateUserCommand;
 use App\Entity\Arrivage;
+use App\Entity\Emergency\EmergencyTriggerEnum;
+use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -178,13 +181,26 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case "referenceArticle":
                     $queryBuilder
-                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id");
-                    StockEmergencyRepository::filterByReferenceByRefArticle(
-                        $queryBuilder,
-                        new DateTime("now"),
-                        $filter['value'],
-                        "stock_emergency",
-                    );
+                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+                        ->leftJoin("stock_emergency.supplier", "stock_emergency_supplier")
+                        ->leftJoin("stock_emergency_supplier.articlesFournisseur", "stock_emergency_supplier_article")
+                        ->innerJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH,
+                            $exprBuilder->andX(
+                                $exprBuilder->orX(
+                                    $exprBuilder->eq("join_reference_article", "stock_emergency.referenceArticle"),
+                                    $exprBuilder->eq("stock_emergency_supplier_article.referenceArticle", "join_reference_article"),
+                                ),
+                                $exprBuilder->eq("join_reference_article.id", ":referenceArticleId"),
+                            )
+                        )
+                        ->setParameter("referenceArticleId",  $filter['value'])
+                        ->andWhere(StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, "stock_emergency"))
+                        ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+                        ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+                        ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+                        ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+                        ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
+                        ->setParameter("now", new DateTime());
                     break;
             }
         }
