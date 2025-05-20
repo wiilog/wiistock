@@ -194,11 +194,13 @@ class EmergencyController extends AbstractController {
         try {
             $dateTimeMin = $formatService->parseDatetime("$dateMin 00:00:00");
             $dateTimeMax = $formatService->parseDatetime("$dateMax 23:59:59");
+
+            if (!$dateTimeMin || !$dateTimeMax) {
+                throw new RuntimeException("Invalid dates");
+            }
+
         } catch (Throwable) {
-            return $this->json([
-                "success" => false,
-                "msg" => "Dates invalides"
-            ]);
+            throw new FormException("Dates invalides");
         }
 
         return $csvExportService->streamResponse(

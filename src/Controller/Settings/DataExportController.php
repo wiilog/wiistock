@@ -46,6 +46,7 @@ use App\Service\TruckArrivalService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -658,6 +659,9 @@ class DataExportController extends AbstractController
         $dateTimeMin = $formatService->parseDatetime("$dateMin 00:00:00");
         $dateTimeMax = $formatService->parseDatetime("$dateMax 23:59:59");
 
+        if (!$dateTimeMin || !$dateTimeMax) {
+            throw new RuntimeException("Invalid dates");
+        }
 
         $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_EMERGENCY, $now);
 
