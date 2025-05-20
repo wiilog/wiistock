@@ -26,7 +26,7 @@ use WiiCommon\Helper\Stream;
  */
 class EmergencyRepository extends EntityRepository {
 
-    public function getLastArrivalNumberSubquery(): QueryBuilder {
+    public function getLastArrivalNumbersSubquery(): QueryBuilder {
         $entityManager = $this->getEntityManager();
         return $entityManager->createQueryBuilder()
             ->select('arrival.numeroArrivage')
@@ -35,7 +35,7 @@ class EmergencyRepository extends EntityRepository {
             ->orderBy('arrival.date', Order::Descending->value);
     }
 
-    public function getLastReceptionNumberSubquery(): QueryBuilder {
+    public function getLastReceptionNumbersSubquery(): QueryBuilder {
         $entityManager = $this->getEntityManager();
         return $entityManager->createQueryBuilder()
             ->select('reception.number')
@@ -48,16 +48,16 @@ class EmergencyRepository extends EntityRepository {
     }
 
     public function findByParamsAndFilters(ParameterBag $params, array $filters, array $visibleColumnsConfig): array {
-        $lastArrivalNumberSubquery = $this->getLastArrivalNumberSubquery();
-        $lastReceptionNumberSubquery = $this->getLastReceptionNumberSubquery();
+        $lastArrivalNumbersSubquery = $this->getLastArrivalNumbersSubquery();
+        $lastReceptionNumbersSubquery = $this->getLastReceptionNumbersSubquery();
         $entityManager = $this->getEntityManager();
 
         $columns = [
             FixedFieldEnum::dateStart->name => "emergency.dateStart",
             FixedFieldEnum::dateEnd->name => "emergency.dateEnd",
             "lastEntityNumber"=> [
-                "lastArrivalNumber" => "FIRST($lastArrivalNumberSubquery)",
-                "lastReceptionNumber" => "FIRST($lastReceptionNumberSubquery)",
+                "lastArrivalNumber" => "FIRST($lastArrivalNumbersSubquery)",
+                "lastReceptionNumber" => "FIRST($lastReceptionNumbersSubquery)",
             ],
             FixedFieldEnum::createdAt->name => "emergency.createdAt",
             "lastTriggeredAt" => "emergency.lastTriggeredAt",
@@ -309,32 +309,33 @@ class EmergencyRepository extends EntityRepository {
     }
 
     public function iterateByDates(DateTime $dateMin, DateTime $dateMax): iterable {
-        $lastArrivalNumberSubquery = $this->getLastArrivalNumberSubquery();
-        $lastReceptionNumberSubquery = $this->getLastReceptionNumberSubquery();
+        $lastArrivalNumberSubquery = $this->getLastArrivalNumbersSubquery();
+        $lastReceptionNumberSubquery = $this->getLastReceptionNumbersSubquery();
 
         $queryBuilder = $this->createQueryBuilder("emergency")
             ->select('emergency.id AS id')
-            ->addSelect("emergency.freeFields AS freeFields")
-            ->addSelect('emergency.endEmergencyCriteria AS endEmergencyCriteria')
-            ->addSelect('emergency.comment AS comment')
-            ->addSelect('emergency.carrierTrackingNumber AS carrierTrackingNumber')
             ->addSelect('emergency.dateStart AS dateStart')
             ->addSelect('emergency.dateEnd AS dateEnd')
-            ->addSelect('emergency.createdAt AS createdAt')
             ->addSelect('emergency.closedAt AS closedAt')
             ->addSelect('emergency.lastTriggeredAt AS lastTriggeredAt')
-            ->addSelect('emergency.orderNumber AS orderNumber')
-            ->addSelect('tracking_emergency.postNumber AS postNumber')
-            ->addSelect('tracking_emergency.internalArticleCode AS internalArticleCode')
-            ->addSelect('tracking_emergency.supplierArticleCode AS supplierArticleCode')
             ->addSelect("FIRST($lastArrivalNumberSubquery) as lastArrivalNumber")
             ->addSelect("FIRST($lastReceptionNumberSubquery) as lastReceptionNumber")
+            ->addSelect('emergency.createdAt AS createdAt')
+            ->addSelect('emergency.orderNumber AS orderNumber')
+            ->addSelect('tracking_emergency.postNumber AS postNumber')
+            ->addSelect('emergency_buyer.username AS buyer')
+            ->addSelect('emergency_supplier.nom AS supplier')
+            ->addSelect('emergency_carrier.label AS carrier')
+            ->addSelect('emergency.carrierTrackingNumber AS carrierTrackingNumber')
+            ->addSelect("emergency_type.label AS type")
+            ->addSelect('tracking_emergency.internalArticleCode AS internalArticleCode')
+            ->addSelect('tracking_emergency.supplierArticleCode AS supplierArticleCode')
+            ->addSelect("emergency.freeFields AS freeFields")
             ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
             ->leftJoin("emergency.type", "emergency_type")
-            ->leftJoin("emergency_type.category", "emergency_category")
             ->andWhere('emergency.createdAt BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
