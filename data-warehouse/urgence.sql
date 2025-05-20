@@ -21,7 +21,27 @@ SELECT
     stock_emergency.expected_quantity AS quantite,
     emergency.carrier_tracking_number AS no_tracking,
     fournisseur.code_reference AS fournisseur,
-    transporteur.code AS transporteur
+    transporteur.code AS transporteur,
+    CONCAT_WS('',(
+            SELECT reception.number
+            FROM reception
+            INNER JOIN reception_line ON reception.id = reception_line.reception_id
+            INNER JOIN reception_reference_article ON reception_line.id = reception_reference_article.reception_line_id
+            INNER JOIN reception_reference_article_stock_emergency ON reception_reference_article.id = reception_reference_article_stock_emergency.reception_reference_article_id
+            INNER JOIN stock_emergency ON reception_reference_article_stock_emergency.stock_emergency_id = stock_emergency.id
+            WHERE stock_emergency.id = emergency.id
+            ORDER BY reception.date DESC
+            LIMIT 1
+        ),(
+            SELECT arrivage.numero_arrivage
+            FROM arrivage
+            INNER JOIN arrivage_tracking_emergency ON arrivage.id = arrivage_tracking_emergency.arrivage_id
+            INNER JOIN tracking_emergency ON arrivage_tracking_emergency.tracking_emergency_id = tracking_emergency.id
+            WHERE tracking_emergency.id = emergency.id
+            ORDER BY arrivage.date DESC
+            LIMIT 1
+        )
+    ) AS dernier_numero_arrivage_reception
 
 FROM emergency
      LEFT JOIN type ON emergency.type_id = type.id
