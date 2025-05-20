@@ -49,7 +49,7 @@ class FieldModesService {
                     return [
                         'title' => ucfirst($title),
                         'hiddenTitle' => $column['hiddenTitle'] ?? '',
-                        'alwaysVisible' => $column['alwaysVisible'] ?? null,
+                        'alwaysVisible' => $alwaysVisible,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,
                         'orderable' => $column['orderable'] ?? true,
                         'data' => $column['name'],
@@ -60,6 +60,7 @@ class FieldModesService {
                         "type" => $column['type'] ?? null,
                         "searchable" => $column['searchable'] ?? null,
                         "required" => $column['required'] ?? false,
+                        'info' => $column['info'] ?? null,
                         ...in_array(self::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldsModes[$column['name']] ?? []) ? [self::FIELD_MODE_VISIBLE_IN_DROPDOWN => true] : [],
                     ];
                 }),

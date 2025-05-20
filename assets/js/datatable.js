@@ -246,10 +246,13 @@ export function initDataTable($table, options) {
             .removeData(`initial-visible`);
     }
 
-    let tooltips = [];
+    const columnInfoConfig = [];
     (config.columns || []).forEach((column, id) => {
-        if (column.tooltip) {
-            tooltips.push({id, text: column.tooltip});
+        if (column.info) {
+            columnInfoConfig.push({
+                id,
+                info: column.info,
+            });
         }
 
         if(!column.name) {
@@ -278,19 +281,6 @@ export function initDataTable($table, options) {
             column.visible = column.fieldVisible;
         }
     });
-
-    let existingHeaderCallback = config.headerCallback;
-    config.headerCallback = (thead) => {
-        let $ths = $(thead).find(`th`);
-
-        for (let data of tooltips) {
-            $ths.eq(data.id).attr(`title`, data.text)
-        }
-
-        if (existingHeaderCallback) {
-            return existingHeaderCallback();
-        }
-    }
 
     let datatableToReturn = null;
     $table
@@ -405,6 +395,14 @@ export function initDataTable($table, options) {
                     initComplete();
                 });
             },
+            headerCallback: (...args) => {
+                const [thead] = args;
+                initHeaderInfo(thead, columnInfoConfig);
+
+                if (config.headerCallback) {
+                    config.headerCallback(...args);
+                }
+            },
         }, colReorderActivated, config));
 
     const $datatableContainer = $(datatableToReturn.table().container());
@@ -516,4 +514,37 @@ function getAndApplyOrder(config, datatable) {
                     });
             }
         });
+}
+
+/**
+ * Add i icon with a tooltip info according to config parameter
+ * @param {HTMLTableSectionElement} theadHtml
+ * @param {Array<{
+ *     id: number,
+ *     info: string,
+ * }>} config Collection of object with id the datatable id column and the message to display
+ */
+function initHeaderInfo(theadHtml,
+                        config) {
+    const $ths = $(theadHtml).find(`th`);
+    for (const {id, info} of config) {
+        if (!info) {
+            continue;
+        }
+
+        const $th = $ths.eq(id);
+        if (!$th.find('.header-info').exists()) {
+            const $content = $th.html();
+
+            // wrap title + icon
+            $th.html(
+                $('<span/>', {class: 'd-flex justify-content-between align-items-center'})
+                    .append($content)
+                    .append($('<i/>', {
+                        class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
+                        title: info,
+                    }))
+            );
+        }
+    }
 }
