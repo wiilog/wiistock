@@ -154,7 +154,7 @@ export const routes = {
     },
     arrival_packs_api: {
         method: 'POST',
-        route: 'arrivage/\d+/packs-api',
+        route: 'arrivage/*/packs-api',
         alias: 'arrival_packs_api'
     },
     print_arrivage_bar_codes_nature_1:{
