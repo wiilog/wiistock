@@ -87,7 +87,8 @@ class RefArticleDataService
         ["title" => "Gestion quantité", "name" => "quantityType", "type" => "text"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
         ["title" => "Dernière réponse au stockage", "name" => "lastSleepingStockAlertAnswer", "type" => "date"],
-        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"]
+        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"],
+        ["title" => "Urgences", "name" => "emergencyCount", "type" => "booleen"],
     ];
 
     private $filtreRefRepository;
@@ -189,7 +190,9 @@ class RefArticleDataService
         $searchableFields = $queryResult["searchableFields"];
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields, [
+                "emergency_count" => is_array($refArticle) ? $refArticle["emergency_count"] ?? null : null
+            ]);
         }
         return [
             'data' => $rows,
@@ -532,8 +535,7 @@ class RefArticleDataService
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = []): array
-    {
+    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = [], $additionalData = []): array {
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
         }
@@ -615,6 +617,7 @@ class RefArticleDataService
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
                 ($refArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
             ),
+            "emergencyCount" => $additionalData['emergency_count']
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {

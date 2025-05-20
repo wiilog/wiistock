@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\EmergencyTriggerEnum;
+use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
@@ -23,6 +25,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
+use App\Repository\Emergency\StockEmergencyRepository;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use DateTime;
@@ -490,8 +493,7 @@ class ReferenceArticleRepository extends EntityRepository {
     public function findByFiltersAndParams(array                 $filters,
                                            InputBag              $params,
                                            Utilisateur           $user,
-                                           FormatService         $formatService): array
-    {
+                                           FormatService         $formatService): array {
         $em = $this->getEntityManager();
         $index = 0;
 
@@ -519,7 +521,9 @@ class ReferenceArticleRepository extends EntityRepository {
             'Durée max autorisée en stock' => ['field' => "maxStorageTime", 'typage' => 'number'],
         ];
 
-        $queryBuilder = $this->createQueryBuilder("ra");
+        $queryBuilder = $this->createQueryBuilder("ra")
+            ->addGroupBy('ra.id');
+        $exprBuilder = $queryBuilder->expr();
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
@@ -530,8 +534,27 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
+        $queryBuilder
+            ->leftJoin("ra.articlesFournisseur", "supplier_article")
+            ->leftJoin("supplier_article.fournisseur", "emergency_supplier")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, $exprBuilder->orX(
+                $exprBuilder->eq("stock_emergency.referenceArticle", "ra"),
+                $exprBuilder->eq("stock_emergency.supplier", "emergency_supplier")
+            ));
+
+        $triggeredStockEmergenciesCondition = StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, "stock_emergency");
+        $queryBuilder->addSelect("COUNT(DISTINCT CASE WHEN $triggeredStockEmergenciesCondition THEN stock_emergency.id ELSE :null END) AS emergency_count");
+        $queryBuilder
+            ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+            ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+            ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+            ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+            ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
+            ->setParameter("now", new DateTime())
+            ->setParameter("null", null);
         foreach ($filters as $filter) {
             $index++;
+            dump($filter);
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
                 $value = explode(',', $filter['value']);
                 $queryBuilder->leftJoin('ra.visibilityGroup', 'filter_visibility_group')
@@ -576,6 +599,13 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->leftJoin("ra.statut", "filter_status")
                     ->andWhere("filter_status.nom = :status")
                     ->setParameter("status", $filter['value']);
+            } else if ($filter['champFixe'] === "Urgences") {
+                $value = (bool)$filter['value'];
+                if ($value) {
+                    $queryBuilder->andWhere($triggeredStockEmergenciesCondition);
+                } else {
+                    $queryBuilder->andHaving($exprBuilder->eq("SUM(CASE WHEN $triggeredStockEmergenciesCondition THEN 1 ELSE 0 END)", "0"));
+                }
             }
             else {
                 // cas particulier champ référence article fournisseur
@@ -590,7 +620,6 @@ class ReferenceArticleRepository extends EntityRepository {
                     if ($array) {
                         $field = $array['field'];
                         $typage = $array['typage'];
-
                         switch ($typage) {
                             case 'sync':
                                 if ($filter['value'] == 0) {
@@ -743,6 +772,10 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin('ra.editedBy', 'order_editedBy')
                             ->orderBy('order_editedBy.username', $order);
                         break;
+                    case "emergencyCount":
+                        $queryBuilder
+                            ->orderBy("COUNT(DISTINCT CASE WHEN $triggeredStockEmergenciesCondition THEN stock_emergency.id ELSE :null END)", $order);
+                        break;
                     default:
                         $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
@@ -764,7 +797,6 @@ class ReferenceArticleRepository extends EntityRepository {
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
             ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
-
         if (!empty($searchParts)) {
             $freeFieldRepository = $em->getRepository(FreeField::class);
 
@@ -898,6 +930,8 @@ class ReferenceArticleRepository extends EntityRepository {
         if ($params->getInt('length')) {
             $queryBuilder->setMaxResults($params->getInt('length'));
         }
+
+        dump($queryBuilder->getQuery()->getSQL());
 
         $results = $queryBuilder->getQuery()->getResult();
         return [
