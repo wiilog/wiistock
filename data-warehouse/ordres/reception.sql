@@ -33,8 +33,6 @@ SELECT reception.id                                                             
        IF(reference_article.id IS NOT NULL, type_reference_article.label,
           IF(article.id IS NOT NULL, type_article.label, NULL))                       AS type_flux,
 
-       IF(reception.urgent_articles = 1, 'oui', 'non')                                AS urgence_reference,
-
        IF(reception.manual_urgent = 1, 'oui', 'non')                                  AS urgence_reception,
        (SELECT purchase_request.number
         FROM purchase_request
