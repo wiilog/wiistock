@@ -275,12 +275,16 @@ CREATE TABLE dw_urgence_champs_libres
     valeur     text
 );
 
-CREATE TABLE dw_association_urgence
+CREATE TABLE dw_urgence_reception
 (
     urgence_id           integer,
-    arrivage_id          integer,
-    reception_id         integer,
-    reference_article_id integer
+    reception_id         integer
+);
+
+CREATE TABLE dw_urgence_arrivage
+(
+    urgence_id           integer,
+    arrivage_id          integer
 );
 
 CREATE TABLE dw_arrivage

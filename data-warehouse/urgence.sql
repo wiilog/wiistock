@@ -22,6 +22,7 @@ SELECT
     emergency.carrier_tracking_number AS no_tracking,
     fournisseur.code_reference AS fournisseur,
     transporteur.code AS transporteur,
+    stock_emergency.reference_article_id as reference_article_id,
     CONCAT_WS('',(
             SELECT reception.number
             FROM reception
@@ -32,7 +33,7 @@ SELECT
             WHERE stock_emergency.id = emergency.id
             ORDER BY reception.date DESC
             LIMIT 1
-        ),(
+        ), (
             SELECT arrivage.numero_arrivage
             FROM arrivage
             INNER JOIN arrivage_tracking_emergency ON arrivage.id = arrivage_tracking_emergency.arrivage_id
