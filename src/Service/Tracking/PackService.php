@@ -172,7 +172,7 @@ class PackService {
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
-        $user = $this->userService->getUser();
+
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -205,7 +205,6 @@ class PackService {
             'quantity' => $pack->getQuantity() ?: 1,
             'project' => $this->formatService->project($pack->getProject()),
             'lastMovementDate' => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
-
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
@@ -563,7 +562,12 @@ class PackService {
                 ["name" => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
                 ["name" => 'project', 'title' => $this->translationService->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
                 ["name" => 'lastMvtDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
-                ["name" => 'ongoingLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'), "searchable" => true],
+                [
+                    "name" => 'ongoingLocation',
+                    "title" => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    "info" => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                    "searchable" => true,
+                ],
                 ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
@@ -591,7 +595,11 @@ class PackService {
                 ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
-                ['name' => 'ongoingLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours')],
+                [
+                    'name' => 'ongoingLocation',
+                    'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    'info' => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                ],
                 ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
                 ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
                 ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],

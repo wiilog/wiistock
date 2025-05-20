@@ -522,6 +522,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes\n_____\nPage Mouvements :\nZone liste - Nom de colonnes\nFiltre\nModale Nouveau mouvement\nModale Modifier un mouvement",
                     ],
                     [
+                        "fr" => "Emplacement sur lequel se trouve l'unité logistique actuellement",
+                        "en" => "Location where the logistics unit is currently located",
+                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes\n_____\nPage Mouvements :\nZone liste - Nom de colonnes\nFiltre\nModale Nouveau mouvement\nModale Modifier un mouvement",
+                    ],
+                    [
                         "fr" => "Date",
                         "en" => "Date",
                         "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL : \nModale Modifier une unité logistique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
