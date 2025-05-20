@@ -172,8 +172,7 @@ class PackService {
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
-        $user = $this->userService->getUser();
-        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
+
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -187,8 +186,6 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        /** @var TrackingMovement $lastPackMovement */
-        $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
@@ -206,18 +203,10 @@ class PackService {
             ]),
             'nature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
-            'project' => $pack->getProject()?->getCode(),
-            'lastMovementDate' => $lastPackMovement
-                ? ($lastPackMovement->getDatetime()
-                    ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
-                    : '')
-                : '',
+            'project' => $this->formatService->project($pack->getProject()),
+            'lastMovementDate' => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'location' => $lastPackMovement
-                ? ($lastPackMovement->getEmplacement()
-                    ? $lastPackMovement->getEmplacement()->getLabel()
-                    : '')
-                : '',
+            'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
@@ -573,7 +562,12 @@ class PackService {
                 ["name" => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
                 ["name" => 'project', 'title' => $this->translationService->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
                 ["name" => 'lastMvtDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
-                ["name" => 'lastLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                [
+                    "name" => 'ongoingLocation',
+                    "title" => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    "info" => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                    "searchable" => true,
+                ],
                 ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
@@ -601,7 +595,11 @@ class PackService {
                 ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
-                ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                [
+                    'name' => 'ongoingLocation',
+                    'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    'info' => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                ],
                 ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
                 ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
                 ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
@@ -826,23 +824,8 @@ class PackService {
      */
     public function formatTrackingDelayData(Pack $pack): array {
         if($pack->isGroup()) {
-            $packChildSortedByDelay = Stream::from($pack->getContent())
-                ->filterMap(function(Pack $pack) {
-                    $remainingTime = $this->getTrackingDelayRemainingTime($pack);
-                    // ignore pack without tracking delay
-                    return isset($remainingTime)
-                        ? [
-                            "pack" => $pack,
-                            "remainingTime" => $remainingTime,
-                        ]
-                        : null;
-                })
-                ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
-
-            $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
-
-            /** @var Pack $pack */
-            $pack = $firstPackChild ?: $pack;
+            $pack = $this->getChildPackToTreatMostRapidly($pack)
+                ?: $pack;
         }
 
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
@@ -875,6 +858,31 @@ class PackService {
             "dateHTML" => $this->formatService->datetime($limitTreatmentDate ?? null, null),
         ];
     }
+
+    /**
+     * Return the child of the group which have the shortest tracking delay.
+     *
+     * @param array<Pack> $inAdditionChildren children not already in the group in database
+     */
+    public function getChildPackToTreatMostRapidly(Pack  $group,
+                                                   array $inAdditionChildren = []): ?Pack {
+        $packChildSortedByDelay = Stream::from($group->getContent(), $inAdditionChildren)
+            ->unique()
+            ->filterMap(function(Pack $pack) {
+                $remainingTime = $this->getTrackingDelayRemainingTime($pack);
+                // ignore pack without tracking delay
+                return isset($remainingTime)
+                    ? [
+                        "pack" => $pack,
+                        "remainingTime" => $remainingTime,
+                    ]
+                    : null;
+            })
+            ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
+
+        return $packChildSortedByDelay->first()["pack"] ?? null;
+    }
+
 
     public function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getCurrentTrackingDelay();

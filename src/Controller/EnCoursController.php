@@ -97,14 +97,23 @@ class EnCoursController extends AbstractController
         } else {
             $filtersParam = null;
         }
-        $natureIds = array_map(
-            function (string $natureParam) {
-                $natureParamSplit = explode(';', $natureParam);
-                return $natureParamSplit[0] ?? 0;
-            },
-            $filtersParam ? explode(',', $filtersParam) : $natures
+        $natureFilter = $filtersParam
+            ? Stream::explode(',', $filtersParam)->filter()
+            : $natures;
+
+        $natureIds = Stream::from($natureFilter)
+            ->filterMap(static fn(string $natureParam) => explode(':', $natureParam)[0] ?? null)
+            ->toArray();
+
+        $response = $enCoursService->getEnCours(
+            entityManager: $entityManager,
+            locations: [$emplacement->getId()],
+            natures: $natureIds,
+            fromOnGoing: true,
+            user: $this->getUser(),
+            useTruckArrivals: $useTruckArrivals
         );
-        $response = $enCoursService->getEnCours($entityManager, [$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
+
         return new JsonResponse([
             'data' => $response
         ]);

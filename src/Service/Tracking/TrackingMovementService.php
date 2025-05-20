@@ -342,7 +342,16 @@ class TrackingMovementService {
                     $isNewGroupInstance = true;
                 }
 
+                $groupChildren = $this->findAllPacks($entityManager, $packCodes);
+
                 if ($isNewGroupInstance) {
+                    if ($this->settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
+                        $this->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $date, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
+                        if ($dropTrackingMovement) {
+                            $createdMovements[] = $dropTrackingMovement;
+                        }
+                    }
+
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $parentPack,
                         null,
@@ -365,10 +374,8 @@ class TrackingMovementService {
                     throw new FormException("Le groupe $packParentCode ne peut pas contenir plus de $limit unités logistiques.");
                 }
 
-                foreach ($packCodes as $packCode) {
-
+                foreach ($groupChildren as $packCode => $movedPack) {
                     $packParent = null;
-                    $movedPack = $packRepository->findOneBy(['code' => $packCode]);
 
                     $packSplittingCase = $movedPack?->getGroup() !== null;
 
@@ -575,8 +582,8 @@ class TrackingMovementService {
         $this->managePackLinksWithTracking(
             $entityManager,
             [
+                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : []), // before $tracking because it is certainly an older movement
                 $tracking,
-                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : [])
             ]
         );
         $this->managePackLinksWithOperations($entityManager, $tracking, [
@@ -2077,5 +2084,77 @@ class TrackingMovementService {
             ->setSplittingAt(new DateTime());
 
         $entityManager->persist($packSplit);
+    }
+
+    /**
+     * @param array<Pack> $groupChildren
+     * @return void
+     * @throws Exception
+     */
+    public function retrieveDataFromChildPackToTreatMostRapidly(Pack              $group,
+                                                                Utilisateur       $operator,
+                                                                DateTime          $date,
+                                                                array             $groupChildren,
+                                                                ?TrackingMovement &$createDropMovement = null): void {
+
+        $pack = $this->packService->getChildPackToTreatMostRapidly($group, $groupChildren);
+
+        $location = $pack?->getLastOngoingDrop()?->getEmplacement();
+        $nature = $pack?->getNature();
+
+        if ($location) {
+            $createDropMovement = $this->createTrackingMovement(
+                $group,
+                $location,
+                $operator,
+                $date,
+                $data['fromNomade'] ?? false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+            );
+        }
+
+        if ($nature) {
+            $group->setNature($nature);
+        }
+    }
+
+    /**
+     * Associate all pack code to existing Pack entity.
+     * If Pack does not exist set null for given code.
+     * count($packCodes) == count(array returned)
+     *
+     * @param array<string> $packCodes
+     * @return array<string, Pack|null>
+     */
+    public function findAllPacks(EntityManagerInterface $entityManager,
+                                 array                  $packCodes): array {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $groupExistingChildren = Stream::from(
+            !empty($packCodes)
+                ? $packRepository->findBy(['code' => $packCodes])
+                : []
+        )
+            ->keymap(static fn(Pack $pack) => [
+                $pack->getCode(),
+                $pack
+            ])
+            ->toArray();
+
+        $groupUnexistingChildren = Stream::from($packCodes)
+            ->keymap(static fn(string $packCode) => (
+                // filter only unexisting pack
+            !isset($groupExistingChildren[$packCode])
+                ? [$packCode, null]
+                : null
+            ))
+            ->toArray();
+
+        return Stream::from(
+            $groupUnexistingChildren,
+            $groupExistingChildren
+        )
+            ->toArray();
     }
 }

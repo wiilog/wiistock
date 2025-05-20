@@ -10,7 +10,7 @@
         isPreFilled: locationsFilter is defined and locationsFilter is not empty,
         locationsFilter,
         multiple: true,
-        placeholder: "Emplacement",
+        placeholder: trans('Traçabilité', 'Général', 'Emplacement encours', false),
     } %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
         title: trans('Traçabilité', 'Unités logistiques', 'Divers', 'N° d\'arrivage UL', false)

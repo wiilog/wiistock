@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
@@ -20,11 +21,13 @@ use App\Service\AttachmentService;
 use App\Service\Cache\CacheService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GroupService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\NatureService;
+use App\Service\SettingsService;
 use App\Service\Tracking\PackService;
 use App\Service\Tracking\TrackingMovementService;
 use DateTime;
@@ -580,8 +583,12 @@ class TrackingMovementController extends AbstractController {
                           PackService             $packService,
                           EntityManagerInterface  $entityManager,
                           GroupService            $groupService,
+                          SettingsService         $settingsService,
+                          FormatService           $formatService,
                           TrackingMovementService $trackingMovementService): JsonResponse
     {
+        $operator = $this->getUser();
+
         $packRepository = $entityManager->getRepository(Pack::class);
 
         /** @var Pack $parentPack */
@@ -600,21 +607,25 @@ class TrackingMovementController extends AbstractController {
         }
 
         $packs = json_decode($request->request->get("packs"), true);
-
-        $datetimeFromDate = function ($dateStr) {
-            return DateTime::createFromFormat("d/m/Y H:i:s", $dateStr)
-                ?: DateTime::createFromFormat("d/m/Y H:i", $dateStr)
-                    ?: null;
-        };
+        $packCodes = Stream::from($packs)
+            ->map(static fn (array $data) => $data['code'])
+            ->toArray();
+        $groupChildren = $trackingMovementService->findAllPacks($entityManager, $packCodes);
 
         $dateStr = $request->request->get("date");
-        $groupDate = $datetimeFromDate($dateStr);
+        $groupDate = $formatService->parseDatetime($dateStr);
 
         if ($isNewGroupInstance && !empty($packs)) {
+            if ($settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
+                $trackingMovementService->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $groupDate, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
+                if ($dropTrackingMovement) {
+                    $entityManager->persist($dropTrackingMovement);
+                }
+            }
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
-                $this->getUser(),
+                $operator,
                 $groupDate,
                 true,
                 true,
@@ -632,18 +643,21 @@ class TrackingMovementController extends AbstractController {
         }
 
         foreach ($packs as $data) {
+            $childGroupDate = $formatService->parseDatetime($data["date"]);
             $splitFromId = $data["splitFromId"] ?? null;
             $splitFrom = $splitFromId ? $packRepository->findOneBy(['id' => $splitFromId]) : null;
 
-            $pack = $packService->persistPack($entityManager,
-                $data["code"],
-                $data["quantity"],
-                $data["nature_id"] ?? null,
-                false,
-                [
-                    'fromPackSplit' => isset($splitFrom),
-                ]
-            );
+            $pack = $groupChildren[$data["code"]]
+                ?? $packService->persistPack(
+                    $entityManager,
+                    $data["code"],
+                    $data["quantity"],
+                    $data["nature_id"] ?? null,
+                    false,
+                    [
+                        'fromPackSplit' => isset($splitFrom),
+                    ]
+                );
 
             if (isset($data["comment"])) {
                 $pack->setComment($data["comment"]);
@@ -654,7 +668,7 @@ class TrackingMovementController extends AbstractController {
                     $entityManager,
                     $splitFrom,
                     $pack,
-                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"])
+                    $childGroupDate
                 );
             }
 
@@ -664,8 +678,8 @@ class TrackingMovementController extends AbstractController {
                 $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,
                     null,
-                    $this->getUser(),
-                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                    $operator,
+                    $childGroupDate,
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,

@@ -449,6 +449,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS => [
                 'default' => false,
             ],
+            Setting::DROP_MOVEMENT_ON_GROUPING => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

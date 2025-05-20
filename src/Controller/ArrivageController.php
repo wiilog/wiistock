@@ -1225,32 +1225,25 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    #[Route("/packs/api/{arrivage}", name: "packs_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
-    public function apiPacks(Arrivage $arrivage): Response
-    {
-        $packs = $arrivage->getPacks()->toArray();
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-        $rows = [];
-        /** @var Pack $pack */
-        foreach ($packs as $pack) {
-            $mouvement = $pack->getLastAction();
-            $rows[] = [
-                'nature' => $this->getFormatter()->nature($pack->getNature()),
-                'code' => $pack->getCode(),
-                'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '') : '',
-                'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
-                'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                'project' => $pack->getProject() ? $pack->getProject()->getCode() : '',
-                'actions' => $this->renderView('arrivage/datatablePackRow.html.twig', [
-                    'arrivageId' => $arrivage->getId(),
-                    'packId' => $pack->getId()
-                ])
-            ];
-        }
-        $data['data'] = $rows;
+    #[Route("/{arrivage}/packs-api", name: "arrival_packs_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function apiPacks(Arrivage $arrivage): JsonResponse {
 
-        return new JsonResponse($data);
+        return $this->json([
+            "data" => Stream::from($arrivage->getPacks())
+                ->map(fn(Pack $pack) => [
+                    'nature' => $this->getFormatter()->nature($pack->getNature()),
+                    'code' => $pack->getCode(),
+                    'lastMvtDate' => $this->getFormatter()->datetime($pack->getLastAction()?->getDatetime()),
+                    'ongoingLocation' => $this->getFormatter()->datetime($pack->getLastOngoingDrop()?->getDatetime()),
+                    'operator' => $this->getFormatter()->user($pack->getLastAction()?->getOperateur()),
+                    'project' => $this->getFormatter()->project($pack->getProject()),
+                    'actions' => $this->renderView('arrivage/datatablePackRow.html.twig', [
+                        'arrivageId' => $arrivage->getId(),
+                        'packId' => $pack->getId()
+                    ])
+                ])
+                ->toArray()
+        ]);
     }
 
     #[Route("/{arrivage}/etiquettes", name: "print_arrivage_bar_codes", options: ["expose" => true], methods: [self::GET])]
