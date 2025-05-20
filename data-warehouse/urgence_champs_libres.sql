@@ -1,6 +1,6 @@
 SELECT *
 FROM (
-         SELECT emergency_free_field_tmp.emergency_id,
+         SELECT emergency_free_field_tmp.emergency_id AS urgence_id,
                 emergency_free_field_tmp.libelle,
                 IF(emergency_free_field_tmp.typage = 'datetime',
                    DATE_FORMAT(REPLACE(emergency_free_field_tmp.valeur, 'T', ' '),
