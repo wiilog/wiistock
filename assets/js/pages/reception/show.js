@@ -827,7 +827,10 @@ function loadReceptionLines({start, search} = {}) {
                                     callback: (row, data) => {
                                         if (data.emergency && data.emergencyComment) {
                                             const $row = $(row);
-                                            $row.attr('title', data.emergencyComment);
+                                            const $commentOverflow = $('<div>', {
+                                                class: 'commentOverflow'
+                                            }).html(data.emergencyComment);
+                                            $row.attr('title', $commentOverflow.text());
                                             initTooltips($row);
                                         }
                                     }
