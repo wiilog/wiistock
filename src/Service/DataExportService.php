@@ -14,6 +14,7 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Service\Emergency\EmergencyService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Tracking\TrackingMovementService;

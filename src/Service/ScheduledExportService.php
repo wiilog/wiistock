@@ -19,6 +19,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Type\CategoryType;
 use App\Exceptions\FTPException;
 use App\Helper\LanguageHelper;
+use App\Service\Emergency\EmergencyService;
 use App\Service\Tracking\PackService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;

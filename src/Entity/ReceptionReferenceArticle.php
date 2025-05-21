@@ -62,6 +62,7 @@ class ReceptionReferenceArticle {
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
+        $this->stockEmergencies = new ArrayCollection();
     }
 
     public function getId(): ?int {

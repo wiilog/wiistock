@@ -32,7 +32,7 @@ use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DispatchService;
-use App\Service\EmergencyService;
+use App\Service\Emergency\EmergencyService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;

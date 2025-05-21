@@ -27,6 +27,7 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
+use App\Service\Emergency\EmergencyService;
 use DateTime;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
