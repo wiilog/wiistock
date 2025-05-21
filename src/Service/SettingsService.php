@@ -92,6 +92,7 @@ class SettingsService {
         private UserService            $userService,
         private CacheService           $cacheService,
         private ScheduleRuleService    $scheduleRuleService,
+        private ScheduledTaskService   $scheduledTaskService,
     ) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
@@ -411,6 +412,8 @@ class SettingsService {
             if (!$sleepingStockPlan->getId()) {
                 $entityManager->persist($sleepingStockPlan);
             }
+
+            $this->scheduledTaskService->deleteCache(SleepingStockPlan::class);
         }
     }
 
