@@ -11,9 +11,10 @@
         callback: 'null',
         needsDateFormatting: true,
         types,
-        disabled: referenceArticleIdFilter is not null
+        disabled: referenceArticleIdFilter is not null or fromDashboard
     } %}
     {{ form.hidden('referenceArticleIdFilter', referenceArticleIdFilter) }}
+    {{ form.hidden('fromDashboard', fromDashboard) }}
 {% endblock %}
 
 {% block page_content %}
@@ -25,7 +26,7 @@
                 {% include('utils/action-buttons/header-buttons.html.twig') with {
                     actions: [
                         {
-                            hasRight: referenceArticleIdFilter is not null,
+                            hasRight: referenceArticleIdFilter is not null or fromDashboard,
                             title: "Voir toutes les urgences",
                             href: path('emergency_index'),
                         },

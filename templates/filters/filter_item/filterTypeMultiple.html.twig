@@ -13,7 +13,7 @@
             items: types|map((type) => {
                 label: type.label,
                 value: type.id,
-                selected: filterTypes is defined and type.label in filterTypes,
+                selected: (filterTypes is defined and type.label in filterTypes) or (type.selected is defined and type.selected),
             }),
         }) }}
     </div>

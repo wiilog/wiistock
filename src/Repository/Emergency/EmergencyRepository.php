@@ -126,10 +126,12 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
-                        $value = Stream::explode(',', $filter['value'])
-                            ->filter()
-                            ->map(static fn($type) => explode(':', $type)[0])
-                            ->toArray();
+                        $value = !is_array($filter['value'])
+                            ? Stream::explode(',', $filter['value'])
+                                ->filter()
+                                ->map(static fn($type) => explode(':', $type)[0])
+                                ->toArray()
+                            : $filter['value'];
 
                         $queryBuilder
                             ->andWhere('emergency_type.id in (:filter_type_value)')
@@ -202,6 +204,19 @@ class EmergencyRepository extends EntityRepository {
                         ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
                         ->setParameter("now", new DateTime());
                     break;
+                case "unnassociated":
+                    $queryBuilder
+                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+                        ->andWhere($exprBuilder->orX(
+                            $exprBuilder->andX(
+                                "tracking_emergency IS NOT NULL",
+                                "tracking_emergency.arrivals IS EMPTY"
+                            ),
+                            $exprBuilder->andX(
+                                "stock_emergency IS NOT NULL",
+                                "stock_emergency.receptionReferenceArticles IS EMPTY"
+                            ),
+                        ));
             }
         }
 
@@ -275,30 +290,34 @@ class EmergencyRepository extends EntityRepository {
     }
 
     public function countUntriggered(bool $daily = false,
-                                     bool $active = false): ?int {
+                                     bool $active = false,
+                                     array $emergencyTypesIds = []): ?int {
         $queryBuilder = $this->createQueryBuilder('emergency');
 
         $exprBuilder = $queryBuilder->expr();
 
+        // TODO WIIS-12769 Vérifier les conditions de la requete
         $queryBuilder = $queryBuilder
             ->select('COUNT(emergency)')
+            ->leftJoin(TrackingEmergency::class, 'tracking_emergency', Join::WITH, 'emergency.id = tracking_emergency.id')
             ->leftJoin(StockEmergency::class, 'stock_emergency', Join::WITH, 'emergency.id = stock_emergency.id')
-            ->andWhere('tracking_emergency.arrivals IS EMPTY')
-            ->andWhere($exprBuilder->isNotNull('tracking_emergency.closedAt'))
+            ->andWhere($exprBuilder->isNull('emergency.closedAt'))
+            ->andWhere($exprBuilder->orX(
+                $exprBuilder->isNull("emergency.dateStart"),
+                $exprBuilder->lt("emergency.dateStart ", ":now")
+            ))
             ->andWhere($exprBuilder->orX(
                 $exprBuilder->andX(
-                    $exprBuilder->isNotNull('tracking_emergency '),
-                    $exprBuilder->lt("tracking_emergency.dateStart ", ":now")
+                    $exprBuilder->isNotNull('tracking_emergency'),
+                    'tracking_emergency.arrivals IS EMPTY',
                 ),
-                // TODO WIIS-12769 for stock emergency
+                $exprBuilder->andX(
+                    $exprBuilder->isNotNull('stock_emergency'),
+                    'stock_emergency.receptionReferenceArticles IS EMPTY'
+                )
             ))
             ->setParameter('now', new DateTime('now'));
 
-        /*
-         TODO WIIS-12769 for stock emergency
-            ->leftJoin(TrackingEmergency::class, 'tracking_emergency', Join::WITH, 'emergency.id = tracking_emergency.id')
-            ->andWhere('stock_emergency.receptionReferenceArticles IS EMPTY AND tracking_emergency.arrivals IS EMPTY') -> replace existing andWhere tracking_emergency.arrivals IS EMPTY'
-         */
 
         if ($daily) {
             $todayEvening = new DateTime('now');
@@ -315,8 +334,20 @@ class EmergencyRepository extends EntityRepository {
         if ($active) {
             $today = new DateTime('now');
             $queryBuilder
-                ->andWhere('emergency.dateEnd >= :todayEvening')
+                ->andWhere(
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull('emergency.dateEnd'),
+                        $exprBuilder->gte('emergency.dateEnd ', ':todayEvening')
+                    )
+                )
                 ->setParameter('todayEvening', $today);
+        }
+
+        if(!empty($emergencyTypesIds)) {
+            $queryBuilder
+                ->leftJoin('emergency.type', 'join_type')
+                ->andWhere('join_type.id IN (:emergencyTypesIds)')
+                ->setParameter('emergencyTypesIds', $emergencyTypesIds);
         }
 
         return $queryBuilder
