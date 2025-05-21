@@ -181,7 +181,7 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case "referenceArticle":
                     $queryBuilder
-                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+                        ->innerJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
                         ->leftJoin("stock_emergency.supplier", "stock_emergency_supplier")
                         ->leftJoin("stock_emergency_supplier.articlesFournisseur", "stock_emergency_supplier_article")
                         ->innerJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH,
