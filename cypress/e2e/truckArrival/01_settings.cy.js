@@ -76,14 +76,10 @@ describe('Setup settings', () => {
             .first()
             .click();
 
-        cy.get(ULFreeFieldsLines)
-            .find('td', {timeout: 10000})
-            .should('have.length.gt', 1);
-        cy.get(`[data-menu=champs_fixes] input[type=checkbox]`)
-            .uncheck({force: true});
-
+        const numTrackingName = "Numéro tracking transporteur";
         const columnsToCheck = [];
         const columnsToCheckName = ["Afficher","Obligatoire"];
+        var numTrackingIndex = 0;
 
         // get the index of the columns with her name
         cy.get('[id^="table-arrival-fixed-fields"] thead:first tr th').then(($ths) => {
@@ -96,9 +92,17 @@ describe('Setup settings', () => {
             });
         })
 
-        cy.get(ULFreeFieldsLines).each((tr) => {
+        cy.get(ULFreeFieldsLines).each(() => {
             columnsToCheck.forEach((columnIndex) => {
-                    cy.wrap(tr)
+                cy.get(`tbody>tr:eq(12)`)
+                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                    .uncheck({force: true});
+            });
+        });
+
+        cy.get(ULFreeFieldsLines).each(() => {
+            columnsToCheck.forEach((columnIndex) => {
+                    cy.get(`tbody>tr:eq(12)`)
                         .find(`td:eq(${columnIndex}) input[type=checkbox]`)
                         .check({force: true});
             });
