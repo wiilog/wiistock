@@ -138,7 +138,7 @@ class DashboardSettingsController extends AbstractController {
      * @param Dashboard\ComponentType $componentType
      * @return Response
      */
-    #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', methods: ['POST'], options: ['expose' => true])]
+    #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', options: ['expose' => true], methods: ['POST'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function apiComponentTypeForm(Request                 $request,
                                          EntityManagerInterface  $entityManager,
@@ -167,6 +167,7 @@ class DashboardSettingsController extends AbstractController {
             "handlingTypes" => [],
             "dispatchTypes" => [],
             "productionTypes" => [],
+            "emergencyTypes" => [],
             "referenceTypes" => [],
             "managers" => [],
             "arrivalStatuses" => [],
@@ -323,6 +324,10 @@ class DashboardSettingsController extends AbstractController {
             $values['productionTypes'] = $typeRepository->findBy(['id' => $values['productionTypes']]);
         }
 
+        if (!empty($values['emergencyTypes'])) {
+            $values['emergencyTypes'] = $typeRepository->findBy(['id' => $values['emergencyTypes']]);
+        }
+
         if (!empty($values['arrivalStatuses'])) {
             $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
         }
@@ -448,6 +453,7 @@ class DashboardSettingsController extends AbstractController {
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $productionTypes = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
+        $emergencyTypes = $typeRepository->findByCategoryLabels([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY]);
         $referenceTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -472,6 +478,7 @@ class DashboardSettingsController extends AbstractController {
                     'cellIndex' => $request->request->get('cellIndex'),
                     'arrivalTypes' => $arrivalTypes,
                     'productionTypes' => $productionTypes,
+                    'emergencyTypes' => $emergencyTypes,
                     'handlingTypes' => $handlingTypes,
                     'deliveryOrderTypes' => $deliveryOrderTypes,
                     'displayDeliveryOrderWithExpectedDate' => $values['displayDeliveryOrderWithExpectedDate'] ?? '',

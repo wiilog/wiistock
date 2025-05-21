@@ -18,8 +18,13 @@ $(function() {
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     const referenceArticleIdFilter = $('[name="referenceArticleIdFilter"]').val();
+    const fromDashboard = $('[name="fromDashboard"]').val();
     const filters = {
         ...referenceArticleIdFilter ? {referenceArticleId: referenceArticleIdFilter,} : {},
+        ...fromDashboard ? {
+            fromDashboard: fromDashboard,
+            types: $('[name="multipleTypes"]').val(),
+        } : {},
     }
 
     if (!Object.keys(filters).length) {

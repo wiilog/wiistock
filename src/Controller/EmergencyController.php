@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Dashboard\Component;
 use App\Entity\Emergency\Emergency;
 use App\Entity\ScheduledTask\Export;
 use App\Entity\Type\CategoryType;
@@ -45,24 +46,34 @@ class EmergencyController extends AbstractController {
                           Request                $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $dashboardComponentRepository = $entityManager->getRepository(Component::class);
         $currentUser = $userService->getUser();
         $columns = $emergencyService->getVisibleColumnsConfig($entityManager, $currentUser);
         $referenceArticleIdFilter = $request->query->getInt('referenceArticle') ?: null;
+        $dashboardComponentId = $request->query->get("dashboardComponentId");
+        $dashboardComponent = $dashboardComponentId
+            ? $dashboardComponentRepository->find($dashboardComponentId)
+            : null;
+
+        $filterTypes = $dashboardComponent ? $dashboardComponent->getConfig()['emergencyTypes'] : [];
 
         $emergencyTypes = $typeRepository->findByCategoryLabels([CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY], null, [
             'onlyActive' => true,
         ]);
 
         return $this->render('emergency/index.html.twig', [
-            "initial_visible_columns" => $columns,
+            'initial_visible_columns' => $columns,
             'types' => Stream::from($emergencyTypes)
                 ->map(static fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
-                ]),
-            "carriers" => $carrierRepository->findAllSorted(),
+                    'selected' => in_array($type->getId(), $filterTypes),
+                ])
+                ->toArray(),
+            'carriers' => $carrierRepository->findAllSorted(),
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
-            'referenceArticleIdFilter' => $referenceArticleIdFilter
+            'referenceArticleIdFilter' => $referenceArticleIdFilter,
+            'fromDashboard' => isset($dashboardComponent),
         ]);
     }
 
