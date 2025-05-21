@@ -554,7 +554,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameter("null", null);
         foreach ($filters as $filter) {
             $index++;
-            dump($filter);
+
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
                 $value = explode(',', $filter['value']);
                 $queryBuilder->leftJoin('ra.visibilityGroup', 'filter_visibility_group')
@@ -930,8 +930,6 @@ class ReferenceArticleRepository extends EntityRepository {
         if ($params->getInt('length')) {
             $queryBuilder->setMaxResults($params->getInt('length'));
         }
-
-        dump($queryBuilder->getQuery()->getSQL());
 
         $results = $queryBuilder->getQuery()->getResult();
         return [
