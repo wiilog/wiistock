@@ -109,12 +109,15 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_EMERGENCY_STATUT:
                     if ($filter['value']) {
-                        $conditions = Stream::explode(',', $filter['value'])
+                        $value = Stream::explode(',', $filter['value'])
                             ->filter()
                             ->map(static fn($entity) => explode(':', $entity)[0])
-                            ->map(static function(string $statut) {
+                            ->toArray();
+
+                        $conditions = Stream::from($value)
+                            ->map(static function(string $statut) use ($exprBuilder) {
                                 return match($statut) {
-                                    "Actives" => "emergency.closedAt IS NULL",
+                                    "Actives" => StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, 'stock_emergency'),
                                     "Cloturées" => "emergency.closedAt IS NOT NULL",
                                     default => "",
                                 };
@@ -122,6 +125,16 @@ class EmergencyRepository extends EntityRepository {
                             ->toArray();
 
                         $queryBuilder->andWhere($exprBuilder->orX(...($conditions)));
+
+                        if(in_array('Actives', $value)) {
+                            $queryBuilder
+                                ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+                                ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+                                ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+                                ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+                                ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
+                                ->setParameter("now", new DateTime());
+                        }
                     }
                     break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
@@ -183,7 +196,6 @@ class EmergencyRepository extends EntityRepository {
                     break;
                 case "referenceArticle":
                     $queryBuilder
-                        ->innerJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
                         ->leftJoin("stock_emergency.supplier", "stock_emergency_supplier")
                         ->leftJoin("stock_emergency_supplier.articlesFournisseur", "stock_emergency_supplier_article")
                         ->innerJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH,
@@ -204,19 +216,6 @@ class EmergencyRepository extends EntityRepository {
                         ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
                         ->setParameter("now", new DateTime());
                     break;
-                case "unnassociated":
-                    $queryBuilder
-                        ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
-                        ->andWhere($exprBuilder->orX(
-                            $exprBuilder->andX(
-                                "tracking_emergency IS NOT NULL",
-                                "tracking_emergency.arrivals IS EMPTY"
-                            ),
-                            $exprBuilder->andX(
-                                "stock_emergency IS NOT NULL",
-                                "stock_emergency.receptionReferenceArticles IS EMPTY"
-                            ),
-                        ));
             }
         }
 
@@ -264,6 +263,7 @@ class EmergencyRepository extends EntityRepository {
         }
 
         $queryBuilder
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
             ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
@@ -310,11 +310,12 @@ class EmergencyRepository extends EntityRepository {
                 $exprBuilder->andX(
                     $exprBuilder->isNotNull('tracking_emergency'),
                     'tracking_emergency.arrivals IS EMPTY',
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull("tracking_emergency.dateStart"),
+                        $exprBuilder->lt("tracking_emergency.dateStart ", ":now")
+                    )
                 ),
-                $exprBuilder->andX(
-                    $exprBuilder->isNotNull('stock_emergency'),
-                    'stock_emergency.receptionReferenceArticles IS EMPTY'
-                )
+                StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, 'stock_emergency')
             ))
             ->setParameter('now', new DateTime('now'));
 

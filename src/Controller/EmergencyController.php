@@ -70,6 +70,12 @@ class EmergencyController extends AbstractController {
                     'selected' => in_array($type->getId(), $filterTypes),
                 ])
                 ->toArray(),
+            'emergencyStatuses' => Stream::from(['Actives', 'Cloturées'])
+                ->map(static fn(string $statut) => [
+                    'id' => $statut,
+                    'label' => $statut,
+                    'selected' => isset($dashboardComponent) && $statut === 'Actives',
+                ]),
             'carriers' => $carrierRepository->findAllSorted(),
             'modalNewEmergencyConfig' => $emergencyService->getEmergencyConfig($entityManager),
             'referenceArticleIdFilter' => $referenceArticleIdFilter,

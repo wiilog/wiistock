@@ -425,18 +425,18 @@ class EmergencyService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $referenceArticleIdFilter = $request->getInt('referenceArticleId') ?: null;
-        $fromDashboard = $request->getBoolean('fromDashboard');
         $types = $request->all('types');
+        $emergencyStatuses = $request->all('statut');
 
         $filters = match (true) {
             $referenceArticleIdFilter !== null => [[
                     "field" => "referenceArticle",
                     "value" => $referenceArticleIdFilter
             ]],
-            $fromDashboard => [
+            !empty($emergencyStatuses) => [
                 [
-                    "field" => "unnassociated",
-                    "value" => true,
+                    "field" => FiltreSup::FIELD_EMERGENCY_STATUT,
+                    "value" => $emergencyStatuses,
                 ],
                 [
                     "field" => "multipleTypes",
