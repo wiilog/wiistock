@@ -12,6 +12,7 @@ import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
 import {clearPackListSearching} from "@app/pages/pack/common";
 import {initCommentHistoryForm, initTableArticleLitige} from "@app/pages/dispute/common";
+import {getHTMLText} from "@app/utils";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -441,11 +442,11 @@ function articleChanged($select) {
 
                     if (hasEmergencies) {
                         $emergencyContainer.removeClass(`d-none`);
-                        $emergencyCommentContainer.toggleClass('d-none', emergencyComment.length === 0);
+                        const emergencyCommentText = $('<div/>', {html: emergencyComment}).text();
+                        $emergencyCommentContainer.toggleClass('d-none', getHTMLText(emergencyCommentText).length === 0);
                         $emergencyComment.html(emergencyComment);
                     } else {
                         $emergencyContainer.addClass(`d-none`);
-                        $emergencyCommentContainer.addClass(`d-none`);
                         $emergencyComment.text(``);
                     }
 
@@ -826,12 +827,12 @@ function loadReceptionLines({start, search} = {}) {
                                     color: 'danger',
                                     callback: (row, data) => {
                                         if (data.emergency && data.emergencyComment) {
-                                            const $row = $(row);
-                                            const $commentOverflow = $('<div>', {
-                                                class: 'commentOverflow'
-                                            }).html(data.emergencyComment);
-                                            $row.attr('title', $commentOverflow.text());
-                                            initTooltips($row);
+                                            const cleanedComment = getHTMLText(data.emergencyComment);
+                                            if (cleanedComment) {
+                                                const $row = $(row);
+                                                $row.attr('title', cleanedComment);
+                                                initTooltips($row);
+                                            }
                                         }
                                     }
                                 },
