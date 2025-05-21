@@ -428,3 +428,11 @@ export function updateRequiredMark($element, isRequired) {
         $label.remove();
     }
 }
+
+/**
+ * @param {string} html
+ * @returns {string}
+ */
+export function getHTMLText(html) {
+    return $('<div/>', {html}).text();
+}
