@@ -357,9 +357,9 @@ class EmergencyService
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $page = FieldModesController::PAGE_EMERGENCY_LIST;
 
-        $freeFields = $freeFieldRepository->findByCategoriesTypeAndCategoriesCL(
-            [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY],
-            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]
+        $freeFields = $freeFieldRepository->findByTypeCategoriesAndFreeFieldCategories(
+            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY],
+            [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY]
         );
 
         if (!$forExport && $currentUser) {

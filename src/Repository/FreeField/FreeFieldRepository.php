@@ -63,7 +63,8 @@ class FreeFieldRepository extends EntityRepository {
      * @param array<string> $typeCategories
      * @param array<string> $freeFieldCategories
      */
-    public function findByCategoriesTypeAndCategoriesCL(array $typeCategories, array $freeFieldCategories): array {
+    public function findByTypeCategoriesAndFreeFieldCategories(array $freeFieldCategories,
+                                                               array $typeCategories): array {
         return $this->createQueryBuilder("free_field")
             ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
             ->join("free_field_management_rules.type", "join_type")

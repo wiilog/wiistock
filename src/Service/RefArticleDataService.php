@@ -535,7 +535,11 @@ class RefArticleDataService
     public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = []): array
     {
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+                $this->entityManager,
+                CategorieCL::REFERENCE_ARTICLE,
+                CategoryType::ARTICLE
+            );
         }
 
         $settingManageDeliveriesWithoutStockQuantity = $this->settingsService->getValue($this->entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);

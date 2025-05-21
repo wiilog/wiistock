@@ -61,13 +61,15 @@ class FreeFieldService {
         return $config;
     }
 
-    public function getListFreeFieldConfig(EntityManagerInterface $entityManager, string|array $freeFieldCategoryLabel, string|array $typeCategoryLabel): array {
+    public function getListFreeFieldConfig(EntityManagerInterface $entityManager,
+                                           string|array $freeFieldCategoryLabel,
+                                           string|array $typeCategoryLabel): array {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryLabel = is_array($freeFieldCategoryLabel) ? $freeFieldCategoryLabel : [$freeFieldCategoryLabel];
         $typeCategoryLabel = is_array($typeCategoryLabel) ? $typeCategoryLabel : [$typeCategoryLabel];
 
-        return Stream::from($freeFieldsRepository->findByCategoriesTypeAndCategoriesCL($freeFieldCategoryLabel, $typeCategoryLabel))
-            ->keymap(fn(FreeField $freeField) => [$freeField->getId(), $freeField])
+        return Stream::from($freeFieldsRepository->findByTypeCategoriesAndFreeFieldCategories($freeFieldCategoryLabel, $typeCategoryLabel))
+            ->keymap(static fn(FreeField $freeField) => [$freeField->getId(), $freeField])
             ->toArray();
     }
 
