@@ -11,7 +11,7 @@ SELECT
          WHEN emergency.end_emergency_criteria = 'manual' THEN 'Manuelle'
     END) AS critere_fin_urgence,
     emergency.comment AS commentaire,
-    emplacement.label AS emplacement_urgence,
+    expected_location.label AS emplacement_urgence,
     emergency.date_start AS debut_delais_livraison,
     emergency.date_end AS fin_delais_livraison,
     emergency.order_number AS no_commande,
@@ -20,8 +20,8 @@ SELECT
     emergency.last_triggered_at AS date_dernier_declenchement,
     stock_emergency.expected_quantity AS quantite,
     emergency.carrier_tracking_number AS no_tracking,
-    fournisseur.code_reference AS fournisseur,
-    transporteur.code AS transporteur,
+    supplier.code_reference AS fournisseur,
+    carrier.code AS transporteur,
     stock_emergency.reference_article_id as reference_article_id,
     CONCAT_WS('',(
             SELECT reception.number
@@ -48,6 +48,6 @@ FROM emergency
      LEFT JOIN type ON emergency.type_id = type.id
      LEFT JOIN stock_emergency ON emergency.id = stock_emergency.id
      LEFT JOIN tracking_emergency ON emergency.id = tracking_emergency.id
-     LEFT JOIN emplacement ON stock_emergency.expected_location_id = emplacement.id
-     LEFT JOIN fournisseur ON emergency.supplier_id = fournisseur.id
-     LEFT JOIN transporteur ON emergency.carrier_id = transporteur.id
+     LEFT JOIN emplacement expected_location ON stock_emergency.expected_location_id = expected_location.id
+     LEFT JOIN fournisseur supplier ON emergency.supplier_id = supplier.id
+     LEFT JOIN transporteur carrier ON emergency.carrier_id = carrier.id
