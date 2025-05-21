@@ -75,6 +75,7 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::type->name => "emergency_type.label",
             FixedFieldEnum::internalArticleCode->name=> "tracking_emergency.internalArticleCode",
             FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
+            "emergencyQuantity"=> "stock_emergency.expectedQuantity",
         ];
 
         $order = $params->all('order')[0]['dir'] ?? null;
@@ -201,13 +202,13 @@ class EmergencyRepository extends EntityRepository {
                     $queryBuilder
                         ->leftJoin("stock_emergency.supplier", "stock_emergency_supplier")
                         ->leftJoin("stock_emergency_supplier.articlesFournisseur", "stock_emergency_supplier_article")
-                        ->innerJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH,
+                        ->innerJoin(ReferenceArticle::class, 'filter_join_reference_article', Join::WITH,
                             $exprBuilder->andX(
                                 $exprBuilder->orX(
-                                    $exprBuilder->eq("join_reference_article", "stock_emergency.referenceArticle"),
-                                    $exprBuilder->eq("stock_emergency_supplier_article.referenceArticle", "join_reference_article"),
+                                    $exprBuilder->eq("filter_join_reference_article", "stock_emergency.referenceArticle"),
+                                    $exprBuilder->eq("stock_emergency_supplier_article.referenceArticle", "filter_join_reference_article"),
                                 ),
-                                $exprBuilder->eq("join_reference_article.id", ":referenceArticleId"),
+                                $exprBuilder->eq("filter_join_reference_article.id", ":referenceArticleId"),
                             )
                         )
                         ->setParameter("referenceArticleId",  $filter['value'])
@@ -266,6 +267,8 @@ class EmergencyRepository extends EntityRepository {
         }
 
         $queryBuilder
+            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")

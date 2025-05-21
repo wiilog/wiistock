@@ -397,6 +397,9 @@ class EmergencyService
             FixedFieldEnum::type,
             FixedFieldEnum::internalArticleCode,
             FixedFieldEnum::supplierArticleCode,
+            FixedFieldEnum::reference,
+            ['title' => "Quantité urgence", 'name' => 'emergencyQuantity'],
+            ['title' => "Quantité urgence restante", 'name' => 'RemainingEmergencyQuantity'],
         ];
 
         $columns = Stream::from($columns)
@@ -416,6 +419,7 @@ class EmergencyService
                             FixedFieldEnum::type,
                             FixedFieldEnum::internalArticleCode,
                             FixedFieldEnum::supplierArticleCode,
+                            FixedFieldEnum::reference,
                         ], true),
                     ];
                 }
