@@ -1769,6 +1769,7 @@ class ReceptionController extends AbstractController {
                     "referenceArticle" => $referenceArticle,
                 ];
 
+                $stockEmergency->setLastTriggeredAt($now);
                 $receptionReferenceArticle->addStockEmergency($stockEmergency);
             }
 

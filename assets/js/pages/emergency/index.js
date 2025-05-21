@@ -135,7 +135,7 @@ function initializeTable(filters) {
         serverSide: true,
         paging: true,
         order: [
-            [FixedFieldEnum.dateStart.name, "desc"]
+            [FixedFieldEnum.createdAt.name, "desc"]
         ],
         ajax: {
             url: Routing.generate('emergency_api_list', true),
