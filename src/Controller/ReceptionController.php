@@ -48,6 +48,7 @@ use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
+use App\Service\Emergency\StockEmergencyService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -494,12 +495,13 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route('/new-reception-reference-article', name: 'reception_reference_article_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/new-reception-reference-article', name: 'reception_reference_article_new', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function newReceptionReferenceArticle(EntityManagerInterface           $entityManager,
                                                  ReceptionService                 $receptionService,
                                                  ReceptionLineService             $receptionLineService,
                                                  ReceptionReferenceArticleService $receptionReferenceArticleService,
+                                                 StockEmergencyService            $stockEmergencyService,
                                                  Request                          $request): Response {
         if ($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -584,6 +586,7 @@ class ReceptionController extends AbstractController {
                     $receptionLine = $receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
                 }
                 $receptionLine->addReceptionReferenceArticle($receptionReferenceArticle);
+                $stockEmergencyService->trigger($entityManager, $refArticle, new DateTime("now"), $receptionReferenceArticle);
 
                 $entityManager->flush();
 
@@ -750,6 +753,15 @@ class ReceptionController extends AbstractController {
                                 'receptionReferenceArticle' => $receptionReferenceArticle,
                             ]
                         );
+
+                        foreach ($receptionReferenceArticle->getStockEmergencies() as $stockEmergency) {
+                            $emergencyTrigger = $stockEmergency->getEmergencyTrigger();
+
+                            if($emergencyTrigger === EmergencyTriggerEnum::REFERENCE) {
+                                $alreadyReceivedQuantity = $stockEmergency->getAlreadyReceivedQuantity();
+                                $stockEmergency->setAlreadyReceivedQuantity($alreadyReceivedQuantity + $diffReceivedQuantity);
+                            }
+                        }
 
                         $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
@@ -1549,7 +1561,6 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
         $createDirectDelivery = $settingsService->getValue($entityManager, Setting::DIRECT_DELIVERY);
         $needCreatePrepa = $settingsService->getValue($entityManager, Setting::CREATE_PREPA_AFTER_DL);
@@ -1754,14 +1765,11 @@ class ReceptionController extends AbstractController {
             $referenceArticle = $articleArray['refArticle'];
             $quantityReceived = intval($articleArray['quantityReceived']);
 
-            $emergenciesTriggeredByRefArticleOrSupplier = $stockEmergencyRepository->findEmergencyTriggeredByRefArticle($referenceArticle, $now);
-
-            /** @var StockEmergency $stockEmergency */
-            foreach ($emergenciesTriggeredByRefArticleOrSupplier as $stockEmergency) {
+            foreach ($receptionReferenceArticle->getStockEmergencies() as $stockEmergency ) {
                 $emergencyTrigger = $stockEmergency->getEmergencyTrigger();
-                $alreadyReceivedQuantity = $stockEmergency->getAlreadyReceivedQuantity();
 
                 if($emergencyTrigger === EmergencyTriggerEnum::REFERENCE) {
+                    $alreadyReceivedQuantity = $stockEmergency->getAlreadyReceivedQuantity();
                     $stockEmergency->setAlreadyReceivedQuantity($alreadyReceivedQuantity + $quantityReceived);
                 }
 
@@ -1770,8 +1778,6 @@ class ReceptionController extends AbstractController {
                     "receptionReferenceArticle" => $receptionReferenceArticle,
                     "referenceArticle" => $referenceArticle,
                 ];
-
-                $receptionReferenceArticle->addStockEmergency($stockEmergency);
             }
 
             $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
@@ -2185,7 +2191,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    #[Route("/{reception}/reception-lines-api", name: "reception_lines_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{reception}/reception-lines-api", name: "reception_lines_api", options: ["expose" => true], methods: self::GET, condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function getReceptionLinesApi(EntityManagerInterface $entityManager,
                                          Reception              $reception,

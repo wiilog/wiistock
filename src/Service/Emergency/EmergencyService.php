@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Emergency;
 
 
-use App\Entity\Arrivage;
 use App\Controller\FieldModesController;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\Emergency\Emergency;
 use App\Entity\Emergency\EmergencyTriggerEnum;
@@ -17,8 +17,9 @@ use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
-use App\Entity\Menu;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField\FreeField;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
@@ -26,17 +27,22 @@ use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Repository\Emergency\EmergencyRepository;
-use App\Repository\FiltreSupRepository;
+use App\Service\AttachmentService;
+use App\Service\CSVExportService;
+use App\Service\FieldModesService;
+use App\Service\FixedFieldService;
+use App\Service\FormatService;
+use App\Service\FreeFieldService;
+use App\Service\SettingsService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
-use WiiCommon\Helper\Stream;
-use App\Entity\FreeField\FreeField;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class EmergencyService
 {
