@@ -22,7 +22,7 @@ $(function() {
     const filters = {
         ...referenceArticleIdFilter ? {referenceArticleId: referenceArticleIdFilter,} : {},
         ...fromDashboard ? {
-            fromDashboard: fromDashboard,
+            statut: $('[name="emergencyStatut"]').val(),
             types: $('[name="multipleTypes"]').val(),
         } : {},
     }

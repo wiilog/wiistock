@@ -8,7 +8,7 @@ use App\Entity\Emergency\Emergency;
 use App\Service\Dashboard\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ArrivalsEmergenciesComponentGenerator implements DashboardComponentGenerator {
+class EmergenciesComponentGenerator implements DashboardComponentGenerator {
 
     public function __construct(
         private DashboardService $dashboardService,

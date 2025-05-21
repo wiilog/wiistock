@@ -18,11 +18,8 @@
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
         name: 'emergencyStatut',
         placeholder: 'Statut',
-        types: ['Actives', 'Cloturées']|map((statut) => {
-            id: statut,
-            label: statut,
-        })
-    }%}
+        types: emergencyStatuses,
+    } %}
 
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
         name: 'emergencyAppliedTo',
@@ -31,6 +28,6 @@
             id: type,
             label: type,
         })
-    }%}
+    } %}
 {% endblock %}
 
