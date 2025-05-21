@@ -41,6 +41,7 @@ use App\Entity\Type\StockEmergencyAlertMode;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\Cache\CacheService;
@@ -78,6 +79,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -2187,6 +2189,7 @@ class ReceptionController extends AbstractController {
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function getReceptionLinesApi(EntityManagerInterface $entityManager,
                                          Reception              $reception,
+                                         NormalizerInterface    $normalizer,
                                          Request                $request): JsonResponse {
 
         $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
@@ -2218,7 +2221,7 @@ class ReceptionController extends AbstractController {
             "html" => $this->renderView("reception/show/line-list.html.twig", [
                 "reception" => $reception,
                 "pagination" => $pagination,
-                "lines" => $result["data"],
+                "lines" => $normalizer->normalize($result["data"], null, ["usage" => SerializerUsageEnum::RECEPTION_SHOW]),
                 "total" => $result["total"],
                 "current" => $start,
                 "currentPage" => floor($start / $listLength),
