@@ -21,10 +21,10 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-                    ref: main
-
+                    ref: WIIS-12667
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
+
 
             -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
                 run: |
@@ -56,7 +56,7 @@ jobs:
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
             -   name: Give all right to wiistock
-                run: chmod -R 777 projects/wiistock/
+                run: chmod -R 777 .
 
             -   name: Build containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
@@ -66,6 +66,12 @@ jobs:
 
             -   name: Start containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+
+            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock 2
+                run: |
+                  docker ps
+                  echo "gros test"
+                  docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template wiistock-cypress_owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
 
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data /project
@@ -99,9 +105,17 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
-                    docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
-                    docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
+                    echo "-----"
+                    pwd
+                    echo "----"
+                    ls -la docker/dev/owasp-modsecurity
+                    cat docker/dev/owasp-modsecurity/modsecurity-override.conf.template
+
+                    echo "dans le container owasp -----"
+                    docker exec wiistock-cypress_owasp-modsecurity ls -la /etc/nginx/templates/modsecurity.d
+                    docker exec wiistock-cypress_owasp-modsecurity cat /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+                    echo "-----"
+
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()

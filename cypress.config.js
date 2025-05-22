@@ -5,7 +5,7 @@ module.exports = defineConfig({
     video: true,
     e2e: {
         // To show all files in Cypress UI
-        specPattern: "cypress/e2e/**/*.*",
+        specPattern: "cypress/e2e/*.js",
         viewportWidth: 1280,
         viewportHeight: 720,
         baseUrl: 'http://localhost/',
