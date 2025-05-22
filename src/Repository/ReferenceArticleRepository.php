@@ -248,7 +248,7 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['multipleFields'] ?? false) {
-            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder);
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ['text']);
         }
 
         return $queryBuilder
