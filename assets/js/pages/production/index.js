@@ -219,11 +219,12 @@ function initDuplicateProductionRequest() {
         (event) => {
             const $button = $(event.relatedTarget);
             const $formContainer = $modalEditProductionRequest.find('.form-production-request');
+            const $wrapperLoader = $.merge($modalEditProductionRequest.find('button[type="submit"]'), $formContainer);
             Modal.load(
                 'production_request_form_duplicate',
-                {productionRequest : $button.data('id') },
+                {productionRequest : $button.data('id')},
                 $modalEditProductionRequest,
-                $formContainer,
+                $wrapperLoader,
                 {
                     $formContainer: $formContainer,
                     onOpen: () => {
