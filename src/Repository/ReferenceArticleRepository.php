@@ -542,7 +542,7 @@ class ReferenceArticleRepository extends EntityRepository {
                 $exprBuilder->eq("stock_emergency.supplier", "emergency_supplier")
             ));
 
-        $triggeredStockEmergenciesCondition = StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, "stock_emergency");
+        $triggeredStockEmergenciesCondition = StockEmergencyRepository::getTriggerableStockEmergenciesCondition($exprBuilder, "stock_emergency");
         $queryBuilder->addSelect("COUNT(DISTINCT CASE WHEN $triggeredStockEmergenciesCondition THEN stock_emergency.id ELSE :null END) AS emergency_count");
         $queryBuilder
             ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)

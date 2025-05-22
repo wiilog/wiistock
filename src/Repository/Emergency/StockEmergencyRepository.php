@@ -35,7 +35,7 @@ class StockEmergencyRepository extends EntityRepository {
                     $exprBuilder->eq("join_reference_article", ":referenceArticle"),
                 )
             )
-            ->andWhere(StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, 'stock_emergency'))
+            ->andWhere(StockEmergencyRepository::getTriggerableStockEmergenciesCondition($exprBuilder, 'stock_emergency'))
             ->setParameter("referenceArticle", $referenceArticle)
             ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
             ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
@@ -47,8 +47,8 @@ class StockEmergencyRepository extends EntityRepository {
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public static function getTriggeredStockEmergenciesCondition(Expr     $exprBuilder,
-                                                                 string   $stockEmergencyAlias): Expr\Andx {
+    public static function getTriggerableStockEmergenciesCondition(Expr   $exprBuilder,
+                                                                   string $stockEmergencyAlias): Expr\Andx {
         return $exprBuilder->andX(
             $exprBuilder->isNotNull("$stockEmergencyAlias"),
             $exprBuilder->isNull("$stockEmergencyAlias.closedAt"),
