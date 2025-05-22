@@ -84,7 +84,6 @@ class PackService {
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
         $trackingDelayEvent = $params->get("trackingDelayEvent");
         if($fromDashboard) {
-            dump($params->all());
             $filters = [
                 ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
                 ...($locationsFilter ? [["field" => "lastLocation", "value" => $locationsFilter]] : []),
