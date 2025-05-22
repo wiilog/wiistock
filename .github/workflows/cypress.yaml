@@ -101,7 +101,8 @@ jobs:
                 if: failure()
                 run: |
                     docker ps
-                    docker exec wiistock-cypress_owasp-modsecurity ls /etc/modsecurity.d/
+                    echo "avant important"
+                    docker exec wiistock-cypress_owasp-modsecurity cat docker-entrypoint.d/20-envsubst-on-templates.sh
                     echo "avant ls"
                     echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity-override.conf && echo "]"
                     echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity.conf && echo "]"
