@@ -207,13 +207,13 @@ class SettingsController extends AbstractController {
                     "label" => "Urgences",
                     "right" => Action::SETTINGS_DISPLAY_STOCK_EMERGENCIES,
                     "menus" => [
-                        self::MENU_FIXED_FIELDS => [
-                            "label" => "Champs fixes",
-                            "save" => true,
-                        ],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
                         ],
                     ],
                 ],
