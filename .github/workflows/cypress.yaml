@@ -103,11 +103,12 @@ jobs:
                     pwd
                     echo "----"
                     ls -la docker/dev/owasp-modsecurity
-                    cat docker/dev/owasp-modsecurity
+                    cat docker/dev/owasp-modsecurity/modsecurity-override.conf.template
 
+                    echo "dans le container owasp -----"
+                    docker exec wiistock-cypress_owasp-modsecurity ls -la /etc/nginx/templates/modsecurity.d
+                    docker exec wiistock-cypress_owasp-modsecurity cat /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
                     echo "-----"
-
-                    echo "[]"
 
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
