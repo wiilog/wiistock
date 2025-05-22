@@ -23,6 +23,7 @@ class FiltreSup {
     const FIELD_CONTACT = 'contact';
     const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
+    const FIELD_LAST_LOCATION = 'lastLocation';
     const FIELD_LOCATION_PICK_WITH_GROUPS = 'locationPickWithGroups';
     const FIELD_LOCATION_DROP_WITH_GROUPS = 'locationDropWithGroups';
     const FIELD_PACK = 'UL';
