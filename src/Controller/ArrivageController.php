@@ -1234,7 +1234,7 @@ class ArrivageController extends AbstractController {
                     'nature' => $this->getFormatter()->nature($pack->getNature()),
                     'code' => $pack->getCode(),
                     'lastMvtDate' => $this->getFormatter()->datetime($pack->getLastAction()?->getDatetime()),
-                    'ongoingLocation' => $this->getFormatter()->datetime($pack->getLastOngoingDrop()?->getDatetime()),
+                    'ongoingLocation' => $this->getFormatter()->location($pack->getLastOngoingDrop()?->getEmplacement()),
                     'operator' => $this->getFormatter()->user($pack->getLastAction()?->getOperateur()),
                     'project' => $this->getFormatter()->project($pack->getProject()),
                     'actions' => $this->renderView('arrivage/datatablePackRow.html.twig', [
