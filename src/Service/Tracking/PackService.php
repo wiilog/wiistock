@@ -80,13 +80,14 @@ class PackService {
         $filters = [];
         $fromDashboard = $params->getBoolean("fromDashboard");
         $naturesFilter = $params->all("natures");
-        $locationsFilter = $params->all("locations");
+        $locationsFilter = $params->all("lastLocation");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
         $trackingDelayEvent = $params->get("trackingDelayEvent");
         if($fromDashboard) {
+            dump($params->all());
             $filters = [
                 ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
-                ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
+                ...($locationsFilter ? [["field" => "lastLocation", "value" => $locationsFilter]] : []),
                 ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
                 ...($trackingDelayEvent ? [["field" => "trackingEventTypes", "value" => DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEvent]]] : []),
             ];
