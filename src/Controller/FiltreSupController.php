@@ -138,7 +138,6 @@ class FiltreSupController extends AbstractController
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
                 if (array_key_exists($filterLabel, $data)) {
                     if (!empty($data[$filterLabel])) {
-                        dump($filterLabel);
                         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);
                         if (!$filter) {
                             $filter = $filterSupService->createFiltreSup($page, $filterName, null, $user);
