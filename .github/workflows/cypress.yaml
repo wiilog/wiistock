@@ -100,20 +100,8 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker ps
-                    echo "avant important"
                     docker exec wiistock-cypress_owasp-modsecurity cat docker-entrypoint.d/20-envsubst-on-templates.sh
-                    echo "avant ls"
-                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity-override.conf && echo "]"
-                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/modsecurity.conf && echo "]"
-                    echo "[" && docker exec wiistock-cypress_owasp-modsecurity cat /etc/modsecurity.d/owasp-crs && echo "]"
-                    echo "apres ls"
-                    docker exec wiistock-cypress_owasp-modsecurity ls
-                    echo "je passe bien ici et je suis en vie et pourtant je prends de la place"
-                    docker logs wiistock-cypress_owasp-modsecurity
-                    docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
-                    docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
-                    docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
+                    docker logs wiistock-cypress_owasp-modsecurity | grep grep envsubst
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()
