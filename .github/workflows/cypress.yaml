@@ -67,11 +67,11 @@ jobs:
             -   name: Start containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
 
-            - name: volume mount does not work on docker in docker so we manually copy the wiistoock 2
-              run: |
-                docker ps
-                echo "gros test"
-                docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template wiistock-cypress_owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock 2
+                run: |
+                  docker ps
+                  echo "gros test"
+                  docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template wiistock-cypress_owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
 
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data /project
