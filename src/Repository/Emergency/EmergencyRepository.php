@@ -91,7 +91,9 @@ class EmergencyRepository extends EntityRepository {
             ->select("emergency.id AS id")
             ->distinct()
             ->addSelect("emergency.freeFields AS freeFields")
-            ->addSelect("emergency_category.label AS emergency_category_label");
+            ->addSelect("emergency_category.label AS emergency_category_label")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id");
         $exprBuilder = $queryBuilder->expr();
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
@@ -264,8 +266,6 @@ class EmergencyRepository extends EntityRepository {
         }
 
         $queryBuilder
-            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
-            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
