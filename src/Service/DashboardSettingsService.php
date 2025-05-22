@@ -1378,9 +1378,11 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('emergency_index', [
-                    'dashboardComponentId' => $config['__componentId'],
-                ]) : null;
+                $link = $redirect
+                    ? $this->router->generate('emergency_index', [
+                        'dashboardComponentId' => $config['__componentId'],
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $statuses = $config['disputeStatuses'];
