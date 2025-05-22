@@ -102,7 +102,7 @@ jobs:
                     echo "test 1"
                     pwd
                     echo "test 1 ----"
-                    ls docker/dev/owasp-modsecurity
+                    ls -la docker/dev/owasp-modsecurity
                     echo "test 1"
                     docker logs wiistock-cypress_owasp-modsecurity | grep envsubst
                     echo "test 2"
