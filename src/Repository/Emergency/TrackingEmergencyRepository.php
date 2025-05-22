@@ -101,7 +101,7 @@ class TrackingEmergencyRepository extends EntityRepository {
     public static function getTriggerableTrackingEmergenciesCondition(Expr   $exprBuilder,
                                                                       string $trackingEmergencyAlias): Expr\Andx {
         return $exprBuilder->andX(
-            $exprBuilder->isNotNull("$trackingEmergencyAlias"),
+            $exprBuilder->isNotNull("$trackingEmergencyAlias.id"),
             $exprBuilder->isNull("$trackingEmergencyAlias.closedAt"),
             $exprBuilder->andX(
                 $exprBuilder->orX(
