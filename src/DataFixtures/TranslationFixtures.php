@@ -519,7 +519,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Emplacement encours",
                         "en" => "Ongoing location",
-                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes\n_____\nPage Mouvements :\nZone liste - Nom de colonnes\nFiltre\nModale Nouveau mouvement\nModale Modifier un mouvement",
+                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Dernier emplacement",
+                        "en" => "Last location",
+                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement sur lequel se trouve l'unité logistique actuellement",

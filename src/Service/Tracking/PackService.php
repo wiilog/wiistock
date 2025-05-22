@@ -207,6 +207,7 @@ class PackService {
             'lastMovementDate' => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
+            'lastLocation' => $this->formatService->location($pack->getLastMovement()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
@@ -599,6 +600,10 @@ class PackService {
                     'name' => 'ongoingLocation',
                     'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
                     'info' => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                ],
+                [
+                    'name' => 'lastLocation',
+                    'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'),
                 ],
                 ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
                 ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],

@@ -852,6 +852,14 @@ class TrackingMovementService {
                 $pack->setLastDrop($tracking);
             }
 
+            if (($tracking->isPicking() || $tracking->isDrop())
+                && (
+                    !$pack->getLastMovement()
+                    || $this->compareMovements($pack->getLastMovement(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+                )) {
+                $pack->setLastMovement($tracking);
+            }
+
             if ($tracking->isDrop()
                 && (!$pack->getLastOngoingDrop() || $this->compareMovements($pack->getLastOngoingDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
                 $pack->setLastOngoingDrop($tracking);
@@ -2067,7 +2075,9 @@ class TrackingMovementService {
             $this->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
             $entityManager->persist($targetDropTrackingMovement);
 
-            $pack->setLastOngoingDrop($targetDropTrackingMovement);
+            $pack
+                ->setLastOngoingDrop($targetDropTrackingMovement)
+                ->setLastMovement($targetDropTrackingMovement);
         }
 
         $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $packParent, [

@@ -96,6 +96,13 @@ class Pack implements PairedEntity {
     private ?TrackingMovement $lastAction = null;
 
     /**
+     * Picking or drop TrackingMovement of any available types with the most recent datetime.
+     */
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $lastMovement = null;
+
+    /**
      * TrackingMovement of any available types with the oldest datetime.
      */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
@@ -308,6 +315,16 @@ class Pack implements PairedEntity {
 
     public function setLastAction(?TrackingMovement $lastAction): self {
         $this->lastAction = $lastAction;
+
+        return $this;
+    }
+
+    public function getLastMovement(): ?TrackingMovement {
+        return $this->lastMovement;
+    }
+
+    public function setLastMovement(?TrackingMovement $lastMovement): self {
+        $this->lastMovement = $lastMovement;
 
         return $this;
     }
