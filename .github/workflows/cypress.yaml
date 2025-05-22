@@ -56,7 +56,7 @@ jobs:
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
             -   name: Give all right to wiistock
-                run: chmod -R 777 projects/wiistock/
+                run: chmod -R 777 .
 
             -   name: Build containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
@@ -99,16 +99,14 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    echo "test 1"
+                    echo "-----"
                     pwd
-                    echo "test 1 ----"
+                    echo "----"
                     ls -la docker/dev/owasp-modsecurity
-                    echo "test 1"
-                    docker logs wiistock-cypress_owasp-modsecurity | grep envsubst
-                    echo "test 2"
-                    docker exec wiistock-cypress_owasp-modsecurity ls /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template/
-                    echo "test 2"
-                    docker exec wiistock-cypress_owasp-modsecurity cat /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+                    cat docker/dev/owasp-modsecurity
+
+                    echo "-----"
+
                     echo "[]"
 
 
