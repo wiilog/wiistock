@@ -50,6 +50,7 @@ class StockEmergencyRepository extends EntityRepository {
     public static function getTriggeredStockEmergenciesCondition(Expr     $exprBuilder,
                                                                  string   $stockEmergencyAlias): Expr\Andx {
         return $exprBuilder->andX(
+            $exprBuilder->isNotNull("$stockEmergencyAlias"),
             $exprBuilder->isNull("$stockEmergencyAlias.closedAt"),
             $exprBuilder->orX(
             // when emergencyTrigger is reference

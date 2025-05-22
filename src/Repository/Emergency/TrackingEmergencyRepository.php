@@ -9,6 +9,7 @@ use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Fournisseur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -95,5 +96,23 @@ class TrackingEmergencyRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    public static function getTriggeredTrackingEmergenciesCondition(Expr   $exprBuilder,
+                                                                    string $trackingEmergencyAlias): Expr\Andx {
+        return $exprBuilder->andX(
+            $exprBuilder->isNotNull("$trackingEmergencyAlias"),
+            $exprBuilder->isNull("$trackingEmergencyAlias.closedAt"),
+            $exprBuilder->andX(
+                $exprBuilder->orX(
+                    $exprBuilder->isNull("$trackingEmergencyAlias.dateStart"),
+                    $exprBuilder->lt("$trackingEmergencyAlias.dateStart ", ":now")
+                ),
+                $exprBuilder->orX(
+                    $exprBuilder->isNull("$trackingEmergencyAlias.dateEnd"),
+                    $exprBuilder->gt("$trackingEmergencyAlias.dateEnd ", ":now")
+                )
+            ),
+        );
     }
 }
