@@ -11,6 +11,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Language;
@@ -32,6 +33,7 @@ use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DispatchService;
+use App\Service\EmplacementDataService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\ReceiptAssociationService;
@@ -230,6 +232,27 @@ class DataExportController extends AbstractController {
             $entityManager->flush();
         }, "export-references-$today.csv", $header);
     }
+
+    #[Route("/export/unique/location", name: "settings_export_locations", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function exportLocations(EntityManagerInterface $entityManager,
+                                    CSVExportService       $csvService,
+                                    DataExportService      $dataExportService,
+                                    EmplacementDataService $locationDataService,
+                                    ): StreamedResponse {
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);
+
+        return $csvService->streamResponse(
+            $locationDataService->getExportFunction(
+                $entityManager,
+            ), "export-emplacement-$today.csv",
+            $locationDataService->getCsvHeader()
+        );
+    }
+
+
 
     #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
