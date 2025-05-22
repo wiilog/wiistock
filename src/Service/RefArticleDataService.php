@@ -621,7 +621,7 @@ class RefArticleDataService
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
                 ($refArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
             ),
-            "emergencyCount" => $additionalData['emergency_count']
+            "emergencyCount" => $additionalData['emergency_count'] ?? null,
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
