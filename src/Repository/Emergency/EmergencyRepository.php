@@ -16,6 +16,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use App\Service\FieldModesService;
 use DateTime;
@@ -117,16 +118,16 @@ class EmergencyRepository extends EntityRepository {
                         $conditions = Stream::from($value)
                             ->map(static function(string $statut) use ($exprBuilder) {
                                 return match($statut) {
-                                    "Actives" => StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, 'stock_emergency'),
-                                    "Cloturées" => "emergency.closedAt IS NOT NULL",
+                                    "Actives" => self::getTriggerableEmergencyConditions($exprBuilder, 'stock_emergency', 'tracking_emergency'),
+                                    "Cloturées" => $exprBuilder->not(self::getTriggerableEmergencyConditions($exprBuilder, 'stock_emergency', 'tracking_emergency')),
                                     default => "",
                                 };
                             })
-                            ->toArray();
+                            ->filter()
+                            ->values();
 
-                        $queryBuilder->andWhere($exprBuilder->orX(...($conditions)));
-
-                        if(in_array('Actives', $value)) {
+                        if(!empty($conditions)) {
+                            $queryBuilder->andWhere($exprBuilder->orX(...($conditions)));
                             $queryBuilder
                                 ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
                                 ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
@@ -296,27 +297,16 @@ class EmergencyRepository extends EntityRepository {
 
         $exprBuilder = $queryBuilder->expr();
 
-        // TODO WIIS-12769 Vérifier les conditions de la requete
         $queryBuilder = $queryBuilder
             ->select('COUNT(emergency)')
             ->leftJoin(TrackingEmergency::class, 'tracking_emergency', Join::WITH, 'emergency.id = tracking_emergency.id')
             ->leftJoin(StockEmergency::class, 'stock_emergency', Join::WITH, 'emergency.id = stock_emergency.id')
-            ->andWhere($exprBuilder->isNull('emergency.closedAt'))
-            ->andWhere($exprBuilder->orX(
-                $exprBuilder->isNull("emergency.dateStart"),
-                $exprBuilder->lt("emergency.dateStart ", ":now")
-            ))
-            ->andWhere($exprBuilder->orX(
-                $exprBuilder->andX(
-                    $exprBuilder->isNotNull('tracking_emergency'),
-                    'tracking_emergency.arrivals IS EMPTY',
-                    $exprBuilder->orX(
-                        $exprBuilder->isNull("tracking_emergency.dateStart"),
-                        $exprBuilder->lt("tracking_emergency.dateStart ", ":now")
-                    )
-                ),
-                StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, 'stock_emergency')
-            ))
+            ->andWhere(self::getTriggerableEmergencyConditions($exprBuilder, 'stock_emergency', 'tracking_emergency'))
+            ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+            ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+            ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+            ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+            ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
             ->setParameter('now', new DateTime('now'));
 
 
@@ -393,5 +383,14 @@ class EmergencyRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public static function getTriggerableEmergencyConditions(Expr   $exprBuilder,
+                                                             string $stockEmergencyAlias,
+                                                             string $trackingEmergencyAlias): Expr\Orx {
+        return $exprBuilder->orX(
+            TrackingEmergencyRepository::getTriggeredTrackingEmergenciesCondition($exprBuilder, $trackingEmergencyAlias),
+            StockEmergencyRepository::getTriggeredStockEmergenciesCondition($exprBuilder, $stockEmergencyAlias)
+        );
     }
 }
