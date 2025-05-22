@@ -17,6 +17,25 @@ export const routes = {
         route: '/zones/api',
         alias: 'zones_api'
     },
+
+    carrier_api: {
+        method: 'GET',
+        route: '/arrivage-camion/truck-arrival-lines-api',
+        alias: 'lines_api'
+    },
+
+    number_carrier_api: {
+        method: 'GET',
+        route: '/select/truck-arrival-line-number',
+        alias: 'ajax_select_truck_arrival_line'
+    },
+
+    truck_arrival_new: {
+        method: 'POST',
+        route: '/arrivage-camion/api-list',
+        alias: 'truck_arrival_api_list'
+    },
+
     emplacement_new: {
         method: 'POST',
         route: '/emplacement/creer',
