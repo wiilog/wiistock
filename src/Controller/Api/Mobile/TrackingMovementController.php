@@ -18,7 +18,7 @@ use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\Cache\CacheService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
 use App\Service\GroupService;
@@ -50,7 +50,7 @@ class TrackingMovementController extends AbstractController {
                                           CacheService            $cacheService,
                                           MailerService           $mailerService,
                                           ArrivageService         $arrivageDataService,
-                                          EmplacementDataService  $locationDataService,
+                                          LocationService         $locationDataService,
                                           MouvementStockService   $mouvementStockService,
                                           TrackingMovementService $trackingMovementService,
                                           ExceptionLoggerService  $exceptionLoggerService,

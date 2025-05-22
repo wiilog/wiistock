@@ -26,7 +26,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class EmplacementDataService {
+class LocationService {
 
     const PAGE_EMPLACEMENT = 'emplacement';
     private array $labeledCacheLocations = [];
@@ -359,7 +359,7 @@ class EmplacementDataService {
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
                                            ?Utilisateur $currentUser,
-                                           EmplacementDataService $emplacementDataService,
+                                           LocationService $emplacementDataService,
                                            string $page): array {
 
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];

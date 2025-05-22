@@ -267,7 +267,7 @@ class ImportService
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmplacementDataService $emplacementDataService,
+        private LocationService $emplacementDataService,
         private SettingsService $settingService,
         private Twig_Environment $templating,
         private ArticleDataService $articleDataService,

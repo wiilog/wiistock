@@ -29,7 +29,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\NotificationService;
 use App\Service\OperationHistoryService;
 use App\Service\SettingsService;
@@ -749,7 +749,7 @@ class TransportController extends AbstractController {
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
                                     AttachmentService       $attachmentService,
-                                    EmplacementDataService  $emplacementDataService): Response
+                                    LocationService         $emplacementDataService): Response
     {
         $data = $request->request;
         $files = $request->files;

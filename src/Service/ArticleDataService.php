@@ -56,7 +56,7 @@ class ArticleDataService
         private RefArticleDataService  $refArticleDataService,
         private FormatService          $formatService,
         private TranslationService     $translation,
-        private EmplacementDataService $emplacementDataService,
+        private LocationService        $emplacementDataService,
         private FieldModesService      $fieldModesService,
         private CSVExportService       $CSVExportService,
         private FreeFieldService       $freeFieldService,

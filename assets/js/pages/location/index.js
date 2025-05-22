@@ -9,7 +9,6 @@ global.printLocationsBarCodes = printLocationsBarCodes;
 global.editZone = editZone;
 global.deleteZone = deleteZone;
 
-let initialVisible = $(`#locationsTable`).data(`initial-visible`);
 const locationsTableConfig = {
     processing: true,
     serverSide: true,
@@ -32,8 +31,7 @@ const locationsTableConfig = {
     drawCallback: () => {
         const datatable = $(`#locationsTable`).DataTable();
         togglePrintButton(datatable, $(`.printButton`), () => datatable.search());
-    },
-    columns: initialVisible,
+    }
 };
 
 const groupsTableConfig = {
