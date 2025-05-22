@@ -76,10 +76,9 @@ describe('Setup settings', () => {
             .first()
             .click();
 
-        const numTrackingName = "Numéro tracking transporteur";
         const columnsToCheck = [];
         const columnsToCheckName = ["Afficher","Obligatoire"];
-        var numTrackingIndex = 0;
+        const numTrackingIndex = 12;
 
         // get the index of the columns with her name
         cy.get('[id^="table-arrival-fixed-fields"] thead:first tr th').then(($ths) => {
@@ -92,21 +91,18 @@ describe('Setup settings', () => {
             });
         })
 
-        cy.get(ULFreeFieldsLines).each(() => {
-            columnsToCheck.forEach((columnIndex) => {
-                cy.get(`tbody>tr:eq(12)`)
-                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                    .uncheck({force: true});
-            });
+        columnsToCheck.forEach((columnIndex) => {
+            cy.get(`tbody>tr:eq(${numTrackingIndex})`)
+                .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                .uncheck({force: true});
         });
 
-        cy.get(ULFreeFieldsLines).each(() => {
-            columnsToCheck.forEach((columnIndex) => {
-                    cy.get(`tbody>tr:eq(12)`)
-                        .find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                        .check({force: true});
-            });
+        columnsToCheck.forEach((columnIndex) => {
+                cy.get(`tbody>tr:eq(${numTrackingIndex})`)
+                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                    .check({force: true});
         });
+
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
