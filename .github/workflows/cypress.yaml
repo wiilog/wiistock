@@ -100,8 +100,6 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker exec wiistock-cypress_owasp-modsecurity cat docker-entrypoint.d/20-envsubst-on-templates.sh
-                    docker logs wiistock-cypress_owasp-modsecurity | grep envsubst
                     docker exec wiistock-cypress_owasp-modsecurity ls /etc/nginx/templates/
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
