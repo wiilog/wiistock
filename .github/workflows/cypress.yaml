@@ -99,7 +99,10 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker exec wiistock-cypress_owasp-modsecurity ls /etc/nginx/templates/modsecurity.d/
+                    echo "test 1"
+                    pwd
+                    echo "test 1 ----"
+                    ls docker/dev/owasp-modsecurity
                     echo "test 1"
                     docker logs wiistock-cypress_owasp-modsecurity | grep envsubst
                     echo "test 2"
