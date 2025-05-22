@@ -101,6 +101,11 @@ jobs:
                 if: failure()
                 run: |
                     docker exec wiistock-cypress_owasp-modsecurity ls /etc/nginx/templates/modsecurity.d/
+                    echo "test 1"
+                    docker logs wiistock-cypress_owasp-modsecurity | grep envsubst
+                    echo "test 2"
+                    docker exec wiistock-cypress_owasp-modsecurity cat /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+                    echo "[]"
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()
