@@ -174,7 +174,7 @@ class PreparationOrderController extends AbstractController {
                                             'preparation' => $preparation,
                                         ]
                                     );
-                                    $DropTrackingMovement = $trackingMovementService->createTrackingMovement(
+                                    $dropTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
                                         $emplacementPrepa,
                                         $nomadUser,
@@ -187,9 +187,12 @@ class PreparationOrderController extends AbstractController {
                                         ]
                                     );
                                     $entityManager->persist($pickTrackingMovement);
-                                    $entityManager->persist($DropTrackingMovement);
+                                    $entityManager->persist($dropTrackingMovement);
 
-                                    $lu->setLastOngoingDrop($DropTrackingMovement)->setLastAction($DropTrackingMovement);
+                                    $lu
+                                        ->setLastOngoingDrop($dropTrackingMovement)
+                                        ->setLastMovement($dropTrackingMovement)
+                                        ->setLastAction($dropTrackingMovement);
                                 }
                             }
                         }

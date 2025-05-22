@@ -198,6 +198,11 @@ class TrackingMovementListener implements EventSubscriber
             && $pack->getLastAction()->getId() === $movementToDelete->getId()
         );
 
+        $lastMovementToUpdate = (
+            $pack->getLastMovement()
+            && $pack->getLastMovement()->getId() === $movementToDelete->getId()
+        );
+
         $lastStartToUpdate = (
             $pack->getLastStart()
             && $pack->getLastStart()->getId() === $movementToDelete->getId()
@@ -214,6 +219,10 @@ class TrackingMovementListener implements EventSubscriber
 
         $lastAction = ($lastActionToUpdate || $lastOngoingDropToUpdate)
             ? $trackingMovementRepository->findLastByPack("action", $pack, $movementToDelete)
+            : null;
+
+        $lastMovement = ($lastMovementToUpdate || $lastOngoingDropToUpdate)
+            ? $trackingMovementRepository->findLastByPack("movement", $pack, $movementToDelete)
             : null;
 
         $lastStart = $lastStartToUpdate
@@ -252,6 +261,10 @@ class TrackingMovementListener implements EventSubscriber
 
         if ($lastOngoingDropToUpdate && $lastAction?->isDrop()) {
             $pack->setLastOngoingDrop($lastAction);
+        }
+
+        if ($lastMovement) {
+            $pack->setLastMovement($lastMovement);
         }
 
         if ($lastStartToUpdate) {

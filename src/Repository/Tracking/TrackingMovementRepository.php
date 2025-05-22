@@ -624,6 +624,13 @@ class TrackingMovementRepository extends EntityRepository
                     ->join("movement.type", "join_type")
                     ->setParameter("drop_type", TrackingMovement::TYPE_DEPOSE);
                 break;
+            case "movement":
+                $queryBuilder
+                    ->andWhere("join_type.code = :picking_type OR join_type.code = :picking_type")
+                    ->join("movement.type", "join_type")
+                    ->setParameter("picking_type", TrackingMovement::TYPE_PRISE)
+                    ->setParameter("drop_type", TrackingMovement::TYPE_DEPOSE);
+                break;
             case "start":
                 $queryBuilder
                     ->andWhere("movement.event = :startEvent")

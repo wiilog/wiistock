@@ -24,7 +24,6 @@ final class Version20250519132841 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $result = $this->connection
             ->executeQuery('SELECT id AS user_id, field_modes_by_page FROM utilisateur')
-
             ->iterateAssociative();
         foreach ($result as $row) {
             $userId = $row['user_id'];
@@ -36,7 +35,7 @@ final class Version20250519132841 extends AbstractMigration
             if (isset($packIndexFieldModes['location'])
                 || isset($arrivalPacksFieldModes['lastLocation'])) {
                 if (isset($packIndexFieldModes['location'])) {
-                    $packIndexFieldModes['ongoingLocation'] = $packIndexFieldModes['location'];
+                    $packIndexFieldModes['lastLocation'] = $packIndexFieldModes['location'];
                     unset($packIndexFieldModes['location']);
                     $fieldModesByPage[FieldModesController::PAGE_PACK_LIST] = $packIndexFieldModes;
                 }
