@@ -266,6 +266,7 @@ CREATE TABLE dw_urgence
     transporteur                      varchar(255),
     quantite                          integer,
     no_tracking                       varchar(255),
+    reference_article_id              integer,
     dernier_numero_arrivage_reception varchar(255)
 );
 
