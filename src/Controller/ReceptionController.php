@@ -637,6 +637,7 @@ class ReceptionController extends AbstractController {
                                                   ReceptionService        $receptionService,
                                                   Request                 $request,
                                                   MouvementStockService   $mouvementStockService,
+                                                  StockEmergencyService   $stockEmergencyService,
                                                   TrackingMovementService $trackingMovementService): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -754,12 +755,14 @@ class ReceptionController extends AbstractController {
                             ]
                         );
 
+                        $stockEmergencyService->trigger($entityManager, $referenceArticle, $now, $receptionReferenceArticle);
+
                         foreach ($receptionReferenceArticle->getStockEmergencies() as $stockEmergency) {
                             $emergencyTrigger = $stockEmergency->getEmergencyTrigger();
 
                             if($emergencyTrigger === EmergencyTriggerEnum::REFERENCE) {
                                 $alreadyReceivedQuantity = $stockEmergency->getAlreadyReceivedQuantity();
-                                $stockEmergency->setAlreadyReceivedQuantity($alreadyReceivedQuantity + $diffReceivedQuantity);
+                                $stockEmergency->setAlreadyReceivedQuantity(max($alreadyReceivedQuantity + $diffReceivedQuantity, 0));
                             }
                         }
 
@@ -1549,6 +1552,7 @@ class ReceptionController extends AbstractController {
                                    LivraisonsManagerService   $livraisonsManagerService,
                                    NotificationService        $notificationService,
                                    TranslationService         $translationService,
+                                   StockEmergencyService      $stockEmergencyService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -1765,6 +1769,7 @@ class ReceptionController extends AbstractController {
             $referenceArticle = $articleArray['refArticle'];
             $quantityReceived = intval($articleArray['quantityReceived']);
 
+            $stockEmergencyService->trigger($entityManager, $referenceArticle, $now, $receptionReferenceArticle);
             foreach ($receptionReferenceArticle->getStockEmergencies() as $stockEmergency ) {
                 $emergencyTrigger = $stockEmergency->getEmergencyTrigger();
 
