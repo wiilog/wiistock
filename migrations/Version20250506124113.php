@@ -19,6 +19,7 @@ final class Version20250506124113 extends AbstractMigration {
     }
 
     public function up(Schema $schema): void {
+        $now = (new DateTime("now"))->format('Y-m-d H:i:s');
         if ($schema->hasTable('emergency')) {
             return;
         }
@@ -107,7 +108,7 @@ final class Version20250506124113 extends AbstractMigration {
                     "carrierId" => $emergency['carrier_id'],
                     "dateStart" => $emergency['date_start'],
                     "dateEnd" => $emergency['date_end'],
-                    "createdAt" => $emergency['created_at'],
+                    "createdAt" => $emergency['created_at'] ?? $now,
                     "orderNumber" => $emergency['commande'],
                     "carrierTrackingNumber" => $emergency['tracking_nb'],
                     "typeId" => $typeId,
@@ -191,7 +192,6 @@ final class Version20250506124113 extends AbstractMigration {
             ]
         );
 
-        $now = (new DateTime("now"))->format('Y-m-d H:i:s');
         foreach ($stockEmergencies as $emergency) {
             $this->addSql(
                 "
