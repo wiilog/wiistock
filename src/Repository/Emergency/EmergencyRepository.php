@@ -75,7 +75,9 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::type->name => "emergency_type.label",
             FixedFieldEnum::internalArticleCode->name=> "tracking_emergency.internalArticleCode",
             FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
-            "emergencyQuantity"=> "stock_emergency.expectedQuantity",
+            FixedFieldEnum::reference->name => "stock_emergency_referenceArticle.reference",
+            "stockEmergencyQuantity"=> "stock_emergency.expectedQuantity",
+            "remainingStockEmergencyQuantity"=> "(COALESCE(stock_emergency.expectedQuantity,0) - COALESCE(stock_emergency.alreadyReceivedQuantity,0))",
         ];
 
         $order = $params->all('order')[0]['dir'] ?? null;
@@ -273,7 +275,8 @@ class EmergencyRepository extends EntityRepository {
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
             ->leftJoin("emergency.type", "emergency_type")
-            ->leftJoin("emergency_type.category", "emergency_category");
+            ->leftJoin("emergency_type.category", "emergency_category")
+            ->leftJoin('stock_emergency.referenceArticle', "stock_emergency_referenceArticle");
 
         $filtered = QueryBuilderHelper::count($queryBuilder, 'emergency');
 
