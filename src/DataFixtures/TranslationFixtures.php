@@ -519,7 +519,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Emplacement encours",
                         "en" => "Ongoing location",
-                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes\n_____\nPage Mouvements :\nZone liste - Nom de colonnes\nFiltre\nModale Nouveau mouvement\nModale Modifier un mouvement",
+                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Dernier emplacement",
+                        "en" => "Last location",
+                        "tooltip" => "Page UL :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement sur lequel se trouve l'unité logistique actuellement",
@@ -1083,100 +1088,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                 ],
             ],
-            "Urgences" => [
-                "content" => [
-                    [
-                        "fr" => "Urgences",
-                        "en" => "Urgencies",
-                        "tooltip" => "Fil d'ariane\nMenu",
-                    ],
-                    [
-                        "fr" => "Date de début",
-                        "en" => "Start date",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
-                    ],
-                    [
-                        "fr" => "Date de fin",
-                        "en" => "End date",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
-                    ],
-                    [
-                        "fr" => "N° poste",
-                        "en" => "Item number",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
-                    ],
-                    [
-                        "fr" => "Acheteur",
-                        "en" => "Buyer",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
-                    ],
-                    [
-                        "fr" => "Date arrivage UL",
-                        "en" => "LU arrival date",
-                        "tooltip" => "Zone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Nouvelle urgence",
-                        "en" => "New emergency",
-                        "tooltip" => "Modale Nouvelle urgence",
-                    ],
-                    [
-                        "fr" => "Modifier une urgence",
-                        "en" => "Edit an emergency",
-                        "tooltip" => "Modale Modifier une urgence",
-                    ],
-                    [
-                        "fr" => "Supprimer l'urgence",
-                        "en" => "Delete the emergency",
-                        "tooltip" => "Modale Supprimer l'urgence",
-                    ],
-                    [
-                        "fr" => "Cette urgence est liée à un arrivage UL.\nVous ne pouvez pas la supprimer",
-                        "en" => "This emergency is linked to an LU arrival. You cannot delete it",
-                        "tooltip" => "Modale Supprimer l'urgence",
-                    ],
-                    [
-                        "fr" => "Voulez-vous réellement supprimer cette urgence ?",
-                        "en" => "Do you really want to delete this emergency ?",
-                        "tooltip" => "Modale Supprimer l'urgence",
-                    ],
-                    [
-                        "fr" => "N° de commande",
-                        "en" => "Order number",
-                        "tooltip" => "Zone filtre",
-                    ],
-                    [
-                        "fr" => "Transporteur",
-                        "en" => "Carrier",
-                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
-                    ],
-                    [
-                        "fr" => "Fournisseur",
-                        "en" => "Supplier",
-                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
-                    ],
-                    [
-                        "fr" => "N° tracking transporteur",
-                        "en" => "Carrier tracking number",
-                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
-                    ],
-                    [
-                        "fr" => "Numéro d'arrivage UL",
-                        "en" => "LU arrival number",
-                        "tooltip" => "Zone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Code article interne",
-                        "en" => "Internal article code",
-                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
-                    ],
-                    [
-                        "fr" => "Code article fournisseur",
-                        "en" => "Supplier article code",
-                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
-                    ],
-                ],
-            ],
             "Unités logistiques" => [
                 "Divers" => [
                     "content" => [
@@ -1684,7 +1595,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
         ],
-        "Qualité" => [
+        "Qualité & Urgences" => [
             "Litiges" => [
                 "content" => [
                     [
@@ -1813,6 +1724,100 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Créer un litige",
                     ],
                 ],
+            ],
+            "Urgences" => [
+                "content" => [
+                    [
+                        "fr" => "Urgences",
+                        "en" => "Urgencies",
+                        "tooltip" => "Fil d'ariane\nMenu",
+                    ],
+                    [
+                        "fr" => "Date de début",
+                        "en" => "Start date",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                    ],
+                    [
+                        "fr" => "Date de fin",
+                        "en" => "End date",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                    ],
+                    [
+                        "fr" => "N° poste",
+                        "en" => "Item number",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                    ],
+                    [
+                        "fr" => "Acheteur",
+                        "en" => "Buyer",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                    ],
+                    [
+                        "fr" => "Date arrivage UL",
+                        "en" => "LU arrival date",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Nouvelle urgence",
+                        "en" => "New emergency",
+                        "tooltip" => "Modale Nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Modifier une urgence",
+                        "en" => "Edit an emergency",
+                        "tooltip" => "Modale Modifier une urgence",
+                    ],
+                    [
+                        "fr" => "Supprimer l'urgence",
+                        "en" => "Delete the emergency",
+                        "tooltip" => "Modale Supprimer l'urgence",
+                    ],
+                    [
+                        "fr" => "Cette urgence est liée à un arrivage UL.\nVous ne pouvez pas la supprimer",
+                        "en" => "This emergency is linked to an LU arrival. You cannot delete it",
+                        "tooltip" => "Modale Supprimer l'urgence",
+                    ],
+                    [
+                        "fr" => "Voulez-vous réellement supprimer cette urgence ?",
+                        "en" => "Do you really want to delete this emergency ?",
+                        "tooltip" => "Modale Supprimer l'urgence",
+                    ],
+                    [
+                        "fr" => "N° de commande",
+                        "en" => "Order number",
+                        "tooltip" => "Zone filtre",
+                    ],
+                    [
+                        "fr" => "Transporteur",
+                        "en" => "Carrier",
+                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Fournisseur",
+                        "en" => "Supplier",
+                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "N° tracking transporteur",
+                        "en" => "Carrier tracking number",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Numéro d'arrivage UL",
+                        "en" => "LU arrival number",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Code article interne",
+                        "en" => "Internal article code",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Code article fournisseur",
+                        "en" => "Supplier article code",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                ]
             ],
         ],
         "Demande" => [

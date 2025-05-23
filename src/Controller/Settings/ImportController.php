@@ -4,10 +4,10 @@ namespace App\Controller\Settings;
 
 use App\Controller\AbstractController;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Exceptions\FormException;
 use App\Exceptions\FTPException;
 use App\Service\AttachmentService;

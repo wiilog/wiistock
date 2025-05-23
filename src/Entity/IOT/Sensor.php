@@ -2,7 +2,7 @@
 
 namespace App\Entity\IOT;
 
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Repository\IOT\SensorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

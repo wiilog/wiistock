@@ -10,12 +10,11 @@ use App\Entity\Emplacement;
 use App\Entity\LocationCluster;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Setting;
-use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Wiilock;
 use App\Service\Dashboard\DashboardComponentGenerator\ActiveReferenceAlertsComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsAndPacksComponentGenerator;
-use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsEmergenciesComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\EmergenciesComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\CarrierTrackingComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\DailyDeliveryOrdersComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\DailyDispatchesComponentGenerator;
@@ -363,7 +362,7 @@ class DashboardService {
             Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS, Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS => ArrivalsAndPacksComponentGenerator::class,
             Dashboard\ComponentType::ENTRIES_TO_HANDLE => EntriesToHandleComponentGenerator::class,
             Dashboard\ComponentType::PACK_TO_TREAT_FROM => PackToTreatFromComponentGenerator::class,
-            Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE, Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES => ArrivalsEmergenciesComponentGenerator::class,
+            Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE, Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES => EmergenciesComponentGenerator::class,
             Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS => ActiveReferenceAlertsComponentGenerator::class,
             Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH => MonetaryReliabilityGraphComponentGenerator::class,
             Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR => MonetaryReliabilityIndicatorComponentGenerator::class,

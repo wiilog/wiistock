@@ -32,6 +32,7 @@ const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
+const PAGE_EMERGENCIES = 'emergencies';
 const PAGE_NOTIFICATIONS = 'notifications';
 const PAGE_TRUCK_ARRIVAL = 'truckArrival';
 const PAGE_SHIPPING = 'shipping_request';
@@ -786,6 +787,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'statut':
                 case 'carriers':
                 case 'emplacement':
+                case 'lastLocation':
                 case 'pickLocation':
                 case 'dropLocation':
                 case 'demCollecte':
@@ -806,6 +808,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'logisticUnits':
                 case 'locationWithGroups':
                 case 'unloadingLocation':
+                case 'emergencyAppliedTo':
+                case 'emergencyStatut':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);

@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\CategoryType;
+use App\Entity\Type\CategoryType;
 use Doctrine\ORM\EntityRepository;
 
 /**

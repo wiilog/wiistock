@@ -13,7 +13,7 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\PreparationOrder\PreparationRepository;
 use DateTime;

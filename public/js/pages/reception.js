@@ -27,14 +27,14 @@ $(function () {
         initNewReceptionEditor($modalReceptionNew);
     }
 
-    // filtres enregistrés en base pour chaque utilisateur
-    if ($('#purchaseRequestFilter').val() !== '0') {
-        const purchaseRequestFilter = $('#purchaseRequestFilter').val().split(',');
+    const purchaseRequestFilter = $('[name="purchaseRequestFilter"]').val();
+    if (purchaseRequestFilter !== '0') {
+        const purchaseRequestFilter = purchaseRequestFilter.split(',');
         purchaseRequestFilter.forEach(function (filter) {
             let option = new Option(filter, filter, true, true);
             $('#commandList').append(option).trigger('change');
         })
-    } else {
+    } else if (!$('[name="emergencyIdFilter"]').val())  {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_RECEPTION);
         $.post(path, params, function (data) {
@@ -74,6 +74,7 @@ function initReceptionLocation() {
 
 function initTableReception() {
     let pathReception = Routing.generate('reception_api', true);
+    const emergencyIdFilter = $('[name="emergencyIdFilter"]').val()
     return $
         .post(Routing.generate('reception_api_columns'))
         .then((columns) => {
@@ -83,9 +84,10 @@ function initTableReception() {
                 order: [['Date', "desc"]],
                 ajax: {
                     "url": pathReception,
-                    "type": "POST",
+                    "type": AJAX.POST,
                     'data': {
-                        'purchaseRequestFilter': $('#purchaseRequest').val()
+                        'purchaseRequestFilter': $('[name="purchaseRequest"]').val(),
+                        ... emergencyIdFilter ? {emergencyId: emergencyIdFilter} : {}
                     }
                 },
                 columns,

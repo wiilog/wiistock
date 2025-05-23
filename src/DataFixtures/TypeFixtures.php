@@ -2,9 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
 use App\Entity\IOT\Sensor;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -65,6 +65,8 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 TYPE::LABEL_NOMADE_SESSION_HISTORY,
             ],
             CategoryType::PRODUCTION => [Type::LABEL_STANDARD],
+            CategoryType::TRACKING_EMERGENCY => [Type::LABEL_STANDARD],
+            CategoryType::STOCK_EMERGENCY => [Type::LABEL_STANDARD],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);

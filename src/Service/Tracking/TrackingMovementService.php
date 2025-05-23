@@ -7,7 +7,6 @@ use App\Entity\Article;
 use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -29,6 +28,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
+use App\Entity\Type\CategoryType;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Serializer\SerializerUsageEnum;
@@ -850,6 +850,14 @@ class TrackingMovementService {
                     || $this->compareMovements($pack->getLastDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
                 )) {
                 $pack->setLastDrop($tracking);
+            }
+
+            if (($tracking->isPicking() || $tracking->isDrop())
+                && (
+                    !$pack->getLastMovement()
+                    || $this->compareMovements($pack->getLastMovement(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+                )) {
+                $pack->setLastMovement($tracking);
             }
 
             if ($tracking->isDrop()
@@ -2067,7 +2075,9 @@ class TrackingMovementService {
             $this->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
             $entityManager->persist($targetDropTrackingMovement);
 
-            $pack->setLastOngoingDrop($targetDropTrackingMovement);
+            $pack
+                ->setLastOngoingDrop($targetDropTrackingMovement)
+                ->setLastMovement($targetDropTrackingMovement);
         }
 
         $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $packParent, [

@@ -522,7 +522,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Urgences à recevoir' => [
             'hint' => 'Nombre d\'urgences sur arrivage UL encore non réceptionnées',
-            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_OTHER,
             'template' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'exampleValues' => [
@@ -539,7 +539,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Urgences du jour' => [
             'hint' => 'Nombre d\'urgences sur arrivage UL devant être réceptionnées dans la journée',
-            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_OTHER,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
             'exampleValues' => [

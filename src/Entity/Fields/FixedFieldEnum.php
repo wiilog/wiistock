@@ -49,7 +49,7 @@ enum FixedFieldEnum: string
     case urgent = "Urgent";
     case code = "Code";
     case possibleCustoms = "Douanes possible";
-    case orderNumber = "N° commande";
+    case orderNumber = "N° de commande";
     case destination = "Destination";
     case customerName = "Client";
     case customerPhone = "Téléphone client";
@@ -78,15 +78,13 @@ enum FixedFieldEnum: string
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";
-
-    public static function fromCase(string $case): string|null {
-        try {
-            return (new ReflectionEnum(self::class))
-                ->getCase($case)
-                ->getValue()
-                ->value;
-        } catch (ReflectionException) {
-            return null;
-        }
-    }
+    case supplier = "Fournisseur";
+    case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
+    case buyer = "Acheteur";
+    case postNumber = "N° poste";
+    case internalArticleCode = "Code article interne";
+    case supplierArticleCode = "Code article fournisseur";
+    case reference = "Référence";
+    case dateStart = "Date de début";
+    case dateEnd = "Date de fin";
 }

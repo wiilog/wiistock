@@ -21,7 +21,15 @@ export default class AJAX {
     static DELETE = DELETE;
 
 
-    static route(method, route, params = {}) {
+    /**
+     * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method
+     * @param {string} route
+     * @param {{[param: string]: string|int}|{}} params
+     * @returns {AJAX}
+     */
+    static route(method,
+                 route,
+                 params = {}) {
         const ajax = new AJAX();
         ajax.method = method;
         ajax.route = route;

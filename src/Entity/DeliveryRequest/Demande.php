@@ -17,7 +17,7 @@ use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\DeliveryRequest\DemandeRepository;
 use App\Service\FieldModesService;

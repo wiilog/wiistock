@@ -5,6 +5,18 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
+            {{ form.select('emergencyTypes', "Type(s) d'urgences", true, {
+                type: '',
+                multiple: true,
+                items: emergencyTypes is defined ? emergencyTypes|map((emergencyType) => {
+                    value: emergencyType.id,
+                    label: emergencyType.label,
+                    selected: emergencyType in values.emergencyTypes,
+                }),
+                selectAllLabel: 'Tous les types',
+            }) }}
+        </div>
+        <div class="form-group col-12">
             {{ form.checkbox('redirect', 'Rediriger vers la page traçabilité urgences au clic', false, values.redirect is defined ? values.redirect : false) }}
         </div>
     </div>

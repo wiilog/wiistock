@@ -5,6 +5,9 @@
         <input type="text" class="form-control data cursor-default filter-input"
                name="noTracking"
                id="noTracking"
+            {% if disabled is defined and disabled %}
+               disabled="disabled"
+            {% endif %}
                title="{{ title }}"
                placeholder="{{ title }}">
     </div>

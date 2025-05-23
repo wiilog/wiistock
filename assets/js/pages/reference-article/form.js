@@ -5,7 +5,6 @@ import Form from "@app/form";
 import Routing from '@app/fos-routing';
 
 global.onTypeQuantityChange = onTypeQuantityChange;
-global.toggleEmergency = toggleEmergency;
 global.changeNewReferenceStatus = changeNewReferenceStatus;
 global.onTypeSecurityChange = onTypeSecurityChange;
 
@@ -238,20 +237,6 @@ function updateArticleReferenceImage($div, $image) {
         $imageContainer.css('background-image', "url(" + reader.result + ")");
         $imageContainer.css('background-color', '#FFFFFF');
         $imageContainer.css('background-size', 'cover');
-    }
-}
-
-function toggleEmergency($switch) {
-    const $emergencyComment = $('.emergency-comment');
-    const $emergencyQuantity = $('.emergency-quantity');
-    if ($switch.is(':checked')) {
-        $emergencyComment.removeClass('d-none');
-        $emergencyQuantity.removeClass('d-none');
-    } else {
-        $emergencyComment.addClass('d-none');
-        $emergencyQuantity.addClass('d-none');
-        $emergencyComment.val('');
-        $emergencyQuantity.val('');
     }
 }
 

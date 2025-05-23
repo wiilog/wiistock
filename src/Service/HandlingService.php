@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
@@ -11,6 +10,7 @@ use App\Entity\Handling;
 use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Type\CategoryType;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;

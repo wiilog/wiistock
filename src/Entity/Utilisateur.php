@@ -14,9 +14,10 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Transport\Vehicle;
+use App\Entity\Type\Type;
 use App\Repository\UtilisateurRepository;
-use App\Service\MailerService;
 use App\Service\FieldModesService;
+use App\Service\MailerService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -242,11 +243,32 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'project' => [FieldModesService::FIELD_MODE_VISIBLE],
         'lastMovementDate' => [FieldModesService::FIELD_MODE_VISIBLE],
         'origin' => [FieldModesService::FIELD_MODE_VISIBLE],
-        'ongoingLocation' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastLocation' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'ongoingLocation' => [],
         'receiptAssociation' => [FieldModesService::FIELD_MODE_VISIBLE],
         'truckArrivalNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
         'trackingDelay' => [],
         'limitTreatmentDate' => [],
+    ];
+
+    const DEFAULT_EMERGENCY_FIELDS_MODES = [
+        FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::dateStart->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::dateEnd->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        'closedAt' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastTriggeredAt' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastEntityNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::orderNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::postNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::buyer->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::supplier->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::carrier->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::carrierTrackingNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::type->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::internalArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::supplierArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::quantity->name => [FieldModesService::FIELD_MODE_VISIBLE],
     ];
 
     const DEFAULT_FIELDS_MODES = [
@@ -267,6 +289,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
         FieldModesController::PAGE_PACK_LIST => self::DEFAULT_PACK_LIST_FIELDS_MODES,
+        FieldModesController::PAGE_EMERGENCY_LIST => self::DEFAULT_EMERGENCY_FIELDS_MODES
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -367,9 +390,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
-    private Collection $emergencies;
-
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]
     private Collection $arrivagesAcheteur;
 
@@ -429,9 +449,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'users')]
     private ?LocationGroup $locationGroupDropzone = null;
-
-    #[ORM\OneToMany(mappedBy: 'userThatTriggeredEmergency', targetEntity: ReferenceArticle::class)]
-    private Collection $referencesEmergenciesTriggered;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $secondaryEmails = [];
@@ -528,7 +545,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
-        $this->emergencies = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
@@ -542,7 +558,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->treatedDispatches = new ArrayCollection();
         $this->treatedHandlings = new ArrayCollection();
         $this->disputes = new ArrayCollection();
-        $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->reportedDisputes = new ArrayCollection();
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
@@ -938,34 +953,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             // set the owning side to null (unless already changed)
             if($ordreCollecte->getUtilisateur() === $this) {
                 $ordreCollecte->setUtilisateur(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Urgence[]
-     */
-    public function getEmergencies(): Collection {
-        return $this->emergencies;
-    }
-
-    public function addEmergency(Urgence $urgence): self {
-        if(!$this->emergencies->contains($urgence)) {
-            $this->emergencies[] = $urgence;
-            $urgence->setBuyer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmergency(Urgence $urgence): self {
-        if($this->emergencies->contains($urgence)) {
-            $this->emergencies->removeElement($urgence);
-            // set the owning side to null (unless already changed)
-            if($urgence->getBuyer() === $this) {
-                $urgence->setBuyer(null);
             }
         }
 
@@ -1445,34 +1432,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     public function getDropzone() {
         return $this->locationDropzone ?? $this->locationGroupDropzone;
-    }
-
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getReferencesEmergenciesTriggered(): Collection {
-        return $this->referencesEmergenciesTriggered;
-    }
-
-    public function addReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self {
-        if(!$this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
-            $this->referencesEmergenciesTriggered[] = $referencesEmergenciesTriggered;
-            $referencesEmergenciesTriggered->setUserThatTriggeredEmergency($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self {
-        if($this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
-            $this->referencesEmergenciesTriggered->removeElement($referencesEmergenciesTriggered);
-            // set the owning side to null (unless already changed)
-            if($referencesEmergenciesTriggered->getUserThatTriggeredEmergency() === $this) {
-                $referencesEmergenciesTriggered->setUserThatTriggeredEmergency(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getSecondaryEmails(): ?array {

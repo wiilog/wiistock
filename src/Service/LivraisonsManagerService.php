@@ -240,6 +240,7 @@ class LivraisonsManagerService
                 );
                 $pack
                     ->setLastOngoingDrop($dropMovement['movement'])
+                    ->setLastMovement($dropMovement['movement'])
                     ->setLastAction($dropMovement['movement']);
             }
 

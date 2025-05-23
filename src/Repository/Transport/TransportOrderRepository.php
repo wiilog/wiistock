@@ -2,11 +2,11 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
+use App\Entity\Type\CategoryType;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;

@@ -5,10 +5,10 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Alert;
-use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Service\AlertService;
 use App\Service\CSVExportService;
@@ -17,11 +17,11 @@ use App\Service\RefArticleDataService;
 use App\Service\SpecificService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
 #[Route('/alerte')]

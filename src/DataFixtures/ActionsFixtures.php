@@ -58,6 +58,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';
+    const SUB_MENU_DISPUTE = 'litiges';
+    const SUB_MENU_EMERGENCIES = 'urgences';
     const SUB_MENU_SHIPPING = 'expéditions';
 
     public const MENUS = [
@@ -108,17 +110,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_ENCO => [
                 Action::DISPLAY_ENCO,
             ],
-            self::SUB_MENU_EMERGENCYS => [
-                Action::DISPLAY_URGE,
-                Action::CREATE_EMERGENCY,
-            ],
         ],
         Menu::QUALI => [
-            Action::DISPLAY_LITI,
-            Action::CREATE,
-            Action::EDIT,
-            Action::DELETE,
-            Action::TREAT_DISPUTE,
+            self::SUB_MENU_EMERGENCIES => [
+                Action::DISPLAY_EMERGENCY,
+                Action::CREATE_EMERGENCY,
+                Action::EXPORT_EMERGENCIES
+            ],
+            self::SUB_MENU_DISPUTE => [
+                Action::DISPLAY_LITI,
+                Action::CREATE,
+                Action::EDIT,
+                Action::DELETE,
+                Action::TREAT_DISPUTE,
+            ],
         ],
         Menu::DEM => [
             self::SUB_MENU_GENERAL => [
@@ -332,6 +337,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_REQUESTS,
                 Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
                 Action::SETTINGS_DISPLAY_INVENTORIES,
+                Action::SETTINGS_DISPLAY_STOCK_EMERGENCIES,
                 Action::SETTINGS_DISPLAY_RECEP,
                 Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
             ],

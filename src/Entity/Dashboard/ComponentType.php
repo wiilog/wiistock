@@ -79,8 +79,6 @@ class ComponentType
             self::WEEKLY_ARRIVALS_AND_PACKS,
             self::DROP_OFF_DISTRIBUTED_PACKS,
             self::CARRIER_TRACKING,
-            self::ARRIVALS_EMERGENCIES_TO_RECEIVE,
-            self::DAILY_ARRIVALS_EMERGENCIES,
         ],
         self::CATEGORY_ORDERS => [
             self::PACK_TO_TREAT_FROM,
@@ -108,6 +106,8 @@ class ComponentType
         ],
         self::CATEGORY_OTHER => [
             self::EXTERNAL_IMAGE,
+            self::ARRIVALS_EMERGENCIES_TO_RECEIVE,
+            self::DAILY_ARRIVALS_EMERGENCIES,
         ],
     ];
 

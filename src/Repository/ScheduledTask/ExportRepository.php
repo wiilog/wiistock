@@ -3,7 +3,7 @@
 namespace App\Repository\ScheduledTask;
 
 use App\Entity\ScheduledTask\Export;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;

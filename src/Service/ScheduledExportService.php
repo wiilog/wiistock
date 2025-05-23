@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
@@ -17,8 +16,10 @@ use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Type\CategoryType;
 use App\Exceptions\FTPException;
 use App\Helper\LanguageHelper;
+use App\Service\Emergency\EmergencyService;
 use App\Service\Tracking\PackService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
@@ -46,6 +47,7 @@ class ScheduledExportService {
         private TruckArrivalService       $truckArrivalService,
         private ReceiptAssociationService $receiptAssociationService,
         private DisputeService            $disputeService,
+        private EmergencyService $emergencyService,
     ) {}
 
     public function export(EntityManagerInterface $entityManager,
@@ -200,6 +202,10 @@ class ScheduledExportService {
             $this->csvExportService->putLine($output, $this->disputeService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $this->disputeService->getExportGenerator($entityManager, $startDate, $endDate)($output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_EMERGENCY) {
+            $this->csvExportService->putLine($output, $this->dataExportService->createEmergencyHeader());
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $this->emergencyService->getExportFunction($entityManager, $startDate, $endDate)($output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

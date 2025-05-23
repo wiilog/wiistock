@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Tracking\TrackingMovement;
 use App\Repository\ReceptionReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -49,21 +50,19 @@ class ReceptionReferenceArticle {
     #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: Article::class)]
     private Collection $articles;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $emergencyTriggered = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $emergencyComment = null;
-
     #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?string $unitPrice = null;
 
+    #[ORM\ManyToMany(targetEntity:StockEmergency::class, inversedBy: 'receptionReferenceArticles')]
+    private Collection $stockEmergencies;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
+        $this->stockEmergencies = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -191,26 +190,6 @@ class ReceptionReferenceArticle {
         return $this;
     }
 
-    public function getEmergencyTriggered(): ?bool {
-        return $this->emergencyTriggered;
-    }
-
-    public function setEmergencyTriggered(?bool $emergencyTriggered): self {
-        $this->emergencyTriggered = $emergencyTriggered;
-
-        return $this;
-    }
-
-    public function getEmergencyComment(): ?string {
-        return $this->emergencyComment;
-    }
-
-    public function setEmergencyComment(?string $emergencyComment): self {
-        $this->emergencyComment = $emergencyComment;
-
-        return $this;
-    }
-
     /**
      * @return Collection|TrackingMovement[]
      */
@@ -260,4 +239,40 @@ class ReceptionReferenceArticle {
         return $this;
     }
 
+    /**
+     * @return Collection<int, StockEmergency>
+     */
+    public function getStockEmergencies(): Collection {
+        return $this->stockEmergencies;
+    }
+
+    public function addStockEmergency(StockEmergency $stockEmergency): self {
+        if (!$this->stockEmergencies->contains($stockEmergency)) {
+            $this->stockEmergencies[] = $stockEmergency;
+            $stockEmergency->addReceptionReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockEmergency(StockEmergency $stockEmergency): self {
+        if ($this->stockEmergencies->removeElement($stockEmergency)) {
+            $stockEmergency->removeReceptionReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function setStockEmergencies(?iterable $stockEmergencies): self {
+        foreach($this->getStockEmergencies()->toArray() as $stockEmergencies) {
+            $this->removeStockEmergency($stockEmergencies);
+        }
+
+        $this->stockEmergencies = new ArrayCollection();
+        foreach($stockEmergencies ?? [] as $stockEmergency) {
+            $this->addStockEmergency($stockEmergency);
+        }
+
+        return $this;
+    }
 }

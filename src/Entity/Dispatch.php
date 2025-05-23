@@ -8,6 +8,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Type\Type;
 use App\Repository\DispatchRepository;
 use App\Service\UniqueNumberService;
 use DateTime;

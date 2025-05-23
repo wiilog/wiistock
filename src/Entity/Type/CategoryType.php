@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Type;
 
+use App\Entity\CategorieCL;
 use App\Repository\CategoryTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,6 +31,8 @@ class CategoryType {
     const SESSION_HISTORY = 'Historique de session';
     const IMPORT = 'import';
     const PRODUCTION = 'production';
+    const TRACKING_EMERGENCY = 'trackingEmergency';
+    const STOCK_EMERGENCY = 'stockEmergency';
 
     public const ALL = [
         self::RECEPTION,
@@ -48,6 +51,8 @@ class CategoryType {
         self::COLLECT_TRANSPORT,
         self::SHIPPING_REQUEST,
         self::PRODUCTION,
+        self::STOCK_EMERGENCY,
+        self::TRACKING_EMERGENCY,
     ];
 
     #[ORM\Id]

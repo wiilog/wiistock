@@ -4,32 +4,33 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emergency\EmergencyTriggerEnum;
+use App\Entity\Emergency\EndEmergencyCriteriaEnum;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
-use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
-use App\Service\FormatService;
+use App\Repository\Emergency\StockEmergencyRepository;
 use App\Service\FieldModesService;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -53,7 +54,6 @@ class ReferenceArticleRepository extends EntityRepository {
         'securityThreshold' => 'limitSecurity',
         'warningThreshold' => 'limitWarning',
         'unitPrice' => 'prixUnitaire',
-        'emergency' => 'isUrgent',
         'mobileSync' => 'needsMobileSync',
         'lastInventory' => 'dateLastInventory',
         'comment' => 'commentaire',
@@ -79,6 +79,34 @@ class ReferenceArticleRepository extends EntityRepository {
         // add more columns here with their respective weighting (higher = more relevant)
     ];
 
+    /**
+     * @param array{
+     *     visibilityGroup?: boolean,
+     *     needsOnlyMobileSyncReference?: boolean,
+     *     filterFields?: string,
+     *     multipleFields?: boolean,
+     *     ignoredShippingRequest?: boolean,
+     *     ignoredDeliveryRequest?: boolean,
+     *     visibilityGroup?: int,
+     *     status?: string,
+     *     active-only?: boolean,
+     *     type-quantity?: string,
+     *     needsOnlyMobileSyncReference?: boolean,
+     * } $options
+     *
+     * @return array<array{
+     *     id: int,
+     *     label: string,
+     *     text: string,
+     *     location: string,
+     *     description: array,
+     *     typeQuantite: string,
+     *     barCode: string,
+     *     typeId: string,
+     *     dangerousGoods: int,
+     *     quantiteDisponible: int,
+     * }>
+     */
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
@@ -97,7 +125,8 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['type-quantity'] ?? false) {
-            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+            $queryBuilder
+                ->andWhere('reference.typeQuantite = :typeQuantity')
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
@@ -156,13 +185,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->distinct()
             ->select("reference.id AS id");
 
-        if($options['multipleFields']) {
+        if($options['multipleFields'] ?? false) {
             $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ', '), reference.barCode) AS text");
         } else {
             $queryBuilder->addSelect('reference.reference AS text');
         }
 
-        if($options['filterFields']) {
+        if($options['filterFields'] ?? null) {
             $filterFields = json_decode($options['filterFields'], true);
 
             $expression = Stream::from($filterFields ?: [])
@@ -202,26 +231,24 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.barCode AS barCode')
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
-            ->addSelect('reference.isUrgent AS urgent')
-            ->addSelect('reference.emergencyComment AS emergencyComment')
             ->addSelect('reference.quantiteDisponible AS quantityDisponible')
-            ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
             ->leftJoin("reference.articlesFournisseur", "supplierArticle")
             ->leftJoin("supplierArticle.fournisseur", "supplier")
-            ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->setMaxResults(100);
 
-        if($options['multipleFields']) {
-            Stream::from($queryBuilder->getDQLParts()['select'])
-                ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
-                ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))
-                ->filter(static fn($selectAlias) => !in_array($selectAlias, ['text']))
-                ->each(static fn($field) => $queryBuilder->addGroupBy($field));
+        if ($term) {
+            $queryBuilder
+                ->andHaving("text LIKE :term")
+                ->setParameter("term", "%$term%");
+        }
+
+        if($options['multipleFields'] ?? false) {
+            $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ['text']);
         }
 
         return $queryBuilder
@@ -405,8 +432,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->select('reference.id')
             ->addSelect("reference.{$field} as text")
             ->addSelect('reference.typeQuantite as typeQuantity')
-            ->addSelect('reference.isUrgent as urgent')
-            ->addSelect('reference.emergencyComment as emergencyComment')
             ->addSelect('reference.libelle')
             ->addSelect('reference.barCode')
             ->addSelect('join_location.label AS location')
@@ -468,8 +493,7 @@ class ReferenceArticleRepository extends EntityRepository {
     public function findByFiltersAndParams(array                 $filters,
                                            InputBag              $params,
                                            Utilisateur           $user,
-                                           FormatService         $formatService): array
-    {
+                                           FormatService         $formatService): array {
         $em = $this->getEntityManager();
         $index = 0;
 
@@ -484,11 +508,9 @@ class ReferenceArticleRepository extends EntityRepository {
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
-            'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'date'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
-            'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
             'Créée le' => ['field' => 'createdAt', 'typage' => 'date'],
@@ -499,7 +521,9 @@ class ReferenceArticleRepository extends EntityRepository {
             'Durée max autorisée en stock' => ['field' => "maxStorageTime", 'typage' => 'number'],
         ];
 
-        $queryBuilder = $this->createQueryBuilder("ra");
+        $queryBuilder = $this->createQueryBuilder("ra")
+            ->addGroupBy('ra.id');
+        $exprBuilder = $queryBuilder->expr();
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
@@ -510,8 +534,27 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
+        $queryBuilder
+            ->leftJoin("ra.articlesFournisseur", "supplier_article")
+            ->leftJoin("supplier_article.fournisseur", "emergency_supplier")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, $exprBuilder->orX(
+                $exprBuilder->eq("stock_emergency.referenceArticle", "ra"),
+                $exprBuilder->eq("stock_emergency.supplier", "emergency_supplier")
+            ));
+
+        $triggeredStockEmergenciesCondition = StockEmergencyRepository::getTriggerableStockEmergenciesCondition($exprBuilder, "stock_emergency");
+        $queryBuilder->addSelect("COUNT(DISTINCT CASE WHEN $triggeredStockEmergenciesCondition THEN stock_emergency.id ELSE :null END) AS emergency_count");
+        $queryBuilder
+            ->setParameter("emergencyTriggerReference", EmergencyTriggerEnum::REFERENCE)
+            ->setParameter("emergencyTriggerSupplier", EmergencyTriggerEnum::SUPPLIER)
+            ->setParameter("endEmergencyCriteriaRemainingQuantity", EndEmergencyCriteriaEnum::REMAINING_QUANTITY)
+            ->setParameter("endEmergencyCriteriaEndDate", EndEmergencyCriteriaEnum::END_DATE)
+            ->setParameter("endEmergencyCriteriaManual", EndEmergencyCriteriaEnum::MANUAL)
+            ->setParameter("now", new DateTime())
+            ->setParameter("null", null);
         foreach ($filters as $filter) {
             $index++;
+
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
                 $value = explode(',', $filter['value']);
                 $queryBuilder->leftJoin('ra.visibilityGroup', 'filter_visibility_group')
@@ -556,6 +599,13 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->leftJoin("ra.statut", "filter_status")
                     ->andWhere("filter_status.nom = :status")
                     ->setParameter("status", $filter['value']);
+            } else if ($filter['champFixe'] === "Urgences") {
+                $value = (bool)$filter['value'];
+                if ($value) {
+                    $queryBuilder->andWhere($triggeredStockEmergenciesCondition);
+                } else {
+                    $queryBuilder->andHaving($exprBuilder->eq("SUM(CASE WHEN $triggeredStockEmergenciesCondition THEN 1 ELSE 0 END)", "0"));
+                }
             }
             else {
                 // cas particulier champ référence article fournisseur
@@ -570,7 +620,6 @@ class ReferenceArticleRepository extends EntityRepository {
                     if ($array) {
                         $field = $array['field'];
                         $typage = $array['typage'];
-
                         switch ($typage) {
                             case 'sync':
                                 if ($filter['value'] == 0) {
@@ -599,11 +648,6 @@ class ReferenceArticleRepository extends EntityRepository {
                             case 'number':
                                 $queryBuilder
                                     ->andWhere("ra.$field = :value$index")
-                                    ->setParameter("value$index", $filter['value']);
-                                break;
-                            case 'boolean':
-                                $queryBuilder
-                                    ->andWhere("ra.isUrgent = :value$index")
                                     ->setParameter("value$index", $filter['value']);
                                 break;
                             case 'list':
@@ -728,6 +772,10 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin('ra.editedBy', 'order_editedBy')
                             ->orderBy('order_editedBy.username', $order);
                         break;
+                    case "emergencyCount":
+                        $queryBuilder
+                            ->orderBy("COUNT(DISTINCT CASE WHEN $triggeredStockEmergenciesCondition THEN stock_emergency.id ELSE :null END)", $order);
+                        break;
                     default:
                         $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
@@ -749,7 +797,6 @@ class ReferenceArticleRepository extends EntityRepository {
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
             ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
-
         if (!empty($searchParts)) {
             $freeFieldRepository = $em->getRepository(FreeField::class);
 
@@ -1420,35 +1467,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
     }
 
-    public function findInCart(Utilisateur $user, array $params) {
-        $qb = $this->createQueryBuilder("reference_article");
-
-        $qb
-            ->innerJoin('reference_article.carts', 'cart')
-            ->where("cart.user = :user")
-            ->setParameter("user", $user);
-
-        foreach($params["order"] as $order) {
-            $column = $params["columns"][$order["column"]]['name'];
-            $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
-
-            if($column === "type") {
-                $qb->join("reference_article.type", "search_type")
-                    ->addOrderBy("search_type.label", $order["dir"]);
-            } else if ($column !== 'supplierReference') {
-                $qb->addOrderBy("reference_article.$column", $order["dir"]);
-            }
-        }
-
-        $countTotal = QueryBuilderHelper::count($qb, "reference_article");
-
-        return [
-            "data" => $qb->getQuery()->getResult(),
-            "count" => $countTotal,
-            "total" => $countTotal
-        ];
-    }
-
     public function isUsedInQuantityChangingProcesses(ReferenceArticle $referenceArticle): bool {
         $queryBuilder = $this->createQueryBuilder('reference');
         $exprBuilder = $queryBuilder->expr();
@@ -1514,5 +1532,19 @@ class ReferenceArticleRepository extends EntityRepository {
         $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
+    }
+
+    /**
+     * @return array<ReferenceArticle>
+     */
+    public function findBySupplier(Fournisseur $supplier): array {
+        return $this->createQueryBuilder('reference_article')
+            ->innerJoin('reference_article.articlesFournisseur', 'supplier_article')
+            ->innerJoin('supplier_article.fournisseur', 'supplier')
+            ->andWhere('supplier = :supplier_filter')
+            ->setParameter('supplier_filter', $supplier)
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getResult();
     }
 }

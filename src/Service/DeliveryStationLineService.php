@@ -5,7 +5,7 @@ namespace App\Service;
 
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;

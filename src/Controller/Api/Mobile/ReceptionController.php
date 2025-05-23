@@ -10,12 +10,14 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Exceptions\FormException;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\mobile\MobileReceptionService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
 
 #[Route("/api/mobile/receptions")]
@@ -96,7 +98,8 @@ class ReceptionController extends AbstractController
     #[Wii\RestVersionChecked]
     #[HasPermission([Menu::NOMADE, Action::MODULE_ACCESS_RECEPTION])]
     public function getLines(EntityManagerInterface $entityManager,
-                             Reception              $reception): JsonResponse
+                             Reception              $reception,
+                             NormalizerInterface    $normalizer): JsonResponse
     {
         $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
         [
@@ -107,19 +110,7 @@ class ReceptionController extends AbstractController
         return $this->json([
             "total" => $countTotal,
             "success" => true,
-            "data" => Stream::from($results)
-                ->map(static fn(array $line) => [
-                    ...$line,
-                    "references" => Stream::from($line["references"])
-                        ->map(static fn(array $referenceLine) => [
-                            ...$referenceLine,
-                            "quantityToReceive" => ($referenceLine["quantityToReceive"] ?: 0) - ($referenceLine["receivedQuantity"] ?: 0),
-                            "receivedQuantity" => 0,
-                        ])
-                        ->filter(static fn(array $line) => $line["quantityToReceive"] > 0)
-                        ->values()
-                ])
-                ->values()
+            "data" => $normalizer->normalize($results, null, ["usage" => SerializerUsageEnum::RECEPTION_MOBILE]),
         ]);
     }
 }

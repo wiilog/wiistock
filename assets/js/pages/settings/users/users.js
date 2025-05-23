@@ -37,7 +37,7 @@ export function initUserPage($container) {
 
     let $modalNewUser = $("#modalNewUser");
     Form
-        .create($modalNewUser, {clearOnOpen: true})
+        .create($modalNewUser, {resetView: ['open', 'close']})
         .submitTo(POST, `user_new`, {tables: [tableUser]});
 
     const $languageSelect = $('.utilisateur-language');

@@ -2,13 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
+use App\Entity\CategorieCL;
+use App\Entity\Type\CategoryType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-
-use App\Entity\CategorieCL;
 
 class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -35,6 +34,8 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA,
             CategorieCL::SENSOR => CategoryType::SENSOR,
             CategorieCL::PRODUCTION_REQUEST => CategoryType::PRODUCTION,
+            CategorieCL::STOCK_EMERGENCY => CategoryType::STOCK_EMERGENCY,
+            CategorieCL::TRACKING_EMERGENCY => CategoryType::TRACKING_EMERGENCY,
         ];
         foreach ($categoriesNames as $index => $categorieName) {
             $categorie = $categorieCLRepository->findOneBy(['label' => $index]);

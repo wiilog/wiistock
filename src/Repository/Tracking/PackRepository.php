@@ -14,15 +14,11 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
-use App\Service\Tracking\TrackingTimerEvent;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -189,15 +185,15 @@ class PackRepository extends EntityRepository
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case 'emplacement':
+                case 'lastLocation':
                     $locationValue = !is_array($filter['value'])
                         ? explode(',', $filter['value'])
                         : $filter['value'];
                     $queryBuilder
-                        ->join('pack.lastOngoingDrop', 'filter_lastOngoingDrop')
-                        ->join('filter_lastOngoingDrop.emplacement', 'filter_lastOngoingDrop_location')
-                        ->andWhere('filter_lastOngoingDrop_location.id IN (:filter_lastOngoingDrop_location_value)')
-                        ->setParameter('filter_lastOngoingDrop_location_value', $locationValue);
+                        ->join('pack.lastMovement', 'filter_lastMovement')
+                        ->join('filter_lastMovement.emplacement', 'filter_lastMovement_location')
+                        ->andWhere('filter_lastMovement_location.id IN (:filter_lastMovement_location_value)')
+                        ->setParameter('filter_lastMovement_location_value', $locationValue);
                     break;
                 case 'dateMin':
                     $queryBuilder
@@ -361,6 +357,12 @@ class PackRepository extends EntityRepository
                                 break;
                             case 'orderNumbers':
                                 $searchParams[] = 'search_arrival.numeroCommandeList LIKE :value';
+                                break;
+                            case 'lastLocation':
+                                $queryBuilder
+                                    ->leftJoin('pack.lastMovement', 'search_last_movement')
+                                    ->leftJoin('search_last_movement.emplacement', 'search_last_movement_location');
+                                $searchParams[] = 'search_last_movement_location.label LIKE :value';
                                 break;
                             default:
                                 break;

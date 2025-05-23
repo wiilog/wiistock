@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 

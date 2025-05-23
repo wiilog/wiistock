@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Setting;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
-use WiiCommon\Helper\Stream;
 
 /**
  * Auto-generated Migration: Please modify to your needs!

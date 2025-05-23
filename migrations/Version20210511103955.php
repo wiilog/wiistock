@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\CategoryType;
+use App\Entity\Type\CategoryType;
+use App\Service\SpecificService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use WiiCommon\Helper\Stream;
-use App\Service\SpecificService;
 
 final class Version20210511103955 extends AbstractMigration {
 

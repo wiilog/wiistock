@@ -13,7 +13,7 @@ class Menu {
     const GENERAL = 'général';
     const DASHBOARDS = 'dashboard';
     const TRACA = 'traçabilité';
-    const QUALI = 'qualité';
+    const QUALI = 'qualité & urgences';
     const DEM = 'demande';
     const ORDRE = 'ordre';
     const STOCK = 'stock';

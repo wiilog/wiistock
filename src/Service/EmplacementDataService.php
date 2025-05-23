@@ -6,22 +6,19 @@ use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
-
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
-
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;

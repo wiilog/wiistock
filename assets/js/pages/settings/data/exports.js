@@ -24,6 +24,7 @@ const ENTITY_PACK = "pack";
 const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
 const ENTITY_DISPUTE = "dispute";
 const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
+const ENTITY_EMERGENCY = "emergency"
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -205,7 +206,7 @@ function createForm() {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
                             Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
                             return Promise.resolve();
                         }
@@ -219,10 +220,10 @@ function createForm() {
                         const dateMax = $modal.find(`[name=dateMax]`).val();
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
                             Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'acheminements`);
                             return Promise.resolve();
-                        } else if(columnToExport.length === 0){
+                        } else if (columnToExport.length === 0) {
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
                             return Promise.resolve();
                         }
@@ -237,10 +238,10 @@ function createForm() {
                         const dateMax = $modal.find(`[name=dateMax]`).val();
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
                             Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de mouvements de traçabilité`);
                             return Promise.resolve();
-                        } else if(columnToExport.length === 0){
+                        } else if (columnToExport.length === 0) {
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
                             return Promise.resolve();
                         }
@@ -254,7 +255,7 @@ function createForm() {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
                             Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de demandes de production`);
                             return Promise.resolve();
                         }
@@ -268,10 +269,10 @@ function createForm() {
                         const dateMax = $modal.find(`[name=dateMax]`).val();
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
                             Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'arrivages`);
                             return Promise.resolve();
-                        } else if(columnToExport.length === 0){
+                        } else if (columnToExport.length === 0) {
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
                             return Promise.resolve();
                         }
@@ -296,7 +297,7 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
-                    } else if(content.entityToExport === ENTITY_TRUCK_ARRIVAL) {
+                    } else if (content.entityToExport === ENTITY_TRUCK_ARRIVAL) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
@@ -332,6 +333,19 @@ function createForm() {
                         }
 
                         window.open(Routing.generate(`dispute_export_csv`, {
+                            dateMin,
+                            dateMax,
+                        }));
+                    } else if (content.entityToExport === ENTITY_EMERGENCY) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'urgence`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_emergency`, {
                             dateMin,
                             dateMax,
                         }));
@@ -446,6 +460,7 @@ function onFormEntityChange() {
             break;
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
+        case ENTITY_EMERGENCY:
         case ENTITY_PACK:
         case ENTITY_TRUCK_ARRIVAL:
         case ENTITY_RECEIPT_ASSOCIATION:
