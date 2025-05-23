@@ -398,8 +398,8 @@ class EmergencyService
             FixedFieldEnum::internalArticleCode,
             FixedFieldEnum::supplierArticleCode,
             FixedFieldEnum::reference,
-            ['title' => "Quantité urgence", 'name' => 'emergencyQuantity'],
-            ['title' => "Quantité urgence restante", 'name' => 'RemainingEmergencyQuantity'],
+            ['title' => "Quantité urgence", 'name' => 'stockEmergencyQuantity'],
+            ['title' => "Quantité urgence restante", 'name' => 'remainingStockEmergencyQuantity'],
         ];
 
         $columns = Stream::from($columns)
