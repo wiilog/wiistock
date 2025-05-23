@@ -170,12 +170,22 @@ class EmplacementRepository extends EntityRepository
                     $queryBuilder
                         ->leftJoin('location.signatories', 'search_signatory')
                         ->leftJoin('location.zone', 'search_zone')
+                        ->leftJoin('location.newNatureOnPick', 'search_newNatureOnPick')
+                        ->leftJoin('location.newNatureOnDrop', 'search_newNatureOnDrop')
+                        ->leftJoin('location.managers', 'search_managers')
+                        ->leftJoin('location.allowedNatures', 'search_allowedNatures')
+                        ->leftJoin('location.allowedDeliveryTypes', 'search_allowedDeliveryTypes')
                         ->andWhere($exprBuilder->orX(
                             'location.label LIKE :value',
                             'location.description LIKE :value',
                             'location.email LIKE :value',
                             'search_signatory.username LIKE :value',
                             'search_zone.name LIKE :value',
+                            'search_newNatureOnPick.label LIKE :value',
+                            'search_newNatureOnDrop.label LIKE :value',
+                            'search_managers.username LIKE :value',
+                            'search_allowedNatures.label LIKE :value',
+                            'search_allowedDeliveryTypes.label LIKE :value',
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -193,6 +203,35 @@ class EmplacementRepository extends EntityRepository
                                 ->leftJoin('order_locationGroup.pairings', 'order_locationGroupPairings')
                                 ->addOrderBy('IFNULL(order_pairings.active, order_locationGroupPairings.active)', $order);
                             break;
+                        case 'newNatureOnPick':
+                            $queryBuilder
+                                ->leftJoin('location.newNatureOnPick', 'order_newNatureOnPick')
+                                ->addOrderBy("order_newNatureOnPick.label", $order);
+                            break;
+                        case 'newNatureOnDrop':
+                            $queryBuilder
+                                ->leftJoin('location.newNatureOnDrop', 'order_newNatureOnDrop')
+                                ->addOrderBy("order_newNatureOnDrop.label", $order);
+                            break;
+                        case 'enableNewNatureOnPick' :
+                            $queryBuilder
+                                ->addOrderBy("location.newNatureOnPickEnabled", $order);
+                            break;
+                        case 'enableNewNatureOnDrop':
+                            $queryBuilder
+                                ->addOrderBy("location.newNatureOnDropEnabled", $order);
+                            break;
+                        case 'status':
+                            $queryBuilder
+                                ->addOrderBy("location.isActive", $order);
+                           break;
+                        case 'maximumTrackingDelay':
+                            $queryBuilder
+                                ->addOrderBy("location.dateMaxTime", $order);
+                            break;
+
+
+
                         default:
                             if(property_exists(Emplacement::class, $field)) {
                                 $queryBuilder->addOrderBy("location.{$field}", $order);

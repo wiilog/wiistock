@@ -19,7 +19,7 @@ use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\Cache\CacheService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -53,7 +53,7 @@ class TrackingMovementController extends AbstractController {
                                           CacheService            $cacheService,
                                           MailerService           $mailerService,
                                           ArrivageService         $arrivageDataService,
-                                          EmplacementDataService  $locationDataService,
+                                          LocationService         $locationService,
                                           MouvementStockService   $mouvementStockService,
                                           TrackingMovementService $trackingMovementService,
                                           ExceptionLoggerService  $exceptionLoggerService,
@@ -118,7 +118,7 @@ class TrackingMovementController extends AbstractController {
                     $emplacementRepository,
                     $trackingMovementRepository,
                     $packRepository,
-                    $locationDataService,
+                    $locationService,
                     $arrivageDataService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
@@ -138,7 +138,7 @@ class TrackingMovementController extends AbstractController {
                             'entityManager' => $entityManager,
                         ];
                         $type = $trackingTypes[$mvt['type']];
-                        $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
+                        $location = $locationService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
 
                         $dateArray = explode('_', $mvt['date']);
 

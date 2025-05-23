@@ -249,6 +249,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'limitTreatmentDate' => [],
     ];
 
+    const DEFAULT_LOCATION_LIST_FIELD_MODES = [
+        "action" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "pairing" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "name" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "description" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "isDeliveryPoint" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "isOngoingVisibleOnMobile" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "maximumTrackingDelay" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "allowedNatures" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "allowedTemperatures" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "signatories" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "email" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "zone" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "sendEmailToManagers" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "managers" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+
     const DEFAULT_FIELDS_MODES = [
         'reference' => self::DEFAULT_REFERENCE_FIELDS_MODES,
         'article' => self::DEFAULT_ARTICLE_FIELDS_MODES,
@@ -267,6 +285,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
         FieldModesController::PAGE_PACK_LIST => self::DEFAULT_PACK_LIST_FIELDS_MODES,
+        FieldModesController::PAGE_EMPLACEMENT => self::DEFAULT_LOCATION_LIST_FIELD_MODES,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
