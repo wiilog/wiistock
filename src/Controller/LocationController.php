@@ -49,14 +49,14 @@ class LocationController extends AbstractController {
 
     #[Route("/api", name: "emplacement_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, LocationService $emplacementDataService): Response {
-        return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
+    public function api(Request $request, LocationService $locationService): Response {
+        return $this->json($locationService->getEmplacementDataByParams($request->request));
     }
 
     #[Route("/index", name: "emplacement_index", methods: ["GET"])]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION])]
     public function index(EntityManagerInterface $entityManager,
-                          LocationService $emplacementDataService): Response {
+                          LocationService $locationService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, LocationService::PAGE_EMPLACEMENT, $this->getUser());
@@ -65,7 +65,7 @@ class LocationController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $fields = $emplacementDataService->getColumnVisibleConfig($entityManager, $currentUser, $emplacementDataService, FieldModesController::PAGE_EMPLACEMENT);
+        $fields = $locationService->getColumnVisibleConfig($currentUser, FieldModesController::PAGE_EMPLACEMENT);
 
         return $this->render("emplacement/index.html.twig", [
             "newZone" => new Zone(),
@@ -78,10 +78,10 @@ class LocationController extends AbstractController {
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        LocationService $emplacementDataService): Response {
+                        LocationService $locationService): Response {
         $data = $request->request;
 
-        $emplacement = $emplacementDataService->persistLocation($entityManager, $data, true);
+        $emplacement = $locationService->persistLocation($entityManager, $data, true);
         $entityManager->flush();
 
         $label = $emplacement->getLabel();

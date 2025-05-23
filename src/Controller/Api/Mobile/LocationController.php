@@ -20,11 +20,11 @@ class LocationController extends AbstractController {
     #[Wii\RestVersionChecked]
     public function addEmplacement(Request $request,
                                    EntityManagerInterface $entityManager,
-                                   LocationService $emplacementDataService): Response {
+                                   LocationService $locationService): Response {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
-            $toInsert = $emplacementDataService->persistLocation($entityManager, [
+            $toInsert = $locationService->persistLocation($entityManager, [
                 FixedFieldEnum::name->name => $request->request->get('label'),
                 FixedFieldEnum::isDeliveryPoint->name => $request->request->getBoolean('isDelivery'),
             ]);

@@ -357,9 +357,7 @@ class LocationService {
         }
     }
 
-    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           ?Utilisateur $currentUser,
-                                           LocationService $emplacementDataService,
+    public function getColumnVisibleConfig(?Utilisateur $currentUser,
                                            string $page): array {
 
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];

@@ -10,7 +10,7 @@ use App\Entity\Emplacement;
 
 class ImportEmplacementFixtures extends Fixture
 {
-    public LocationService $emplacementDataService;
+    public LocationService $locationService;
 
     public function load(ObjectManager $manager)
     {
@@ -36,7 +36,7 @@ class ImportEmplacementFixtures extends Fixture
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
-                $emplacement = $this->emplacementDataService->persistLocation($manager, [
+                $emplacement = $this->locationService->persistLocation($manager, [
                     FixedFieldEnum::name->name => $label,
                     FixedFieldEnum::description->name => $description,
                 ]);

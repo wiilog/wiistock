@@ -749,7 +749,7 @@ class TransportController extends AbstractController {
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
                                     AttachmentService       $attachmentService,
-                                    LocationService         $emplacementDataService): Response
+                                    LocationService         $locationService): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -775,7 +775,7 @@ class TransportController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = $emplacementDataService->persistLocation($manager, [
+            $patient = $locationService->persistLocation($manager, [
                 FixedFieldEnum::name->name => "Patient",
                 FixedFieldEnum::description->name => "Unités logistiques livrées chez un patient",
             ]);

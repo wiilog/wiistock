@@ -50,7 +50,7 @@ class TrackingMovementController extends AbstractController {
                                           CacheService            $cacheService,
                                           MailerService           $mailerService,
                                           ArrivageService         $arrivageDataService,
-                                          LocationService         $locationDataService,
+                                          LocationService         $locationService,
                                           MouvementStockService   $mouvementStockService,
                                           TrackingMovementService $trackingMovementService,
                                           ExceptionLoggerService  $exceptionLoggerService,
@@ -115,7 +115,7 @@ class TrackingMovementController extends AbstractController {
                     $emplacementRepository,
                     $trackingMovementRepository,
                     $packRepository,
-                    $locationDataService,
+                    $locationService,
                     $arrivageDataService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
@@ -135,7 +135,7 @@ class TrackingMovementController extends AbstractController {
                             'entityManager' => $entityManager,
                         ];
                         $type = $trackingTypes[$mvt['type']];
-                        $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
+                        $location = $locationService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
 
                         $dateArray = explode('_', $mvt['date']);
 
