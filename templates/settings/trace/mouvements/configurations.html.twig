@@ -21,6 +21,11 @@
                 tooltip: "Lors de la création d'un groupe sur mouvement de groupage, si au moins une UL a un délai de traitement en cours,<br/>le groupe est déposé sur l'emplacement de l'UL dont le chrono est le plus court ou en retard et prend sa nature."
             }) }}
         </div>
+        <div class="col-md-6 col-12 d-flex align-items-center my-1">
+            {{ form.checkbox(setting('GROUP_GET_CHILD_TRACKING_DELAY'), "Remontée des délais de traitement des unités logistique sur leur groupe", false, setting_value('GROUP_GET_CHILD_TRACKING_DELAY'), {
+                tooltip: "La nature et le délai de traitement d'une unité logistique remontent sur le groupe si cette unité logistique a le délai le plus court des unités logistiques du groupe"
+            }) }}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Mails de relance</div>

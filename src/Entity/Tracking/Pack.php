@@ -858,7 +858,11 @@ class Pack implements PairedEntity {
         return $this;
     }
     public function isBasicUnit(): bool {
-        return !$this->referenceArticle && !$this->article;
+        return (
+            !$this->referenceArticle
+            && !$this->article
+            && !$this->isGroup()
+        );
     }
 
     public function shouldHaveTrackingDelay(): bool {
