@@ -63,7 +63,7 @@ class FreeFieldService {
 
     public function getListFreeFieldConfig(EntityManagerInterface $entityManager,
                                            string|array $freeFieldCategoryLabel,
-                                           string|array $typeCategoryLabel): array {
+                                           string|array $typeCategoryLabel = []): array {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryLabel = is_array($freeFieldCategoryLabel) ? $freeFieldCategoryLabel : [$freeFieldCategoryLabel];
         $typeCategoryLabel = is_array($typeCategoryLabel) ? $typeCategoryLabel : [$typeCategoryLabel];
