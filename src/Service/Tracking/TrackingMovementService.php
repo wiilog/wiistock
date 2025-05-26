@@ -766,7 +766,7 @@ class TrackingMovementService {
         $oldNature = $pack?->getNature();
         $returnData = [];
 
-        if(($pack?->isBasicUnit() || $pack?->getLastAction() === $trackingMovement)){
+        if ($pack?->isBasicUnit() && $pack?->getLastAction() === $trackingMovement) {
             $isNatureChangeEnabled  = match (true) {
                 $trackingMovement->isDrop()    => $location?->isNewNatureOnDropEnabled(),
                 $trackingMovement->isPicking() => $location?->isNewNatureOnPickEnabled(),
@@ -798,7 +798,7 @@ class TrackingMovementService {
                 }
             }
         } else {
-            $returnData =[
+            $returnData = [
                 "natureChanged" => false,
             ];
         }

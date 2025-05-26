@@ -18,6 +18,7 @@ use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
+use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -302,8 +303,11 @@ class PackService {
         $pack
             ->setWeight($weight)
             ->setVolume($volume)
-            ->setNature($nature)
             ->setComment($comment);
+
+        if ($this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) != 1) {
+            $pack->setNature($nature);
+        }
     }
 
     public function createPack(EntityManagerInterface $entityManager,
@@ -828,11 +832,6 @@ class PackService {
      * }
      */
     public function formatTrackingDelayData(Pack $pack): array {
-        if($pack->isGroup()) {
-            $pack = $this->getChildPackToTreatMostRapidly($pack)
-                ?: $pack;
-        }
-
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
 
         $remainingTime = $this->getTrackingDelayRemainingTime($pack);

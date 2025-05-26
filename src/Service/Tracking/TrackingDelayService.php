@@ -5,6 +5,7 @@ namespace App\Service\Tracking;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
@@ -13,6 +14,8 @@ use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Service\Cache\CacheService;
 use App\Service\DateTimeService;
+use App\Service\SettingsService;
+use App\Service\Tracking\PackService;
 use DateTime;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,9 +24,11 @@ use Doctrine\ORM\EntityManagerInterface;
 class TrackingDelayService {
 
     public function __construct(
+        private SettingsService         $settingsService,
         private TrackingMovementService $trackingMovementService,
         private DateTimeService         $dateTimeService,
         private CacheService            $cacheService,
+        private PackService             $packService,
     ) {}
 
     /**
@@ -32,8 +37,7 @@ class TrackingDelayService {
      * A pack could have a TrackingDelay if it's a basic one (method Pack::isBasicUnit)
      * and if its nature has a trackingDelay (method Nature::getTrackingDelay).
      *
-     * @see Pack::isBasicUnit()
-     * @see Nature::getTrackingDelay()
+     * @see Pack::shouldHaveTrackingDelay()
      */
     public function updatePackTrackingDelay(EntityManagerInterface $entityManager,
                                             Pack                   $pack): void {
@@ -46,7 +50,7 @@ class TrackingDelayService {
         $records = $data['records'] ?? [];
 
         if (!isset($calculatedElapsedTime)) {
-            $pack->setCurrentTrackingDelay(null);
+            $trackingDelay = null;
         }
         else {
             if (!$affectedTrackingDelay) {
@@ -69,12 +73,13 @@ class TrackingDelayService {
             );
 
             // after updateTrackingDelay
-            $pack->setCurrentTrackingDelay(
-                $trackingDelay->getLastTrackingEvent() !== TrackingEvent::STOP
-                    ? $trackingDelay
-                    : null
-            );
+            $trackingDelay = $trackingDelay->getLastTrackingEvent() !== TrackingEvent::STOP
+                ? $trackingDelay
+                : null;
         }
+
+        $pack->setCurrentTrackingDelay($trackingDelay);
+        $this->updateGroupTrackingDelay($entityManager, $pack, $trackingDelay);
     }
 
     /**
@@ -118,6 +123,7 @@ class TrackingDelayService {
      *     elapsedTime: int|null,
      *     calculatedDelayInheritCurrent: boolean,
      *     records: TrackingDelayRecord[],
+     *     affectedTrackingDelay: TrackingDelay|null,
      * }
      */
     private function calculateTrackingDelayData(EntityManagerInterface $entityManager,
@@ -521,6 +527,53 @@ class TrackingDelayService {
             if (!$calculatedDelayInheritCurrent
                 || !$previousRecord) {
                 $records[] = $record;
+            }
+        }
+    }
+
+
+    /**
+     * Update tracking delay and nature of the group of given pack if it's defined.
+     * We ONLY update it if :
+     *  * pack has group defined
+     *  * setting Setting::GROUP_GET_CHILD_TRACKING_DELAY checked
+     *  * case 1: this is the first tracking delay calculated for a child of this group
+     *  * case 2: current pack is already the group pack with the shortest trackingDelay
+     *  * case 3: new tracking delay is null AND current pack was the group pack with the shortest tracking delay
+     *
+     */
+    private function updateGroupTrackingDelay(EntityManagerInterface $entityManager,
+                                              Pack                   $pack,
+                                              ?TrackingDelay         $trackingDelay): void {
+        $group = $pack->getGroup();
+        if ($group && $this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) == 1) {
+            $currentGroupTrackingDelay = $group->getCurrentTrackingDelay();
+            if ($trackingDelay) {
+                // case 1
+                if (!$currentGroupTrackingDelay
+                    || $currentGroupTrackingDelay->getElapsedTime() > $trackingDelay->getElapsedTime()) {
+                    $group
+                        ->setCurrentTrackingDelay($trackingDelay)
+                        ->setNature($pack->getNature());
+                }
+                // case 2
+                else if ($currentGroupTrackingDelay->getPack()->getId() === $pack->getId()) {
+                    // recheck all pack to test the pack with the shortest tracking delay
+                    $packSetGroupTrackingDelay = $this->packService->getChildPackToTreatMostRapidly($group) ?? $pack;
+                    $group
+                        ->setCurrentTrackingDelay($packSetGroupTrackingDelay->getCurrentTrackingDelay())
+                        ->setNature($packSetGroupTrackingDelay->getNature());
+                }
+            }
+            // case 3
+            else if ($currentGroupTrackingDelay
+                && $currentGroupTrackingDelay->getPack()->getId() === $pack->getId()) {
+                // recheck all pack to test the pack with the shortest tracking delay
+                // null tracking delay can be set if any child has a tracking delay
+                $packSetGroupTrackingDelay = $this->packService->getChildPackToTreatMostRapidly($group);
+                $group
+                    ->setCurrentTrackingDelay($packSetGroupTrackingDelay?->getCurrentTrackingDelay())
+                    ->setNature($packSetGroupTrackingDelay?->getNature());
             }
         }
     }
