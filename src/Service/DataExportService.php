@@ -5,15 +5,16 @@ namespace App\Service;
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Export;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Service\Emergency\EmergencyService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Tracking\TrackingMovementService;
@@ -22,42 +23,21 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class DataExportService {
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public ArrivageService $arrivalService;
-
-    #[Required]
-    public StorageRuleService $storageRuleService;
-
-    #[Required]
-    public DispatchService $dispatchService;
-
-    #[Required]
-    public ScheduleRuleService $scheduleRuleService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public ShippingRequestService $shippingRequestService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public ProductionRequestService $productionRequestService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
+    public function __construct(
+        private EmergencyService $emergencyService,
+        private Security $security,
+        private EntityManagerInterface $entityManager,
+        private ArrivageService $arrivalService,
+        private DispatchService $dispatchService,
+        private ScheduleRuleService $scheduleRuleService,
+        private ShippingRequestService $shippingRequestService,
+        private TranslationService $translation,
+        private ProductionRequestService $productionRequestService,
+        private TrackingMovementService $trackingMovementService,
+    ){}
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -203,6 +183,12 @@ class DataExportService {
 
     public function createProductionRequestsHeader(): array {
         return Stream::from($this->productionRequestService->getVisibleColumnsConfig($this->entityManager, $this->security->getUser(), FieldModesController::PAGE_PRODUCTION_REQUEST_LIST, true))
+            ->map(static fn(array $column) => $column["title"])
+            ->toArray();
+    }
+
+    public function createEmergencyHeader(): array {
+        return Stream::from($this->emergencyService->getVisibleColumnsConfig($this->entityManager, $this->security->getUser(), true))
             ->map(static fn(array $column) => $column["title"])
             ->toArray();
     }
@@ -441,6 +427,7 @@ class DataExportService {
             Export::ENTITY_DELIVERY_ROUND,
             Export::ENTITY_DISPATCH,
             Export::ENTITY_PRODUCTION,
+            Export::ENTITY_EMERGENCY,
             Export::ENTITY_TRACKING_MOVEMENT,
             Export::ENTITY_PACK,
             Export::ENTITY_DISPUTE,

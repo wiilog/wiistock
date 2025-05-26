@@ -6,7 +6,6 @@ use App\Controller\Settings\StatusController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -42,7 +41,9 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\StockEmergencyAlertMode;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
@@ -927,6 +928,15 @@ class SettingsService {
                 $type->setCreatedIdentifierNature(null);
             }
 
+            // array_key_exists instead of isset to clear database column if input cleared
+            if(array_key_exists("stockEmergencyAlertModes", $data)){
+                $stockEmergencyAlertModes = Stream::explode(",", $data["stockEmergencyAlertModes"] ?? "")
+                    ->filter() // ignore empty items
+                    ->filterMap(static fn (string $value) => StockEmergencyAlertMode::tryFrom($value))
+                    ->values();
+                $type->setStockEmergencyAlertModes($stockEmergencyAlertModes);
+            }
+
 
             $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
             if ($defaultTranslation) {
@@ -937,9 +947,16 @@ class SettingsService {
 
             if(isset($data["isDefault"])) {
                 if($data["isDefault"]) {
-                    $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
-                    if($alreadyByDefaultType) {
-                        $alreadyByDefaultType->setDefault(false);
+                    if(in_array($type->getCategory()->getLabel(), [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY])) {
+                        $alreadyByDefaultType = $typeRepository->countDefaultTypeByCategoryTypeLabels([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY], $type);
+                        if($alreadyByDefaultType > 0) {
+                            throw new FormException("Vous ne pouvez avoir qu'un seul type par défaut pour les urgences de stock ou de trace");
+                        }
+                    } else {
+                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
+                        if($alreadyByDefaultType) {
+                            $alreadyByDefaultType->setDefault(false);
+                        }
                     }
                 }
 

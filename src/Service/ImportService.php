@@ -7,7 +7,6 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -33,7 +32,8 @@ use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
@@ -97,7 +97,6 @@ class ImportService
         Import::ENTITY_REF => [
             "catInv",
             "commentaire",
-            "emergencyComment",
             "dateLastInventory",
             "emplacement",
             "libelle",
@@ -1040,9 +1039,6 @@ class ImportService
         if (isset($data['commentaire'])) {
             $refArt->setCommentaire($data['commentaire']);
         }
-        if (isset($data['emergencyComment'])) {
-            $refArt->setEmergencyComment($data['emergencyComment']);
-        }
         if (isset($data['dateLastInventory'])) {
             try {
                 $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']) ?: null);
@@ -1112,7 +1108,6 @@ class ImportService
 
             $refArt
                 ->setStatut($status)
-                ->setIsUrgent(false)
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setType($type);
         } else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {

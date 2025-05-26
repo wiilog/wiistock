@@ -17,6 +17,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
+use App\Entity\Type\Type;
 use App\Repository\EmplacementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -26,7 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
-#[ORM\Index(fields: ["label"], name: "IDX_WIILOG_LABEL")]
+#[ORM\Index(fields: ["label"])]
 class Emplacement implements PairedEntity {
 
     use SensorMessageTrait;

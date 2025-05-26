@@ -3,7 +3,7 @@
 namespace App\Service\Cache;
 
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Service\DateTimeService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManagerInterface;

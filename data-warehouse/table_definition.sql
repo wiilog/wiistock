@@ -146,12 +146,12 @@ CREATE TABLE dw_reception
     quantite_recue           integer,
     quantite_a_recevoir      integer,
     code_barre_reference     varchar(255),
-    urgence_reference        varchar(3),
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
     arrivage_id              integer,
     prix_unitaire            float,
-    frais_livraison          float
+    frais_livraison          float,
+    pieces_jointes           varchar(255)
 );
 
 CREATE TABLE dw_reference_article
@@ -250,18 +250,43 @@ CREATE TABLE dw_tracabilite_champs_libres
 
 CREATE TABLE dw_urgence
 (
-    id                     integer,
-    debut_delais_livraison date,
-    fin_delais_livraison   date,
-    no_commande            varchar(255),
-    no_poste               varchar(255),
-    acheteur               varchar(255),
-    fournisseur            varchar(255),
-    transporteur           varchar(255),
-    no_tracking            varchar(255),
-    date_arrivage          timestamp(0),
-    numero_arrivage        varchar(255),
-    date_creation          timestamp(0)
+    id                                integer,
+    type                              varchar(255),
+    declencheur_urgence               varchar(255),
+    critere_fin_urgence               varchar(255),
+    commentaire                       text,
+    emplacement_urgence               varchar(255),
+    debut_delais_livraison            date,
+    fin_delais_livraison              date,
+    date_dernier_declenchement        date,
+    no_commande                       varchar(255),
+    code_article_interne              varchar(255),
+    code_article_fournisseur          varchar(255),
+    fournisseur                       varchar(255),
+    transporteur                      varchar(255),
+    quantite                          integer,
+    no_tracking                       varchar(255),
+    reference_article_id              integer,
+    dernier_numero_arrivage_reception varchar(255)
+);
+
+CREATE TABLE dw_urgence_champs_libres
+(
+    urgence_id integer,
+    libelle    varchar(255),
+    valeur     text
+);
+
+CREATE TABLE dw_urgence_reception
+(
+    urgence_id           integer,
+    reception_id         integer
+);
+
+CREATE TABLE dw_urgence_arrivage
+(
+    urgence_id           integer,
+    arrivage_id          integer
 );
 
 CREATE TABLE dw_arrivage

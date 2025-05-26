@@ -6,7 +6,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
 use App\Entity\Customer;
 use App\Entity\Dispatch;
@@ -33,17 +32,18 @@ use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
-use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\LanguageHelper;
+use App\Repository\ReferenceArticleRepository;
 use App\Service\LanguageService;
 use App\Service\SettingsService;
 use App\Service\Tracking\PackService;
@@ -225,8 +225,9 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true])]
+    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true], methods: [self::GET])]
     public function references(Request $request, EntityManagerInterface $manager): Response {
+        /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
         /** @var Utilisateur $user */

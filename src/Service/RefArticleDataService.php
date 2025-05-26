@@ -7,7 +7,6 @@ use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -29,7 +28,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
@@ -60,7 +60,6 @@ class RefArticleDataService
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
-        ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
         ["title" => "Type", "name" => "type", "type" => "list"],
         ["title" => "Statut", "name" => "status", "type" => "list"],
         ["title" => "Quantité stock", "name" => "stockQuantity", "type" => "number"],
@@ -78,7 +77,6 @@ class RefArticleDataService
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text", "searchable" => true],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
-        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
         ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
         ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
         ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
@@ -89,7 +87,8 @@ class RefArticleDataService
         ["title" => "Gestion quantité", "name" => "quantityType", "type" => "text"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
         ["title" => "Dernière réponse au stockage", "name" => "lastSleepingStockAlertAnswer", "type" => "date"],
-        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"]
+        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"],
+        ["title" => "Urgences", "name" => "emergencyCount", "type" => "booleen"],
     ];
 
     private $filtreRefRepository;
@@ -191,7 +190,9 @@ class RefArticleDataService
         $searchableFields = $queryResult["searchableFields"];
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields, [
+                "emergency_count" => is_array($refArticle) ? $refArticle["emergency_count"] ?? null : null
+            ]);
         }
         return [
             'data' => $rows,
@@ -439,17 +440,6 @@ class RefArticleDataService
                 ->setPrixUnitaire(($unitPrice !== null && $unitPrice >= 0) ? max(0, $unitPrice) : null);
         }
 
-        if ($data->has('urgence')) {
-            $isUrgent = $data->getBoolean('urgence');
-            $emergencyQuantity = $data->get('emergencyQuantity');
-            $refArticle
-                ->setIsUrgent($isUrgent)
-                ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-                ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
-                ->setEmergencyQuantity(($isUrgent && $emergencyQuantity >= 0) ? $emergencyQuantity : null);
-        }
-
-
         $mobileSync = $data->getBoolean('mobileSync');
         if ($mobileSync) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -545,10 +535,13 @@ class RefArticleDataService
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = []): array
-    {
+    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = [], $additionalData = []): array {
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+                $this->entityManager,
+                CategorieCL::REFERENCE_ARTICLE,
+                CategoryType::ARTICLE
+            );
         }
 
         $settingManageDeliveriesWithoutStockQuantity = $this->settingsService->getValue($this->entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
@@ -584,7 +577,6 @@ class RefArticleDataService
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
-            "emergencyComment" => $refArticle->getEmergencyComment(),
             "visibilityGroups" => $formatService->visibilityGroup($refArticle->getVisibilityGroup()),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
@@ -592,7 +584,6 @@ class RefArticleDataService
             "securityThreshold" => $refArticle->getLimitSecurity() ?? "Non défini",
             "warningThreshold" => $refArticle->getLimitWarning() ?? "Non défini",
             "unitPrice" => $refArticle->getPrixUnitaire(),
-            "emergency" => $formatService->bool($refArticle->getIsUrgent()),
             "mobileSync" => $formatService->bool($refArticle->getNeedsMobileSync()),
             'supplierLabel' => implode(",", $providerLabels),
             'supplierCode' => implode(",", $providerCodes),
@@ -630,6 +621,7 @@ class RefArticleDataService
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
                 ($refArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
             ),
+            "emergencyCount" => $additionalData['emergency_count'] ?? null,
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {

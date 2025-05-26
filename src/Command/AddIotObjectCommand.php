@@ -4,7 +4,7 @@ namespace App\Command;
 
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorProfile;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

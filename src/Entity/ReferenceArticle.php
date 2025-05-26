@@ -9,13 +9,13 @@ use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LastMovementTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
+use App\Entity\Type\Type;
 use App\Repository\ReferenceArticleRepository;
 use DateTime;
 use DateTimeInterface;
@@ -157,23 +157,11 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $limitWarning = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $isUrgent = false;
-
     /**
      * @return Collection<int, PreparationOrderReferenceLine>
      */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $emergencyComment = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $emergencyQuantity = null;
-
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
-    private ?Utilisateur $userThatTriggeredEmergency = null;
 
     #[ORM\OneToOne(mappedBy: 'referenceArticle', targetEntity: Pack::class)]
     private ?Pack $trackingPack = null;
@@ -737,16 +725,6 @@ class ReferenceArticle implements AttachmentContainer {
         return $this;
     }
 
-    public function getIsUrgent(): ?bool {
-        return $this->isUrgent;
-    }
-
-    public function setIsUrgent(?bool $isUrgent): self {
-        $this->isUrgent = $isUrgent;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, PreparationOrderReferenceLine>
      */
@@ -772,25 +750,6 @@ class ReferenceArticle implements AttachmentContainer {
             }
         }
 
-        return $this;
-    }
-
-    public function getEmergencyComment(): ?string {
-        return $this->emergencyComment;
-    }
-
-    public function setEmergencyComment(?string $emergencyComment): self {
-        $this->emergencyComment = $emergencyComment;
-
-        return $this;
-    }
-
-    public function getEmergencyQuantity(): ?int {
-        return $this->emergencyQuantity;
-    }
-
-    public function setEmergencyQuantity(?int $emergencyQuantity): self {
-        $this->emergencyQuantity = $emergencyQuantity;
         return $this;
     }
 
@@ -847,16 +806,6 @@ class ReferenceArticle implements AttachmentContainer {
         if($this->managers->contains($manager)) {
             $this->managers->removeElement($manager);
         }
-
-        return $this;
-    }
-
-    public function getUserThatTriggeredEmergency(): ?Utilisateur {
-        return $this->userThatTriggeredEmergency;
-    }
-
-    public function setUserThatTriggeredEmergency(?Utilisateur $userThatTriggeredEmergency): self {
-        $this->userThatTriggeredEmergency = $userThatTriggeredEmergency;
 
         return $this;
     }

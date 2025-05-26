@@ -5,7 +5,7 @@ namespace App\Service\Dashboard\DashboardComponentGenerator;
 use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\ProductionRequest;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Service\Dashboard\DashboardService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

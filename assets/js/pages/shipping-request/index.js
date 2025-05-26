@@ -8,7 +8,6 @@ let tableShippings;
 global.validateShippingRequest = validateShippingRequest;
 
 $(function() {
-    Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
     initDateTimePicker('#dateMin, #dateMax');
 
     let params = GetRequestQuery();

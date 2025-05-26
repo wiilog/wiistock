@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Entity\Emergency\EmergencyTriggerEnum;
+use App\Entity\Emergency\EndEmergencyCriteriaEnum;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -9,7 +11,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
@@ -35,6 +36,8 @@ class UpdateEnumsCommand extends Command {
         $enums = [
             FixedFieldEnum::class => FixedFieldEnum::cases(),
             DeliveryRequestTemplateUsageEnum::class => DeliveryRequestTemplateUsageEnum::cases(),
+            EmergencyTriggerEnum::class => EmergencyTriggerEnum::cases(),
+            EndEmergencyCriteriaEnum::class => EndEmergencyCriteriaEnum::cases(),
         ];
 
         $outputDirectory = "{$this->kernel->getProjectDir()}/assets/generated";

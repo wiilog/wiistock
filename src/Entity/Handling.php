@@ -7,6 +7,7 @@ use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Type\Type;
 use App\Repository\HandlingRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;

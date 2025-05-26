@@ -88,6 +88,7 @@ Encore
     .addEntry('dispatch-show', '/assets/js/pages/dispatch/show.js')
     .addEntry('dispute-index', '/assets/js/pages/dispute/index.js')
     .addEntry('sleeping-stock-index', '/assets/js/pages/sleeping-stock/index.js')
+    .addEntry('emergency-index', '/assets/js/pages/emergency/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

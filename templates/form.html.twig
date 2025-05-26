@@ -65,7 +65,7 @@
     <label class="d-flex flex-column align-items-start w-fit-content {{ options.labelClass ?? '' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
+        <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }}"
         {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
         {% for attribute in options.additionalAttributes ?? [] %}
             {{ attribute.name }}="{{ attribute.value ?? '' }}"
@@ -201,6 +201,7 @@
                     <select class="form-control data {{ options.inputClass ?? 'w-100' }} {{ required ? 'needed' }}"
                             {{ required ? 'required' }}
                             {{ options.multiple ?? false ? 'multiple' }}
+                            {{ options.disabled ?? false ? 'disabled' }}
                             {% if options.type is defined %}
                                 data-s2="{{ options.type }}"
                                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
@@ -218,6 +219,7 @@
                                 {% if options.includeParamsName is defined %}data-include-params-name="{{ options.includeParamsName }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
                                 {% if options.maxSelectionLength is defined %}data-max-selection-length="{{ options.maxSelectionLength }}"{% endif %}
+                                {% if options.onChange is defined and options.onChange %}onchange="{{ options.onChange }}"{% endif %}
                             {% endif %}
                             {% if options.keepOpen is defined %}data-keep-open{% endif %}
                             {% for attribute in options.additionalAttributes ?? [] %}

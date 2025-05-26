@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Type\CategoryType;
 use App\Repository\CategorieCLRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,6 +24,8 @@ class CategorieCL {
     const DELIVERY_TRANSPORT = CategoryType::DELIVERY_TRANSPORT;
     const COLLECT_TRANSPORT = CategoryType::COLLECT_TRANSPORT;
     const PRODUCTION_REQUEST = 'production';
+    const STOCK_EMERGENCY = CategoryType::STOCK_EMERGENCY;
+    const TRACKING_EMERGENCY = CategoryType::TRACKING_EMERGENCY;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

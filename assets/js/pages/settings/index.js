@@ -1,5 +1,5 @@
 import '@styles/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD } from "../../editatable";
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
@@ -21,6 +21,8 @@ import {
     createHandlingFreeFieldsPage,
     createDeliveryRequestFieldsPage,
     createProductionFreeFieldsPage,
+    createTrackingEmergenciesFreeFieldsPage,
+    createStockEmergenciesFreeFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -76,6 +78,9 @@ const initializers = {
     stock_articles_champs_fixes: initializeArticleFixedFields,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     stock_articles_alerte_stock_dormant: initializeSleepingStockSettingPage,
+    //urgences
+    stock_urgence_stock_champs_fixes: initializeStockEmergencyFixedFields,
+    stock_urgence_stock_types_champs_libres: createStockEmergenciesFreeFieldsPage,
     //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
@@ -123,6 +128,7 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     //urgences
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
+    trace_urgences_types_champs_libres: createTrackingEmergenciesFreeFieldsPage,
 
     // PRODUCTION
     production_parametrage_complet_statuts: initializeProductionStatuses,
@@ -1351,29 +1357,10 @@ function changeSettingsAssoBR($checkbox) {
 }
 
 function initializeEmergenciesFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-emergencies-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const selectorTable = `#table-emergencies-fixed-fields`;
+    const $typeInput = initFixedFieldByTypeSettings(`trackingEmergency`, $container, selectorTable, canEdit);
+    $typeInput.first().trigger(`change`);
 }
-
 
 
 function initializeProductionFixedFields($container, canEdit) {
@@ -1397,6 +1384,13 @@ function initializeProductionFixedFields($container, canEdit) {
         });
     const selectorTable = `#table-production-fixed-fields`;
     const $typeInputs = initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit);
+    $typeInputs.first().trigger( "change" );
+}
+
+function initializeStockEmergencyFixedFields($container, canEdit) {
+
+    const selectorTable = `#table-stock-emergency-fixed-fields`;
+    const $typeInputs = initFixedFieldByTypeSettings(`stockEmergency`, $container, selectorTable, canEdit);
     $typeInputs.first().trigger( "change" );
 }
 

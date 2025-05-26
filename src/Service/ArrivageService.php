@@ -6,8 +6,8 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
+use App\Entity\Emergency\TrackingEmergency;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -23,10 +23,11 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrivalLine;
-use App\Entity\Type;
-use App\Entity\Urgence;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
+use App\Service\Emergency\EmergencyService;
 use DateTime;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,7 +48,7 @@ class ArrivageService {
         private RouterInterface    $router,
         private KeptFieldService   $keptFieldService,
         private MailerService      $mailerService,
-        private UrgenceService     $urgenceService,
+        private EmergencyService   $emergencyService,
         private StringService      $stringService,
         private TranslationService $translation,
         private FreeFieldService   $freeFieldService,
@@ -116,11 +117,6 @@ class ArrivageService {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
-        $acheteursUsernames = [];
-        foreach ($arrival->getAcheteurs()->filter(fn($acheteur) => $acheteur) as $acheteur) {
-            $acheteursUsernames[] = $acheteur->getUsername();
-        }
-
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
@@ -138,7 +134,9 @@ class ArrivageService {
             'receivers' => Stream::from($arrival->getReceivers())
                 ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))
                 ->join(", "),
-            'buyers' => implode(', ', $acheteursUsernames),
+            'buyers' => Stream::from($arrival->getAcheteurs())
+                ->filterMap(static fn(Utilisateur $buyer) => $buyer->getUsername())
+                ->join(', '),
             'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
@@ -176,7 +174,7 @@ class ArrivageService {
         if ($isUrgentArrival) {
             $finalRecipients = array_reduce(
                 $emergencies,
-                function (array $carry, Urgence $emergency) {
+                function (array $carry, TrackingEmergency $emergency) {
                     $buyer = $emergency->getBuyer();
                     $buyerId = $buyer?->getId();
                     if ($buyerId){
@@ -251,23 +249,27 @@ class ArrivageService {
     }
 
     public function setArrivalUrgent(EntityManagerInterface $entityManager,
-                                     Arrivage               $arrivage,
+                                     Arrivage               $arrival,
                                      bool                   $urgent,
                                      array                  $emergencies = []): void {
         if ($urgent) {
-            $arrivage->setIsUrgent(true);
-            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrivage, $arrivage->getDropLocation());
+            $arrival->setIsUrgent(true);
+            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrival, $arrival->getDropLocation());
 
             if ($dropLocation) {
-                $arrivage->setDropLocation($dropLocation);
+                $arrival->setDropLocation($dropLocation);
             }
         }
 
         if ($urgent && !empty($emergencies)) {
+            $now = new DateTime('now');
+            /** @var TrackingEmergency $emergency */
             foreach ($emergencies as $emergency) {
-                $emergency->setLastArrival($arrivage);
+                $emergency->addArrival($arrival);
+                $emergency->setLastTriggeredAt($now);
             }
-            $this->sendArrivalEmails($entityManager, $arrivage, $emergencies);
+
+            $this->sendArrivalEmails($entityManager, $arrival, $emergencies);
         }
     }
 
@@ -288,30 +290,30 @@ class ArrivageService {
     }
 
     public function createArrivalAlertConfig(EntityManagerInterface $entityManager,
-                                             Arrivage               $arrivage,
+                                             Arrivage               $arrival,
                                              bool                   $askQuestion,
-                                             array                  $urgences = []): array {
-        $isArrivalUrgent = count($urgences);
+                                             array                  $emergencies = []): array {
+        $isArrivalUrgent = count($emergencies);
         $emergencyOrderNumber = null;
         $arrivalOrderNumbersStr = null;
 
         if ($askQuestion && $isArrivalUrgent) {
-            $emergencyOrderNumber = $urgences[0]->getCommande();
-            $postNb = $urgences[0]->getPostNb();
-            $internalArticleCode = $urgences[0]->getInternalArticleCode()
-                ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article interne', false) . ' : ' . $urgences[0]->getInternalArticleCode() . '</br>'
+            $emergencyOrderNumber = $emergencies[0]->getOrderNumber();
+            $postNb = $emergencies[0]->getPostNumber();
+            $internalArticleCode = $emergencies[0]->getInternalArticleCode()
+                ? $this->translation->translate('Qualité & Urgences', 'Urgences', 'Code article interne', false) . ' : ' . $emergencies[0]->getInternalArticleCode() . '</br>'
                 : '';
-            $supplierArticleCode = $urgences[0]->getSupplierArticleCode()
-                ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article fournisseur', false) . " : " . $urgences[0]->getSupplierArticleCode() . '</br>'
+            $supplierArticleCode = $emergencies[0]->getSupplierArticleCode()
+                ? $this->translation->translate('Qualité & Urgences', 'Urgences', 'Code article fournisseur', false) . " : " . $emergencies[0]->getSupplierArticleCode() . '</br>'
                 : '';
 
-            $posts = Stream::from($urgences)
-                ->map(static fn(Urgence $urgence) => $urgence->getPostNb())
+            $posts = Stream::from($emergencies)
+                ->map(static fn(TrackingEmergency $emergency) => $emergency->getPostNumber())
                 ->toArray();
 
             $nbPosts = count($posts);
 
-            $arrivalOrderNumbersStr = Stream::from($arrivage->getNumeroCommandeList())
+            $arrivalOrderNumbersStr = Stream::from($arrival->getNumeroCommandeList())
                 ->join(',');
 
             if ($nbPosts == 0) {
@@ -360,7 +362,7 @@ class ArrivageService {
                 ?: $arrivalOrderNumbersStr
                 ?: null,
             'postNb' => $postNb ?? null,
-            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
+            'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
         ];
     }
 
@@ -391,26 +393,27 @@ class ArrivageService {
 
         if (!empty($numeroCommandeList)) {
             foreach ($numeroCommandeList as $numeroCommande) {
-                $urgencesMatching = $this->urgenceService->matchingEmergencies(
+                $matchingEmergencies = $this->emergencyService->matchingEmergencies(
+                    $entityManager,
                     $arrival,
                     $numeroCommande,
                     null,
                     $confirmEmergency
                 );
 
-                if (!empty($urgencesMatching)) {
+                if (!empty($matchingEmergencies)) {
                     if (!$confirmEmergency) {
-                        $this->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
-                        array_push($allMatchingEmergencies, ...$urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, true, $matchingEmergencies);
+                        array_push($allMatchingEmergencies, ...$matchingEmergencies);
                     } else {
-                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($entityManager, $arrival, $confirmEmergency) {
+                        $currentAlertConfig = array_map(function (TrackingEmergency $emergency) use ($entityManager, $arrival, $confirmEmergency) {
                             return $this->createArrivalAlertConfig(
                                 $entityManager,
                                 $arrival,
                                 $confirmEmergency,
-                                [$urgence]
+                                [$emergency]
                             );
-                        }, $urgencesMatching);
+                        }, $matchingEmergencies);
                         array_push($alertConfigs, ...$currentAlertConfig);
                     }
                 }
@@ -527,7 +530,9 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)'),
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray()) : '',
+                'value' => count($buyers) > 0
+                    ? implode(', ', Stream::from($buyers)->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray())
+                    : '',
                 'show' => ['fieldName' => 'acheteurs'],
                 'isRaw' => true
             ],

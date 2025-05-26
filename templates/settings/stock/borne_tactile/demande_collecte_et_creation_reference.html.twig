@@ -64,7 +64,7 @@
 <div class="wii-section">
     <div class="row">
         <div class="form-group col-4">
-            {% set settingTypeReference = setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type') %}
+            {% set settingTypeReference = setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type\\Type') %}
             {{ form.select(setting('TYPE_REFERENCE_CREATE'), 'Type', true, {
                 type: 'referenceType',
                 placeholder: 'Sélectionnez un type',
@@ -93,7 +93,7 @@
                 } : null,
             }) }}
         </div>
-        <input hidden value="{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type') ? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').id : '' }}" id="settingReferenceType"/>
+        <input hidden value="{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type\\Type') ? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type\\Type').id : '' }}" id="settingReferenceType"/>
         <div class="form-group col-4">
             {% set settingStatutReference = setting_value('STATUT_REFERENCE_CREATE') %}
             {{ form.switch('Statut', 'Statut', true, [

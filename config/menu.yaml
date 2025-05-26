@@ -41,16 +41,21 @@ parameters:
           path: 'emergency_index'
           rights:
             menu: App\Entity\Menu::TRACA
-            action: App\Entity\Action::DISPLAY_URGE
+            action: App\Entity\Action::DISPLAY_EMERGENCY
 
-    - label: [ 'Qualité', 'Litiges', 'Qualité' ]
+    - label: 'Qualité'
       icon: 'qualite'
-      sub:
-        - label: [ 'Qualité', 'Litiges', 'Litiges' ]
-          path: 'dispute_index'
-          rights:
-            menu: App\Entity\Menu::QUALI
-            action: App\Entity\Action::DISPLAY_LITI
+      path: 'dispute_index'
+      rights:
+        menu: App\Entity\Menu::QUALI
+        action: App\Entity\Action::DISPLAY_LITI
+
+    - label: 'Urgences'
+      icon: 'emergency-menu'
+      path: 'emergency_index'
+      rights:
+        menu: App\Entity\Menu::QUALI
+        action: App\Entity\Action::DISPLAY_EMERGENCY
 
     - label: 'Production'
       icon: 'menu-production'

@@ -1,0 +1,98 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}{{ trans('Qualité & Urgences', 'Urgences', 'Urgences') }}{% endblock %}
+{% block title_tooltip %}Qualité & Urgences | Urgences{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersEmergency.html.twig' with {
+        page: 'PAGE_EMERGENCIES',
+        tableSelector: '#tableEmergency',
+        callback: 'null',
+        needsDateFormatting: true,
+        types,
+        disabled: referenceArticleIdFilter is not null or fromDashboard
+    } %}
+    {{ form.hidden('referenceArticleIdFilter', referenceArticleIdFilter) }}
+    {{ form.hidden('fromDashboard', fromDashboard) }}
+{% endblock %}
+
+{% block page_content %}
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE_EMERGENCY')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EXPORT_EMERGENCIES')) %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% include('utils/action-buttons/header-buttons.html.twig') with {
+                    actions: [
+                        {
+                            hasRight: referenceArticleIdFilter is not null or fromDashboard,
+                            title: "Voir toutes les urgences",
+                            href: path('emergency_index'),
+                        },
+                        {
+                            hasRight: referenceArticleIdFilter is not null,
+                            title: "Retour à l'article de référence",
+                            icon : "fa fa-rotate-left",
+                            href: path('reference_article_show_page', { id: referenceArticleIdFilter }),
+                        },
+                        {
+                            hasRight: hasRightToCreate,
+                            title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewEmergency",
+                            },
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
+                            },
+                        },
+                        {
+                            hasRight: hasRightToExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon : "fa fa-file-csv",
+                            class : "export-button",
+                        }
+                    ],
+                } %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableEmergency"
+                       class="table w-100"
+                       data-initial-visible="{{ initial_visible_columns | json_encode }}">
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% include "utils/fields-modes.html.twig" with {
+        fields: initial_visible_columns,
+        table: 'tableEmergency',
+        page: constant('App\\Controller\\FieldModesController::PAGE_EMERGENCY_LIST'),
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
+    } %}
+
+    {% include 'emergency/modalNewEmergency.html.twig' with modalNewEmergencyConfig %}
+    {% include 'emergency/modalEditEmergency.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('emergency-index') }}
+{% endblock %}

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Type\Type;
 use App\Repository\DisputeRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,7 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
-#[ORM\Index(fields: ["creationDate"], name: "IDX_WIILOG_CREATION_DATE")]
+#[ORM\Index(fields: ["creationDate"])]
 class Dispute implements AttachmentContainer {
 
     use AttachmentTrait;

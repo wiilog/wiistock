@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
@@ -19,11 +18,13 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -77,18 +78,28 @@ class ReceptionService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Utilisateur $user,InputBag $params, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
+        $emergencyIdFilter = $params->getInt('emergencyId');
         if ($purchaseRequestFilter) {
             $filters = [
                 [
                     'field' => 'purchaseRequest',
-                    'value' => $purchaseRequestFilter
-                ]
+                    'value' => $purchaseRequestFilter,
+                ],
             ];
-        } else {
+        }
+        elseif ($emergencyIdFilter) {
+            $filters = [
+                [
+                    'field' => 'emergencyId',
+                    'value' => $emergencyIdFilter,
+                ],
+            ];
+        }
+        else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
@@ -98,7 +109,7 @@ class ReceptionService
 
         $rows = [];
         foreach ($receptions as $reception) {
-            $rows[] = $this->dataRowReception($reception);
+            $rows[] = $this->dataRowReception($entityManager, $reception);
         }
 
         return [
@@ -286,12 +297,15 @@ class ReceptionService
         }
     }
 
-    public function dataRowReception(Reception $reception): array
-    {
+    public function dataRowReception(EntityManagerInterface $entityManager,
+                                     Reception              $reception): array {
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
             ->filter(static fn(PurchaseRequest $request) => $request)
             ->first();
+
         return [
             "id" => ($reception->getId()),
             "Statut" => $this->formatService->status($reception->getStatut()),
@@ -314,7 +328,7 @@ class ReceptionService
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
-            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            "emergency" => $reception->isManualUrgent() || $receptionRepository->countStockEmergenciesByReception($reception) > 0,
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),

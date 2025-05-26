@@ -27,7 +27,6 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     const filtersContainer = $('.filters-container');
-    Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgences', false));
 
     filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
@@ -220,11 +219,12 @@ function initDuplicateProductionRequest() {
         (event) => {
             const $button = $(event.relatedTarget);
             const $formContainer = $modalEditProductionRequest.find('.form-production-request');
+            const $wrapperLoader = $.merge($modalEditProductionRequest.find('button[type="submit"]'), $formContainer);
             Modal.load(
                 'production_request_form_duplicate',
-                {productionRequest : $button.data('id') },
+                {productionRequest : $button.data('id')},
                 $modalEditProductionRequest,
-                $formContainer,
+                $wrapperLoader,
                 {
                     $formContainer: $formContainer,
                     onOpen: () => {

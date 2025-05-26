@@ -19,7 +19,7 @@ use App\Entity\Nature;
 use App\Entity\ProductionRequest;
 use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ProductionRequest\ProductionRequestService;
@@ -1378,7 +1378,11 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true, 'dateMin' => (new DateTime('now'))->format('Y-m-d')]) : null;
+                $link = $redirect
+                    ? $this->router->generate('emergency_index', [
+                        'dashboardComponentId' => $config['__componentId'],
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $statuses = $config['disputeStatuses'];

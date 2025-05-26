@@ -314,24 +314,24 @@
                                     </label>
                                 </div>
                             {% endif %}
-                            {% if referenceArticle.isUrgent %}
-                                <div class="col-sm-6 col-12 my-2 d-flex align-items-center">
-                                    <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
-                                    <div class="d-flex flex-column ml-3">
-                                        <span class="wii-field-name">Référence urgente</span>
-                                        <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-6 my-2 d-flex align-items-center">
-                                    <div class="d-flex flex-column ml-3">
-                                        <span class="wii-field-name">Quantité d'urgence</span>
-                                        <div class="wii-body-text">{{ referenceArticle.emergencyQuantity ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            {% endif %}
                         </div>
                     </div>
-                    <div class="details-page-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
+                    {% if hasOnGoingEmergencies %}
+                        <div class="col-12 my-2 d-flex galin-items-center">
+                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                            <div class="d-flex flex-column ml-3">
+                                <span class="wii-field-name">Référence urgente</span>
+                                <a
+                                    class="d-flex align-items-center"
+                                    href="{{ path('emergency_index', {'referenceArticle': referenceArticle.id}) }}"
+                                >
+                                    <i class="fa fa-up-right-from-square mr-2"></i>
+                                    Voir les urgences
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="details-page-dropdown mt-3">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}
                             <span class="wii-subtitle dropdown-wrapper">Fournisseur{{ plural }}</span>

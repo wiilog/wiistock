@@ -33,7 +33,7 @@ $(function() {
     const $modalNewPurchaseRequest = $('#modalNewPurchaseRequest');
 
     Form
-        .create($modalNewPurchaseRequest, {clearOnOpen: true})
+        .create($modalNewPurchaseRequest, {resetView: ['open', 'close']})
         .onOpen(() => {
             $modalNewPurchaseRequest.find('[name="status"]').trigger('change');
         })

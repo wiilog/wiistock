@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
