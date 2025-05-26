@@ -545,7 +545,7 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @return Collection|Pack[]
+     * @return Collection<int, Pack>
      */
     public function getContent(): Collection {
         return $this->content;

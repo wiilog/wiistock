@@ -99,11 +99,10 @@ class TrackingMovementListener implements EventSubscriber
             if ($entity instanceof TrackingMovement) {
                 $this->flushedTrackingMovementsInserted[] = $entity;
 
-                $shouldCalculateTrackingDelay = $this->trackingDelayService->shouldCalculateTrackingDelay($entity);
+                $packWeShouldCalculateTrackingDelay = $this->trackingDelayService->getPackThatRequireTrackingDelay($entity);
 
-                if ($shouldCalculateTrackingDelay) {
-                    $pack = $entity->getPack();
-                    $packCode = $pack->getCode();
+                if ($packWeShouldCalculateTrackingDelay) {
+                    $packCode = $packWeShouldCalculateTrackingDelay->getCode();
                     if ($packCode) {
                         $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
                     }

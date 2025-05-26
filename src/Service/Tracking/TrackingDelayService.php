@@ -369,22 +369,36 @@ class TrackingDelayService {
 
     /**
      * We calculate the new tracking delay only if
-     *    - the tracking pack should have a tracking delay
+     *  * (case 1) the tracking pack should have a tracking delay
      *    - AND the new trackingMovement is a picking or a drop
      *    - AND the elapsed time was stopped and restart by the last movement OR the last movement was a START one.
+     *  * OR (case 2) if tracking is a GROUP or UNGROUP movement then we recalculate the tracking delay of the group
      */
-    public function shouldCalculateTrackingDelay(TrackingMovement $tracking): bool {
+    public function getPackThatRequireTrackingDelay(TrackingMovement $tracking): ?Pack {
         $nextType = $tracking->calculateTrackingDelayData["nextType"] ?? null;
         $previousTrackingEvent = $tracking->calculateTrackingDelayData["previousTrackingEvent"] ?? null;
         $nextTrackingEvent = $tracking->calculateTrackingDelayData["nextTrackingEvent"] ?? null;
-        return (
-            $tracking->getPack()?->shouldHaveTrackingDelay()
+
+        $pack = $tracking->getPack();
+        $group = $tracking->getPack();
+
+        // case 1
+        if ($tracking->getPack()?->shouldHaveTrackingDelay()
             && in_array($nextType, [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])
             && (
                 ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
                 || ($previousTrackingEvent !== TrackingEvent::PAUSE && $nextTrackingEvent)
-            )
-        );
+            )) {
+            return $pack;
+        }
+        // case 2
+        else if (in_array($nextType, [TrackingMovement::TYPE_GROUP, TrackingMovement::TYPE_UNGROUP])
+                && $tracking->getPackGroup()) {
+            return $tracking->getPackGroup();
+        }
+
+        // case 3: there is no calculation to do
+        return null;
     }
 
 
@@ -559,7 +573,7 @@ class TrackingDelayService {
                 // case 2
                 else if ($currentGroupTrackingDelay->getPack()->getId() === $pack->getId()) {
                     // recheck all pack to test the pack with the shortest tracking delay
-                    $packSetGroupTrackingDelay = $this->packService->getChildPackToTreatMostRapidly($group) ?? $pack;
+                    $packSetGroupTrackingDelay = $this->packService->getChildPackWithShortestDelay($group) ?? $pack;
                     $group
                         ->setCurrentTrackingDelay($packSetGroupTrackingDelay->getCurrentTrackingDelay())
                         ->setNature($packSetGroupTrackingDelay->getNature());
@@ -570,7 +584,7 @@ class TrackingDelayService {
                 && $currentGroupTrackingDelay->getPack()->getId() === $pack->getId()) {
                 // recheck all pack to test the pack with the shortest tracking delay
                 // null tracking delay can be set if any child has a tracking delay
-                $packSetGroupTrackingDelay = $this->packService->getChildPackToTreatMostRapidly($group);
+                $packSetGroupTrackingDelay = $this->packService->getChildPackWithShortestDelay($group);
                 $group
                     ->setCurrentTrackingDelay($packSetGroupTrackingDelay?->getCurrentTrackingDelay())
                     ->setNature($packSetGroupTrackingDelay?->getNature());

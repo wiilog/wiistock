@@ -1810,8 +1810,8 @@ class TrackingMovementService {
             foreach($children->getDispatchPacks() as $dispatchPack) {
                 $dispatch = $dispatchPack->getDispatch();
 
-                if(in_array($dispatch->getId(), $linkedDispatches)
-                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes )){
+                if (in_array($dispatch->getId(), $linkedDispatches)
+                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes)){
 
                     $date = new DateTime('now');
                     $trackingMovement = $this->createTrackingMovement(
@@ -2107,7 +2107,7 @@ class TrackingMovementService {
                                                                 array             $groupChildren,
                                                                 ?TrackingMovement &$createDropMovement = null): void {
 
-        $pack = $this->packService->getChildPackToTreatMostRapidly($group, $groupChildren);
+        $pack = $this->packService->getChildPackWithShortestDelay($group, $groupChildren);
 
         $location = $pack?->getLastOngoingDrop()?->getEmplacement();
         $nature = $pack?->getNature();
