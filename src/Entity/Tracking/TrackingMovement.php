@@ -74,7 +74,7 @@ class TrackingMovement implements AttachmentContainer {
      * The data will be used in TrackingMovementListener after flush to launch message to recalculate delay.
      *
      * @see TrackingMovementService::createTrackingMovement()
-     * @see TrackingDelayService::shouldCalculateTrackingDelay()
+     * @see TrackingDelayService::getPackThatRequireTrackingDelay()
      */
     public array $calculateTrackingDelayData = [];
 
