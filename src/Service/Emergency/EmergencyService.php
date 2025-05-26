@@ -364,8 +364,7 @@ class EmergencyService
         $page = FieldModesController::PAGE_EMERGENCY_LIST;
 
         $freeFields = $freeFieldRepository->findByTypeCategoriesAndFreeFieldCategories(
-            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY],
-            [CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY]
+            [CategorieCL::STOCK_EMERGENCY, CategorieCL::TRACKING_EMERGENCY]
         );
 
         if (!$forExport && $currentUser) {
@@ -464,8 +463,7 @@ class EmergencyService
 
         $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
             $entityManager,
-            [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY],
-            [CategoryType::TRACKING_EMERGENCY, CategoryType::STOCK_EMERGENCY],
+            [CategorieCL::TRACKING_EMERGENCY, CategorieCL::STOCK_EMERGENCY]
         );
 
          $datum = Stream::from($queryResult["data"])

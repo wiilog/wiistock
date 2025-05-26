@@ -94,7 +94,7 @@ class ProductionRequestService
                                             bool $dispatchMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
+        $freeFields = $champLibreRepository->findByTypeCategoriesAndFreeFieldCategories([CategorieCL::PRODUCTION_REQUEST]);
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [];
@@ -206,7 +206,7 @@ class ProductionRequestService
         $typeColor = $productionRequest->getType()->getColor();
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::PRODUCTION_REQUEST, CategoryType::PRODUCTION);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::PRODUCTION_REQUEST);
         }
 
         $productionRequestId = $productionRequest->getId();
