@@ -100,10 +100,7 @@ class EmergencyRepository extends EntityRepository {
             ->distinct()
             ->addSelect("emergency.freeFields AS freeFields")
             ->addSelect("emergency_category.label AS emergency_category_label")
-            ->addSelect("emergency_category.label AS emergency_category_label")
-            ->addSelect("stock_emergency.endEmergencyCriteria AS end_emergency_criteria")
-            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
-            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id");
+            ->addSelect("stock_emergency.endEmergencyCriteria AS end_emergency_criteria");
 
         $exprBuilder = $queryBuilder->expr();
 
