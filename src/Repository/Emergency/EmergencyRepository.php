@@ -77,7 +77,12 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
             FixedFieldEnum::reference->name => "stock_emergency_referenceArticle.reference",
             "stockEmergencyQuantity"=> "stock_emergency.expectedQuantity",
-            "remainingStockEmergencyQuantity"=> "(COALESCE(stock_emergency.expectedQuantity,0) - COALESCE(stock_emergency.alreadyReceivedQuantity,0))",
+            "remainingStockEmergencyQuantity"=> "
+                GREATEST(
+                   COALESCE(stock_emergency.expectedQuantity,0) - COALESCE(stock_emergency.alreadyReceivedQuantity,0),
+                    0
+                )
+            ",
         ];
 
         $order = $params->all('order')[0]['dir'] ?? null;
@@ -95,8 +100,11 @@ class EmergencyRepository extends EntityRepository {
             ->distinct()
             ->addSelect("emergency.freeFields AS freeFields")
             ->addSelect("emergency_category.label AS emergency_category_label")
+            ->addSelect("emergency_category.label AS emergency_category_label")
+            ->addSelect("stock_emergency.endEmergencyCriteria AS end_emergency_criteria")
             ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
             ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id");
+
         $exprBuilder = $queryBuilder->expr();
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
@@ -375,7 +383,12 @@ class EmergencyRepository extends EntityRepository {
             ->addSelect('tracking_emergency.internalArticleCode AS internalArticleCode')
             ->addSelect('tracking_emergency.supplierArticleCode AS supplierArticleCode')
             ->addSelect("emergency.freeFields AS freeFields")
+            ->addSelect("stock_emergency_referenceArticle.reference AS reference")
+            ->addSelect("stock_emergency.expectedQuantity AS stockEmergencyQuantity")
+            ->addSelect("GREATEST(COALESCE(stock_emergency.expectedQuantity, 0) - COALESCE(stock_emergency.alreadyReceivedQuantity, 0), 0) AS remainingStockEmergencyQuantity")
             ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+            ->leftJoin("stock_emergency.referenceArticle", "stock_emergency_referenceArticle")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")

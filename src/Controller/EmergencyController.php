@@ -193,7 +193,7 @@ class EmergencyController extends AbstractController {
     }
 
     #[Route("/csv", name: "export", options: ["expose" => true], methods: [self::GET])]
-    #[HasPermission([Menu::QUALI, Action::DISPLAY_EMERGENCY])]
+    #[HasPermission([Menu::QUALI, Action::EXPORT_EMERGENCIES])]
     public function exportEmergencyCsv(Request                $request,
                                        EmergencyService       $emergencyService,
                                        EntityManagerInterface $entityManager,
