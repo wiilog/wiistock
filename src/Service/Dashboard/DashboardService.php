@@ -14,6 +14,7 @@ use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Wiilock;
 use App\Service\Dashboard\DashboardComponentGenerator\ActiveReferenceAlertsComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsAndPacksComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DashboardComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\EmergenciesComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\CarrierTrackingComponentGenerator;
 use App\Service\Dashboard\DashboardComponentGenerator\DailyDeliveryOrdersComponentGenerator;
@@ -33,6 +34,7 @@ use App\Service\Dashboard\DashboardComponentGenerator\PackToTreatFromComponentGe
 use App\Service\Dashboard\DashboardComponentGenerator\RequestsOrdersToTreatComponentGenerator;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\DashboardComponentsWithDelayGenerator;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\LatePackComponentGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
 use App\Service\FormatService;
 use App\Service\TranslationService;
 use App\Service\WorkPeriod\WorkPeriodItem;
@@ -351,6 +353,9 @@ class DashboardService {
         return $weekCountersToReturn;
     }
 
+    /**
+     * @return class-string<MultipleDashboardComponentGenerator|DashboardComponentGenerator>|null
+     */
     public function getGeneratorClass(string $meterKey): ?string
     {
         return match ($meterKey) {

@@ -26,7 +26,9 @@ class FeedMultipleDashboardComponentMessage implements UniqueMessage, MessageInt
     }
 
     public function getUniqueKey(): string {
-        return Stream::from($this->componentIds)->sort(static fn($a, $b) => $a <=> $b)->join('_');
+        return Stream::from($this->componentIds)
+            ->sort(static fn($a, $b) => $a <=> $b)
+            ->join('_');
     }
 
     public function normalize(): array {
