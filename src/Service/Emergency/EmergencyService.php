@@ -386,7 +386,7 @@ class EmergencyService
             FixedFieldEnum::dateEnd,
             ['title' => "Date de clôture", 'name' => 'closedAt'],
             ['title' => "Date dernier déclenchement", 'name' => 'lastTriggeredAt'],
-            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber', 'orderable' => false,],
+            ['title' => "Numéro dernier arrivage ou réception", 'name' => 'lastEntityNumber', 'orderable' => false],
             FixedFieldEnum::createdAt,
             FixedFieldEnum::orderNumber,
             FixedFieldEnum::postNumber,
@@ -399,7 +399,7 @@ class EmergencyService
             FixedFieldEnum::supplierArticleCode,
             FixedFieldEnum::reference,
             ['title' => "Quantité urgence", 'name' => 'stockEmergencyQuantity'],
-            ['title' => "Quantité urgence restante", 'name' => 'remainingStockEmergencyQuantity'],
+            ['title' => "Quantité urgence restante", 'name' => 'remainingStockEmergencyQuantity', 'orderable' => true, 'data' => 'remainingStockEmergencyQuantity'],
         ];
 
         $columns = Stream::from($columns)
@@ -521,6 +521,10 @@ class EmergencyService
                         : "";
                 }
 
+                $data["remainingStockEmergencyQuantity"] = $data["end_emergency_criteria"] === EndEmergencyCriteriaEnum::REMAINING_QUANTITY
+                    ? $data["remainingStockEmergencyQuantity"] ?? 0
+                    : null;
+
                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
                     $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
@@ -557,6 +561,19 @@ class EmergencyService
 
         return function ($handle) use ($emergencies, $freeFieldsConfig) {
             foreach ($emergencies as $emergency) {
+
+                $isStockEmergency = $emergency["stockEmergencyQuantity"] !== null;
+
+                $reference = $isStockEmergency
+                    ? $emergency["reference"]
+                    : null;
+                $quantity = $isStockEmergency
+                    ? $emergency["stockEmergencyQuantity"]
+                    : null;
+                $remainingQuantity = $isStockEmergency
+                    ? $emergency["remainingStockEmergencyQuantity"]
+                    : null;
+
                 $freeFieldValues = $emergency["freeFields"];
 
                 $this->csvExportService->putLine($handle, [
@@ -575,6 +592,9 @@ class EmergencyService
                     $emergency[FixedFieldEnum::type->name] ?? null,
                     $emergency[FixedFieldEnum::internalArticleCode->name] ?? null,
                     $emergency[FixedFieldEnum::supplierArticleCode->name] ?? null,
+                    $reference,
+                    $quantity,
+                    $remainingQuantity,
                     ...(Stream::from($freeFieldsConfig['freeFields'])
                         ->map(function (FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                             $value = $freeFieldValues[$freeFieldId] ?? null;
