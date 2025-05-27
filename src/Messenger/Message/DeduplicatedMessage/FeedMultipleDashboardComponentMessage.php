@@ -12,7 +12,7 @@ class FeedMultipleDashboardComponentMessage implements DeduplicatedMessageInterf
      */
     public function __construct(
         private array  $componentIds,
-        private string $generatorClass
+        private string $generatorClass,
     ) {
     }
 
