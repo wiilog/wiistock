@@ -201,7 +201,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingDelay::class)]
+    #[ORM\ManyToOne(targetEntity: TrackingDelay::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?TrackingDelay $currentTrackingDelay = null;
 
