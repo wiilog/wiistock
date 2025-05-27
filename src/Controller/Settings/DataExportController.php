@@ -241,8 +241,7 @@ class DataExportController extends AbstractController
     public function exportLocations(EntityManagerInterface $entityManager,
                                     CSVExportService       $csvService,
                                     DataExportService      $dataExportService,
-                                    EmplacementDataService $locationDataService,
-                                    ): StreamedResponse {
+                                    EmplacementDataService $locationDataService): StreamedResponse {
         $now = new DateTime('now');
         $today = $now->format("d-m-Y-H-i-s");
         $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);

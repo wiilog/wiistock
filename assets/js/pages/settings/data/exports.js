@@ -180,7 +180,6 @@ function createForm() {
                 }
 
                 const content = data.asObject();
-                console.log(content);
 
                 if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
