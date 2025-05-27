@@ -182,6 +182,10 @@ class Article implements PairedEntity {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $lastSleepingStockAlertAnswer = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Project $project = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -919,6 +923,16 @@ class Article implements PairedEntity {
      */
     public function setLastSleepingStockAlertAnswer(DateTimeInterface $lastSleepingStockAlertAnswer): self {
         $this->lastSleepingStockAlertAnswer = $lastSleepingStockAlertAnswer;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self {
+        $this->project = $project;
 
         return $this;
     }

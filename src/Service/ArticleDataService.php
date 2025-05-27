@@ -15,6 +15,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -249,6 +250,7 @@ class ArticleDataService
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $statusLabel = $data->get('statut') ?? Article::STATUT_ACTIF;
         $statut = $this->cacheService->getEntity($entityManager, Statut::class, Article::CATEGORIE, $statusLabel)
@@ -289,8 +291,8 @@ class ArticleDataService
                 $existing->setRFIDtag($data->get('rfidTag'));
             }
 
-            if ($data->has('expiry')) {
-                $existing->setExpiryDate($this->formatService->parseDatetime($data->get('expiry'), ['Y-m-d', 'd/m/Y']));
+            if ($data->has(FixedFieldEnum::expiryDate->name)) {
+                $existing->setExpiryDate($this->formatService->parseDatetime($data->get(FixedFieldEnum::expiryDate->name), ['Y-m-d', 'd/m/Y']));
             }
 
             if ($data->has('prix')) {
@@ -305,29 +307,34 @@ class ArticleDataService
                 $existing->setConform($data->getBoolean('conform', true));
             }
 
-            if ($data->has('purchaseOrderLine')) {
-                $existing->setPurchaseOrder($data->get('purchaseOrderLine'));
+            if ($data->has(FixedFieldEnum::purchaseOrderLine->name)) {
+                $existing->setPurchaseOrder($data->get(FixedFieldEnum::purchaseOrderLine->name));
             }
 
-            if ($data->has('deliveryNoteLine')) {
-                $existing->setDeliveryNote($data->get('deliveryNoteLine'));
+            if ($data->has(FixedFieldEnum::deliveryNoteLine->name)) {
+                $existing->setDeliveryNote($data->get(FixedFieldEnum::deliveryNoteLine->name));
             }
 
-            if ($data->has('productionDate')) {
-                $existing->setProductionDate($this->formatService->parseDatetime($data->get('productionDate'), ['Y-m-d', 'd/m/Y']));
+            if ($data->has(FixedFieldEnum::productionDate->name)) {
+                $existing->setProductionDate($this->formatService->parseDatetime($data->get(FixedFieldEnum::productionDate->name), ['Y-m-d', 'd/m/Y']));
             }
 
-            if ($data->has('manufacturedAt')) {
-                $existing->setManufacturedAt($this->formatService->parseDatetime($data->get('manufacturedAt'), ['Y-m-d', 'd/m/Y']));
+            if ($data->has(FixedFieldEnum::manufacturedAt->name)) {
+                $existing->setManufacturedAt($this->formatService->parseDatetime($data->get(FixedFieldEnum::manufacturedAt->name), ['Y-m-d', 'd/m/Y']));
             }
 
-            if ($data->has('batch')) {
-                $existing->setBatch($data->get('batch'));
+            if ($data->has(FixedFieldEnum::batch->name)) {
+                $existing->setBatch($data->get(FixedFieldEnum::batch->name));
             }
 
-            if ($data->has('nativeCountry')) {
-                $nativeCountryId = $data->getInt('nativeCountry');
-                $existing->setNativeCountry($nativeCountryId ? $entityManager->find(NativeCountry::class, $data->getInt('nativeCountry')) : null);
+            if ($data->has(FixedFieldEnum::project->name)) {
+                $project = $projectRepository->find($data->get(FixedFieldEnum::project->name));
+                $existing->setProject($project);
+            }
+
+            if ($data->has(FixedFieldEnum::nativeCountry->name)) {
+                $nativeCountryId = $data->getInt(FixedFieldEnum::nativeCountry->name);
+                $existing->setNativeCountry($nativeCountryId ? $entityManager->find(NativeCountry::class, $data->getInt(FixedFieldEnum::nativeCountry->name)) : null);
             }
         } else {
             if ($data->has('emplacement')) {
@@ -345,6 +352,10 @@ class ArticleDataService
                 $location->setIsActive(true);
             }
 
+            $project = $data->has(FixedFieldEnum::project->name)
+                ? $projectRepository->find($data->get(FixedFieldEnum::project->name))
+                : null;
+
             $articleFournisseurId = $data->getInt('articleFournisseur');
 
             $article = (new Article())
@@ -355,21 +366,22 @@ class ArticleDataService
                 ->setPrixUnitaire($data->has('prix') ? max(0, $data->get('prix')) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
+                ->setProject($project)
                 ->setEmplacement($location)
                 ->setArticleFournisseur($articleFournisseurId ? $articleFournisseurRepository->find($articleFournisseurId) : null)
                 ->setType($type)
                 ->setBarCode($data->get('barcode') ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
-                ->setDeliveryNote($data->get('deliveryNoteLine'))
-                ->setProductionDate($data->has('productionDate') ? $this->formatService->parseDatetime($data->get('productionDate'), ['Y-m-d', 'd/m/Y']) : null)
-                ->setManufacturedAt($data->has('manufacturedAt') ? $this->formatService->parseDatetime($data->get('manufacturedAt'), ['Y-m-d', 'd/m/Y']) : null)
-                ->setPurchaseOrder($data->get('purchaseOrderLine'))
+                ->setDeliveryNote($data->get(FixedFieldEnum::deliveryNoteLine->name))
+                ->setProductionDate($data->has(FixedFieldEnum::productionDate->name) ? $this->formatService->parseDatetime($data->get(FixedFieldEnum::productionDate->name), ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt($data->has(FixedFieldEnum::manufacturedAt->name) ? $this->formatService->parseDatetime($data->get(FixedFieldEnum::manufacturedAt->name), ['Y-m-d', 'd/m/Y']) : null)
+                ->setPurchaseOrder($data->get(FixedFieldEnum::purchaseOrderLine->name))
                 ->setRFIDtag($data->get('rfidTag'))
-                ->setBatch($data->get('batch'))
+                ->setBatch($data->get(FixedFieldEnum::batch->name))
                 ->setCurrentLogisticUnit($data->get('currentLogisticUnit'))
-                ->setExpiryDate($this->formatService->parseDatetime($data->get('expiry'), ['Y-m-d', 'd/m/Y']));
+                ->setExpiryDate($this->formatService->parseDatetime($data->get(FixedFieldEnum::expiryDate->name), ['Y-m-d', 'd/m/Y']));
 
-            if($nativeCountryId = $data->get('nativeCountry')) {
+            if($nativeCountryId = $data->get(FixedFieldEnum::nativeCountry->name)) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $nativeCountryId));
             }
 
@@ -482,7 +494,9 @@ class ArticleDataService
             'lu' => $this->templating->render("lu_icon.html.twig", [
                 'lu' => $ul,
             ]),
-            'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
+            'project' => $article->getProject()
+                ? $this->formatService->project($article->getProject())
+                : ($article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? ''),
             "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',

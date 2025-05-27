@@ -163,7 +163,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
-            ->addSelect('project.code AS projectCode')
+            ->addSelect("COALESCE(articleProject.code, currentLogisticUnitProject.code) AS projectCode")
             ->addSelect('article.prixUnitaire')
             ->addSelect('article.purchaseOrder')
             ->addSelect('article.deliveryNote')
@@ -182,7 +182,8 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.type', 'refType')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
-            ->leftJoin('currentLogisticUnit.project', 'project')
+            ->leftJoin('article.project', 'articleProject')
+            ->leftJoin('currentLogisticUnit.project', 'currentLogisticUnitProject')
             ->leftJoin('currentLogisticUnit.lastAction', 'lastAction')
             ->leftJoin('lastAction.emplacement', 'trackingLocation')
             ->leftJoin('article.nativeCountry', 'nativeCountry');
