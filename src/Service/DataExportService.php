@@ -473,7 +473,6 @@ class DataExportService {
             "weekDays" => $data["weekDays"] ?? null,
             "monthDays" => $data["monthDays"] ?? null,
         ]));
-
         $export->setScheduleRule($scheduleRule);
     }
 
