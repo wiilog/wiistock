@@ -565,7 +565,7 @@ class EmergencyService
                 $isStockEmergency = $emergency["stockEmergencyQuantity"] !== null;
 
                 $reference = $isStockEmergency
-                    ? $emergency["reference"]
+                    ? $emergency[FixedFieldEnum::reference->name]
                     : null;
                 $quantity = $isStockEmergency
                     ? $emergency["stockEmergencyQuantity"]
