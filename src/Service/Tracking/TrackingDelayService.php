@@ -220,7 +220,7 @@ class TrackingDelayService {
                 }
                 else {
                     $remainingDelay = $this->dateTimeService->secondsToDateInterval($remainingNatureDelay);
-                    $limitTreatmentDate->add($remainingDelay);
+                    $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $limitTreatmentDate, $remainingDelay);
                     $remainingNatureDelay = 0;
                 }
             }
