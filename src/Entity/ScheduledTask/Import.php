@@ -235,8 +235,8 @@ class Import extends ScheduledTask {
             FIxedFieldEnum::pauseTrackingTimerOnDrop->name => FixedFieldEnum::pauseTrackingTimerOnDrop->value,
             FixedFieldEnum::newNatureOnPick->name => FixedFieldEnum::newNatureOnPick->value,
             FixedFieldEnum::newNatureOnDrop->name => FixedFieldEnum::newNatureOnDrop->value,
-            'newNatureOnPickEnabled' => 'Activer le changement de nature à la prise',
-            'newNatureOnDropEnabled' => 'Activer le changement de nature à la dépose',
+            FixedFieldEnum::newNatureOnPickEnabled->name => FixedFieldEnum::newNatureOnPickEnabled->value,
+            FixedFieldEnum::newNatureOnDropEnabled->name => FixedFieldEnum::newNatureOnDropEnabled->value,
 
             'possibleCustoms' => 'Possible douane',
 

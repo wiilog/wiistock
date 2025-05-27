@@ -75,6 +75,8 @@ enum FixedFieldEnum: string
     case stopTrackingTimerOnDrop = "Emplacement de dépose finale";
     case pauseTrackingTimerOnDrop = "Emplacement de pause";
     case newNatureOnPick = "Nouvelle nature à la prise sur emplacement";
+    case newNatureOnPickEnabled = "Activer le changement de nature à la prise";
+    case newNatureOnDropEnabled = "Activer le changement de nature à la dépose";
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";

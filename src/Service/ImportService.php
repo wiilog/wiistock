@@ -207,8 +207,8 @@ class ImportService
             FIxedFieldEnum::pauseTrackingTimerOnDrop->name,
             FixedFieldEnum::newNatureOnPick->name,
             FixedFieldEnum::newNatureOnDrop->name,
-            'newNatureOnPickEnabled',
-            'newNatureOnDropEnabled'
+            FixedFieldEnum::newNatureOnPickEnabled->name,
+            FixedFieldEnum::newNatureOnDropEnabled->name,
         ],
         Import::ENTITY_CUSTOMER => [
             "name",
