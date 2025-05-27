@@ -75,6 +75,14 @@ class EmergencyRepository extends EntityRepository {
             FixedFieldEnum::type->name => "emergency_type.label",
             FixedFieldEnum::internalArticleCode->name=> "tracking_emergency.internalArticleCode",
             FixedFieldEnum::supplierArticleCode->name => "tracking_emergency.supplierArticleCode",
+            FixedFieldEnum::reference->name => "stock_emergency_referenceArticle.reference",
+            "stockEmergencyQuantity"=> "stock_emergency.expectedQuantity",
+            "remainingStockEmergencyQuantity"=> "
+                GREATEST(
+                   COALESCE(stock_emergency.expectedQuantity,0) - COALESCE(stock_emergency.alreadyReceivedQuantity,0),
+                    0
+                )
+            ",
         ];
 
         $order = $params->all('order')[0]['dir'] ?? null;
@@ -92,8 +100,10 @@ class EmergencyRepository extends EntityRepository {
             ->distinct()
             ->addSelect("emergency.freeFields AS freeFields")
             ->addSelect("emergency_category.label AS emergency_category_label")
-            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
-            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id");
+            ->addSelect("stock_emergency.endEmergencyCriteria AS end_emergency_criteria")
+            ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id");
+
         $exprBuilder = $queryBuilder->expr();
 
         $total = QueryBuilderHelper::count($queryBuilder, 'emergency');
@@ -201,13 +211,13 @@ class EmergencyRepository extends EntityRepository {
                     $queryBuilder
                         ->leftJoin("stock_emergency.supplier", "stock_emergency_supplier")
                         ->leftJoin("stock_emergency_supplier.articlesFournisseur", "stock_emergency_supplier_article")
-                        ->innerJoin(ReferenceArticle::class, 'join_reference_article', Join::WITH,
+                        ->innerJoin(ReferenceArticle::class, 'filter_join_reference_article', Join::WITH,
                             $exprBuilder->andX(
                                 $exprBuilder->orX(
-                                    $exprBuilder->eq("join_reference_article", "stock_emergency.referenceArticle"),
-                                    $exprBuilder->eq("stock_emergency_supplier_article.referenceArticle", "join_reference_article"),
+                                    $exprBuilder->eq("filter_join_reference_article", "stock_emergency.referenceArticle"),
+                                    $exprBuilder->eq("stock_emergency_supplier_article.referenceArticle", "filter_join_reference_article"),
                                 ),
-                                $exprBuilder->eq("join_reference_article.id", ":referenceArticleId"),
+                                $exprBuilder->eq("filter_join_reference_article.id", ":referenceArticleId"),
                             )
                         )
                         ->setParameter("referenceArticleId",  $filter['value'])
@@ -270,7 +280,8 @@ class EmergencyRepository extends EntityRepository {
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")
             ->leftJoin("emergency.type", "emergency_type")
-            ->leftJoin("emergency_type.category", "emergency_category");
+            ->leftJoin("emergency_type.category", "emergency_category")
+            ->leftJoin('stock_emergency.referenceArticle', "stock_emergency_referenceArticle");
 
         $filtered = QueryBuilderHelper::count($queryBuilder, 'emergency');
 
@@ -369,7 +380,12 @@ class EmergencyRepository extends EntityRepository {
             ->addSelect('tracking_emergency.internalArticleCode AS internalArticleCode')
             ->addSelect('tracking_emergency.supplierArticleCode AS supplierArticleCode')
             ->addSelect("emergency.freeFields AS freeFields")
+            ->addSelect("stock_emergency_referenceArticle.reference AS reference")
+            ->addSelect("stock_emergency.expectedQuantity AS stockEmergencyQuantity")
+            ->addSelect("GREATEST(COALESCE(stock_emergency.expectedQuantity, 0) - COALESCE(stock_emergency.alreadyReceivedQuantity, 0), 0) AS remainingStockEmergencyQuantity")
             ->leftJoin(TrackingEmergency::class, "tracking_emergency", Join::WITH, "tracking_emergency.id = emergency.id")
+            ->leftJoin(StockEmergency::class, "stock_emergency", Join::WITH, "stock_emergency.id = emergency.id")
+            ->leftJoin("stock_emergency.referenceArticle", "stock_emergency_referenceArticle")
             ->leftJoin("emergency.buyer", "emergency_buyer")
             ->leftJoin("emergency.supplier", "emergency_supplier")
             ->leftJoin("emergency.carrier", "emergency_carrier")

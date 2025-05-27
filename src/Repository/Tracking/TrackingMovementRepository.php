@@ -626,7 +626,7 @@ class TrackingMovementRepository extends EntityRepository
                 break;
             case "movement":
                 $queryBuilder
-                    ->andWhere("join_type.code = :picking_type OR join_type.code = :picking_type")
+                    ->andWhere("join_type.code = :picking_type OR join_type.code = :drop_type")
                     ->join("movement.type", "join_type")
                     ->setParameter("picking_type", TrackingMovement::TYPE_PRISE)
                     ->setParameter("drop_type", TrackingMovement::TYPE_DEPOSE);
