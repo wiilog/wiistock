@@ -22,6 +22,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
@@ -2085,6 +2086,7 @@ class ReceptionController extends AbstractController {
 
         $supplierReferenceRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
         // pack could be equal to -1
@@ -2106,6 +2108,7 @@ class ReceptionController extends AbstractController {
         return $this->json([
             'success' => true,
             'template' => $this->renderView('reception/show/packing/article-form.html.twig', [
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE),
                 'type' => $type,
                 'receptionReferenceArticle' => $receptionReferenceArticle,
                 'selectedPack' => $pack,
@@ -2123,6 +2126,7 @@ class ReceptionController extends AbstractController {
         $supplierArticleRepository = $manager->getRepository(ArticleFournisseur::class);
         $receptionReferenceArticleRepository = $manager->getRepository(ReceptionReferenceArticle::class);
         $packRepository = $manager->getRepository(Pack::class);
+        $projectRepository = $manager->getRepository(Project::class);
 
         $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['receptionReferenceArticle']);
         $receptionLine = $receptionReferenceArticle->getReceptionLine();
@@ -2143,8 +2147,11 @@ class ReceptionController extends AbstractController {
             ? $supplierArticleRepository->findOneBy(['reference' => $data['supplierReference']])
             : '';
 
-        $expiryDate = isset($data['expiry']) ? DateTime::createFromFormat('Y-m-d', $data['expiry']) : '';
+        $expiryDate = isset($data['expiryDate']) ? DateTime::createFromFormat('Y-m-d', $data['expiryDate']) : '';
 
+        $project = isset($data['project'])
+            ? $projectRepository->find($data['project'])
+            : null;
         $freeFieldsValues = Stream::from($data)
             ->filter(fn($val, $key) => is_int($key))
             ->toArray();
@@ -2177,6 +2184,7 @@ class ReceptionController extends AbstractController {
                'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
                'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',
                'batch' => $data['batch'] ?? '',
+               'project' => $project,
                'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
                'quantity' => $data['quantity'],
                'freeFields' => $freeFields,
@@ -2186,6 +2194,7 @@ class ReceptionController extends AbstractController {
                        'quantityToReceive' => $data['quantityToReceive'],
                        'quantite' => $data['quantity'],
                        'batch' => $data['batch'] ?? '',
+                       'project' => $data['project'] ?? null,
                        'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
                        'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
                        'pack' => $pack?->getId(),

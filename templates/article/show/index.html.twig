@@ -116,7 +116,7 @@
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) | lower }}</span>
-                                    <span class="wii-body-text">{{ currentProjectCode ?: '-' }}</span>
+                                    <span class="wii-body-text">{{ article.project ? article.project.code : (currentProjectCode ?? '-') }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">

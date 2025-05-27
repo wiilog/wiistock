@@ -70,12 +70,10 @@
                                 </div>
                             </div>
                             <div class="col-3">
-                                {% if pack %}
-                                    <div class="d-flex flex-column">
-                                        <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
-                                        <span class="wii-body-text">{{ pack.project ? pack.project.code : '-' }}</span>
-                                    </div>
-                                {% endif %}
+                                <div class="d-flex flex-column">
+                                    <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
+                                    <span class="wii-body-text">{{ project ? project.code : '-' }}</span>
+                                </div>
                             </div>
                             {% for name, value in freeFields ?? [] %}
                                 <div class="col-3">
