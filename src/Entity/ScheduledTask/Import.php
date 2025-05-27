@@ -232,7 +232,7 @@ class Import extends ScheduledTask {
             FixedFieldEnum::sendEmailToManagers->name => FixedFieldEnum::sendEmailToManagers->value,
             FixedFieldEnum::startTrackingTimerOnPicking->name => FixedFieldEnum::startTrackingTimerOnPicking->value,
             FixedFieldEnum::stopTrackingTimerOnDrop->name => FixedFieldEnum::stopTrackingTimerOnDrop->value,
-            FIxedFieldEnum::pauseTrackingTimerOnDrop->name => FixedFieldEnum::pauseTrackingTimerOnDrop->value,
+            FixedFieldEnum::pauseTrackingTimerOnDrop->name => FixedFieldEnum::pauseTrackingTimerOnDrop->value,
             FixedFieldEnum::newNatureOnPick->name => FixedFieldEnum::newNatureOnPick->value,
             FixedFieldEnum::newNatureOnDrop->name => FixedFieldEnum::newNatureOnDrop->value,
             FixedFieldEnum::newNatureOnPickEnabled->name => FixedFieldEnum::newNatureOnPickEnabled->value,

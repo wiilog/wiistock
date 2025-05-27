@@ -204,7 +204,7 @@ class ImportService
             FixedFieldEnum::allowedCollectTypes->name,
             FixedFieldEnum::startTrackingTimerOnPicking->name,
             FixedFieldEnum::stopTrackingTimerOnDrop->name,
-            FIxedFieldEnum::pauseTrackingTimerOnDrop->name,
+            FixedFieldEnum::pauseTrackingTimerOnDrop->name,
             FixedFieldEnum::newNatureOnPick->name,
             FixedFieldEnum::newNatureOnDrop->name,
             FixedFieldEnum::newNatureOnPickEnabled->name,
