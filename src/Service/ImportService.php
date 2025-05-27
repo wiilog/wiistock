@@ -2297,6 +2297,8 @@ class ImportService
             }
         }
 
+        $requiredFields = Import::FIELDS_NEEDED[$entityCode] ?? [];
+
         $fieldsToAssociate = $fieldsToAssociate
             ->keymap(static fn(string $key) => [
                 $key,
@@ -2304,7 +2306,17 @@ class ImportService
                     ?? Import::FIELDS_ENTITY['default'][$key]
                     ?? $key,
             ])
-            ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
+            ->map(function (string|array $field, string|int $key) use ($requiredFields) {
+                $translated = is_array($field)
+                    ? $this->translationService->translate(...$field)
+                    : $field;
+
+                if (in_array($key, $requiredFields, true)) {
+                   $translated .= ' *';
+                }
+
+                return $translated;
+            })
             ->toArray();
 
         $categoryCLByEntity = [
