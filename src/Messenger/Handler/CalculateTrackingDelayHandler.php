@@ -2,10 +2,8 @@
 
 namespace App\Messenger\Handler;
 
-use App\Entity\Tracking\Pack;
 use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
 use App\Messenger\Message\MessageInterface;
-use App\Messenger\LoggedHandler;
 use App\Service\ExceptionLoggerService;
 use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,7 +28,6 @@ class CalculateTrackingDelayHandler extends WaitingDeduplicatedHandler {
         LockFactory                    $lockFactory,
         private EntityManagerInterface $entityManager,
         private PackService            $packService,
-        private ExceptionLoggerService $loggerService,
     ) {
         parent::__construct($loggerService, $messageBus, $lockFactory);
     }
@@ -42,7 +39,7 @@ class CalculateTrackingDelayHandler extends WaitingDeduplicatedHandler {
     /**
      * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
      */
-    protected function process(MessageInterface $message): void {
+    protected function processWithLock(MessageInterface $message): void {
         $success = $this->packService->updateTrackingDelayWithPackCode($this->entityManager, $message->getPackCode());
         if ($success) {
             $this->entityManager->flush();
