@@ -379,7 +379,7 @@ class EmplacementDataService {
 
 
                 $this->csvExportService->putLine($handle, [
-                    $this->formatService->location($location->getLabel(),'Non défini'),
+                    $this->formatService->location($location->getLabel(), 'Non défini'),
                     $location->getDescription() ?: 'Non défini',
                     $this->formatService->bool($location->getIsDeliveryPoint()),
                     $this->formatService->bool($location->isOngoingVisibleOnMobile()),
@@ -389,7 +389,7 @@ class EmplacementDataService {
                     $allowedTemperatures,
                     $this->formatService->users($location->getSignatories()),
                     $location->getEmail(),
-                    $this->formatService->zone($location->getZone(), ''),
+                    $this->formatService->zone($location->getZone()),
                     $this->formatService->users($location->getManagers()),
                     $this->formatService->bool($location->isSendEmailToManagers()),
                     $allowedDeliveryTypes,
