@@ -59,17 +59,17 @@ class PackService {
         private TruckArrivalService         $truckArrivalService,
         private ProjectHistoryRecordService $projectHistoryRecordService,
         private TranslationService          $translationService,
-        private ArrivageService             $arrivageService,
-        private SettingsService             $settingsService,
-        private DateTimeService             $dateTimeService,
-        private ReceptionLineService        $receptionLineService,
-        private FormatService               $formatService,
-        private FieldModesService           $fieldModesService,
-        private LanguageService             $languageService,
-        private MailerService               $mailerService,
-        private TrackingMovementService     $trackingMovementService,
-        private Twig_Environment            $templating,
-        private EntityManagerInterface      $entityManager,
+        private ArrivageService         $arrivageService,
+        private SettingsService         $settingsService,
+        private DateTimeService         $dateTimeService,
+        private ReceptionLineService    $receptionLineService,
+        private FormatService           $formatService,
+        private FieldModesService       $fieldModesService,
+        private LanguageService         $languageService,
+        private MailerService           $mailerService,
+        private TrackingMovementService $trackingMovementService,
+        private Twig_Environment        $templating,
+        private EntityManagerInterface  $entityManager,
     ) {}
 
     public function getDataForDatatable($params = null): array {
@@ -648,6 +648,7 @@ class PackService {
                                          ?bool                  $showTruckArrivalDateAndHour = false,
                                          ?bool                  $showTruckArrivalDateAndHourBarcode = false,
                                          ?bool                  $showPackNature = false,
+                                         ?bool                  $showLimitTreatmentDate = false,
     ): array
     {
 
@@ -772,6 +773,11 @@ class PackService {
 
         if($showPackNature){
             $labels[] = $pack->getNature() ? $pack->getNature()->getLabel() : '';
+        }
+
+        if($showLimitTreatmentDate) {
+            $finalTrackingDelay = $this->formatTrackingDelayData($pack);
+            $labels[] = $finalTrackingDelay["dateHTML"] ?? null;
         }
 
         if ($packLabel) {

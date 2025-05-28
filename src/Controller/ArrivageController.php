@@ -1278,6 +1278,7 @@ class ArrivageController extends AbstractController {
         $showTruckArrivalDateAndHour = $settingsService->getValue($entityManager, Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR);
         $showTruckArrivalDateAndHourBarcode = $settingsService->getValue($entityManager, Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR_BARCODE);
         $showPackNature = $settingsService->getValue($entityManager, Setting::INCLUDE_PACK_NATURE);
+        $showLimitTreatmentDate = $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
 
         $firstCustomIconInclude = $settingsService->getValue($entityManager, Setting::INCLUDE_CUSTOMS_IN_LABEL);
         $firstCustomIconName = $settingsService->getValue($entityManager, Setting::CUSTOM_ICON);
@@ -1324,8 +1325,9 @@ class ArrivageController extends AbstractController {
                     $showTruckArrivalDateAndHour,
                     $showTruckArrivalDateAndHourBarcode,
                     $showPackNature,
+                    $showLimitTreatmentDate,
                     $forceTagEmpty ? null : $tagTemplate,
-                    $forceTagEmpty
+                    $forceTagEmpty,
                 );
             }
 
@@ -1367,6 +1369,7 @@ class ArrivageController extends AbstractController {
                 $showTruckArrivalDateAndHour,
                 $showTruckArrivalDateAndHourBarcode,
                 $showPackNature,
+                $showLimitTreatmentDate
             );
         }
 
@@ -1409,6 +1412,7 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $showTruckArrivalDateAndHour = false,
                                                    ?bool        $showTruckArrivalDateAndHourBarcode = false,
                                                    ?bool        $showPackNature = false,
+                                                   ?bool        $showLimitTreatmentDate = false,
                                                    ?TagTemplate $tagTemplate = null,
                                                    bool         $forceTagEmpty = false): array
     {
@@ -1436,7 +1440,8 @@ class ArrivageController extends AbstractController {
                 $showTruckArrivalDateAndHour,
                 $showTruckArrivalDateAndHourBarcode,
                 $showPackNature,
-                $packService
+                $packService,
+                $showLimitTreatmentDate
             ): ?array {
                 $position = $index + 1;
                 if (
@@ -1462,6 +1467,7 @@ class ArrivageController extends AbstractController {
                         $showTruckArrivalDateAndHour,
                         $showTruckArrivalDateAndHourBarcode,
                         $showPackNature,
+                        $showLimitTreatmentDate
                     );
                 }
                 return null;
