@@ -62,8 +62,7 @@ jobs:
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistock files
                 run: |
-                      docker exec cypress_wiistock-owasp-modsecurity rm -r /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
-                      docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template cypress_wiistock-owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+                      docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template cypress_wiistock-owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.github.conf.template
                       docker cp projects/wiistock/. cypress_wiistock-php:/project
 
             -   name: Start containers
