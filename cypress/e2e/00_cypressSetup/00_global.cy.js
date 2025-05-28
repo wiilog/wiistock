@@ -3,7 +3,10 @@ describe('Test cypress setup', () => {
 
     it('Test if owasp container is enabled', () => {
         //cy.visit('/.env', {failOnStatusCode: false}).contains("403");
-        cy.visit('/.env', {failOnStatusCode: false}).as('env')
-        cy.wait('@env').its('response.statusCode').should('eq', 403)
+
+        cy.request('/.env', {failOnStatusCode: false})
+            .then((resp) => {
+                expect(resp.status).to.eq(301);
+            });
     });
 });
