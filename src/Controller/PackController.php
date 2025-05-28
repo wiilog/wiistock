@@ -23,7 +23,7 @@ use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
-use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;

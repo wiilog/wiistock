@@ -1,5 +1,9 @@
 framework:
   messenger:
+    buses:
+      messenger.bus.default:
+        middleware:
+          - App\Messenger\Middleware\DeduplicationMiddleware
 
     # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
     # failure_transport: failed
@@ -8,37 +12,45 @@ framework:
       # https://symfony.com/doc/current/messenger.html#transport-configuration
 
       async_tracking_delay:
-        dsn: "doctrine://default"
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_tracking-delay"
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_tracking-delay":
         retry_strategy:
           max_retries: 0
-        options:
-          queue_name: "tracking-delay"
-          unique_messages: "waiting_queue"
 
-      # message in transport async_tracking_delay are rerouted to this queue
-      # we declare it to get the waiting handler which retry to dispatch original message
-      # see App\Messenger\TrackingDelay\CalculateTrackingDelayWaitingHandler
-      async_tracking_delay_waiting:
-        dsn: "doctrine://default"
+      async_waiting:
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_waiting"
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_waiting":
+              arguments:
+                x-message-deduplication: true
         retry_strategy:
           max_retries: 0
-        options:
-          queue_name: "tracking-delay_waiting"
-          unique_messages: "queue"
 
       async_dashboard_feeding:
-        dsn: "doctrine://default"
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          exchange:
+            name: "%env(string:key:user:url:MESSENGER_DSN)%_dashboard-feeding"
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_dashboard-feeding":
+              arguments:
+                x-message-deduplication: true
         retry_strategy:
           max_retries: 0
-        options:
-          queue_name: "dashboard-feeding"
-          unique_messages: "queue"
 
     # Route your messages to the transports
     routing:
-      App\Messenger\TrackingDelay\CalculateTrackingDelayMessage: async_tracking_delay
-      App\Messenger\Dashboard\FeedDashboardComponentMessage: async_dashboard_feeding
-      App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\FeedDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessageWrapper: async_waiting
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage: async_tracking_delay
 
 # when@test:
 #    framework:

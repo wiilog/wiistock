@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Messenger\Dashboard;
+namespace App\Messenger\Handler;
 
 use App\Entity\Dashboard;
 use App\Exceptions\DashboardException;
-use App\Messenger\LoggedHandler;
-use App\Messenger\MessageInterface;
+use App\Messenger\Message\DeduplicatedMessage\FeedMultipleDashboardComponentMessage;
+use App\Messenger\Message\MessageInterface;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManager;
@@ -18,15 +18,18 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-#[AsMessageHandler]
+
+/**
+ * Handler for multiple dashboard component
+ */
+#[AsMessageHandler(fromTransport: "async_dashboard_feeding")]
 class FeedMultipleDashboardComponentHandler extends LoggedHandler {
 
     public function __construct(
-        #[Autowire("@service_container")]
-        private ContainerInterface     $container,
-        private EntityManagerInterface $entityManager,
-        private MessageBusInterface    $messageBus,
-        private ExceptionLoggerService $loggerService,
+        private ExceptionLoggerService                               $loggerService,
+        #[Autowire("@service_container")] private ContainerInterface $container,
+        private EntityManagerInterface                               $entityManager,
+        private MessageBusInterface                                  $messageBus,
     ) {
         parent::__construct($this->loggerService);
     }
