@@ -1,6 +1,6 @@
 import {defaultTypeSpeed} from '../utils/cypressConfigConstants';
 
-Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true) => {
+Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true, newOne = false) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
     const selectorPrefix = modalName !== '' ? `#${modalName} ` : '';
@@ -22,18 +22,27 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestA
             }
         })
 
-    cy.get(inputSearchSelector)
-        .closest('.select2-dropdown')
-        .should('be.visible', {timeout: 6000})
-        .contains(value)
-        .should('be.visible')
-        .click({waitForAnimations: false, force: true})
-        .then(() => {
-            cy.get(getName).find('option:selected').should('have.length', 1);
-        });
+    if(newOne){
+        cy.get('.create-new-container')
+            .should('be.visible', {timeout: 6000})
+            .click({waitForAnimations: false, force: true})
+            .then(() => {
+                cy.get(getName).find('option:selected').should('have.length', 1);
+            });
+    }else{
+        cy.get(inputSearchSelector)
+            .closest('.select2-dropdown')
+            .should('be.visible', {timeout: 6000})
+            .contains(value)
+            .should('be.visible')
+            .click({waitForAnimations: false, force: true})
+            .then(() => {
+                cy.get(getName).find('option:selected').should('have.length', 1);
+            });
+    }
 })
 
-Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') => {
+Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '', ajax = true) => {
     cy.intercept('GET', '/select/*').as('select2Request');
 
     let getName;
@@ -44,22 +53,26 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
     }
 
     value.forEach(element => {
-        cy.get(getName)
+        const test =
+            cy.get(getName)
             .siblings('.select2')
             .first()
             .click()
             .type(element)
-            .wait('@select2Request')
-            .its('response.statusCode').should('eq', 200)
-            .wait(100)
-            .then(() => {
-                cy.get('.select2-dropdown')
-                    .find('.select2-results__option')
-                    .contains(element)
-                    .should('be.visible')
-                    .first()
-                    .click({waitForAnimations: false, multiple: true})
-            })
+
+            if (ajax) {
+                test.wait('@select2Request')
+                    .its('response.statusCode').should('eq', 200)
+                    .wait(100)
+            }
+
+            cy.get('.select2-dropdown')
+                .find('.select2-results__option')
+                .contains(element)
+                .should('be.visible')
+                .first()
+                .click({waitForAnimations: false, multiple: true})
+
     })
 
     cy.get(getName).find('option:selected').should('have.length', value.length)
