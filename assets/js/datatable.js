@@ -254,7 +254,7 @@ export function initDataTable($table, options) {
                 info: column.info,
             });
         }
-
+        //console.log(column.info)
         if(!column.name) {
             column.name = column.data;
         }
@@ -395,12 +395,11 @@ export function initDataTable($table, options) {
                     initComplete();
                 });
             },
-            headerCallback: (...args) => {
-                const [thead] = args;
-                initHeaderInfo(thead, columnInfoConfig);
+             headerCallback: function(thead, data, start, end, display) {
+                initHeaderInfo(this.api(), columnInfoConfig);
 
                 if (config.headerCallback) {
-                    config.headerCallback(...args);
+                    config.headerCallback.apply(this, arguments);
                 }
             },
         }, colReorderActivated, config));
@@ -518,22 +517,22 @@ function getAndApplyOrder(config, datatable) {
 
 /**
  * Add i icon with a tooltip info according to config parameter
- * @param {HTMLTableSectionElement} theadHtml
+ * @param api
  * @param {Array<{
  *     id: number,
  *     info: string,
  * }>} config Collection of object with id the datatable id column and the message to display
  */
-function initHeaderInfo(theadHtml,
+function initHeaderInfo(api,
                         config) {
-    const $ths = $(theadHtml).find(`th`);
     for (const {id, info} of config) {
         if (!info) {
             continue;
         }
 
-        const $th = $ths.eq(id);
-        if (!$th.find('.header-info').exists()) {
+        const headerCell = api.column(id).header();
+        const $th = $(headerCell);
+        if (!$th.find('.header-info').length) {
             const $content = $th.html();
 
             // wrap title + icon
