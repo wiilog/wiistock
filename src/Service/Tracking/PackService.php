@@ -669,6 +669,7 @@ class PackService {
                                          ?bool                  $showTruckArrivalDateAndHour = false,
                                          ?bool                  $showTruckArrivalDateAndHourBarcode = false,
                                          ?bool                  $showPackNature = false,
+                                         ?bool                  $showLimitTreatmentDate = false,
     ): array
     {
 
@@ -793,6 +794,11 @@ class PackService {
 
         if($showPackNature){
             $labels[] = $pack->getNature() ? $pack->getNature()->getLabel() : '';
+        }
+
+        if($showLimitTreatmentDate) {
+            $finalTrackingDelay = $this->formatTrackingDelayData($pack);
+            $labels[] = $finalTrackingDelay["dateHTML"] ?? null;
         }
 
         if ($packLabel) {
