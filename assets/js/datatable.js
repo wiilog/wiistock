@@ -534,6 +534,7 @@ function initHeaderInfo(api,
         const $th = $(headerCell);
         if (!$th.find('.header-info').length) {
             const $content = $th.html();
+            //TODO : Handle filter problem
 
             // wrap title + icon
             $th.html(
