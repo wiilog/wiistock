@@ -2,11 +2,10 @@
 
 namespace App\Messenger\TrackingDelay;
 
-use App\Entity\Tracking\Pack;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
 use App\Service\ExceptionLoggerService;
-use App\Service\Tracking\TrackingDelayService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -16,7 +15,7 @@ class CalculateTrackingDelayHandler extends LoggedHandler
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private TrackingDelayService   $trackingDelayService,
+        private PackService            $packService,
         private ExceptionLoggerService $loggerService,
     ) {
         parent::__construct($this->loggerService);
@@ -30,12 +29,9 @@ class CalculateTrackingDelayHandler extends LoggedHandler
      * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
      */
     protected function process(MessageInterface $message): void {
-        $packCode = $message->getPackCode();
-
-        $packRepository = $this->entityManager->getRepository(Pack::class);
-        $pack = $packRepository->findOneBy(["code" => $packCode]);
-
-        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
-        $this->entityManager->flush();
+        $success = $this->packService->updateTrackingDelayWithPackCode($this->entityManager, $message->getPackCode());
+        if ($success) {
+            $this->entityManager->flush();
+        }
     }
 }

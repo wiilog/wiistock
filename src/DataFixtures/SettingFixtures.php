@@ -451,6 +451,11 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DROP_MOVEMENT_ON_GROUPING => [
                 'default' => false,
+                SpecificService::CLIENT_FOURME => true,
+            ],
+            Setting::GROUP_GET_CHILD_TRACKING_DELAY => [
+                'default' => false,
+                SpecificService::CLIENT_FOURME => true,
             ],
         ];
 

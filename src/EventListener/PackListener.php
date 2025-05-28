@@ -50,7 +50,7 @@ class PackListener implements EventSubscriber {
     #[AsEventListener(event: "postFlush")]
     public function postFlush(): void {
         foreach ($this->insertedPacks as $pack) {
-            if ($pack?->getNature()?->getTrackingDelay()) {
+            if ($pack?->shouldHaveTrackingDelay()) {
                 $this->messageBus->dispatch(new CalculateTrackingDelayMessage($pack->getCode()));
             }
         }

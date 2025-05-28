@@ -18,6 +18,7 @@ use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
+use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -70,6 +71,7 @@ class PackService {
         private TrackingMovementService     $trackingMovementService,
         private Twig_Environment            $templating,
         private EntityManagerInterface      $entityManager,
+        private TrackingDelayService        $trackingDelayService,
     ) {}
 
     public function getDataForDatatable($params = null): array {
@@ -302,8 +304,12 @@ class PackService {
         $pack
             ->setWeight($weight)
             ->setVolume($volume)
-            ->setNature($nature)
             ->setComment($comment);
+
+        if ($pack->isGroup()
+            && $this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) != 1) {
+            $pack->setNature($nature);
+        }
     }
 
     public function createPack(EntityManagerInterface $entityManager,
@@ -828,11 +834,6 @@ class PackService {
      * }
      */
     public function formatTrackingDelayData(Pack $pack): array {
-        if($pack->isGroup()) {
-            $pack = $this->getChildPackToTreatMostRapidly($pack)
-                ?: $pack;
-        }
-
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
 
         $remainingTime = $this->getTrackingDelayRemainingTime($pack);
@@ -869,8 +870,8 @@ class PackService {
      *
      * @param array<Pack> $inAdditionChildren children not already in the group in database
      */
-    public function getChildPackToTreatMostRapidly(Pack  $group,
-                                                   array $inAdditionChildren = []): ?Pack {
+    public function getChildPackWithShortestDelay(Pack  $group,
+                                                  array $inAdditionChildren = []): ?Pack {
         $packChildSortedByDelay = Stream::from($group->getContent(), $inAdditionChildren)
             ->unique()
             ->filterMap(function(Pack $pack) {
@@ -1087,5 +1088,36 @@ class PackService {
                 ],
             ],
         ]);
+    }
+
+    public function updateTrackingDelayWithPackCode(EntityManagerInterface $entityManager,
+                                                    string                 $packCode): bool {
+        if (!$packCode) {
+            return false;
+        }
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $packOrGroup = $packRepository->findOneBy(["code" => $packCode]);
+
+        if (!$packOrGroup) {
+            return false;
+        }
+
+        if ($packOrGroup->isGroup()){
+            $pack = $this->getChildPackWithShortestDelay($packOrGroup);
+            $trackingDelay = $pack?->getCurrentTrackingDelay();
+
+            // clear columns if there is no pack in the group
+            $packOrGroup
+                ->setCurrentTrackingDelay($trackingDelay)
+                ->setNature($pack?->getNature());
+        }
+        else {
+            // if it's a simple pack we calculate its tracking delay
+            $this->trackingDelayService->updatePackTrackingDelay($entityManager, $packOrGroup);
+        }
+
+        $entityManager->flush();
+        return true;
     }
 }

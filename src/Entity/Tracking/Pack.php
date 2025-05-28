@@ -201,7 +201,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingDelay::class)]
+    #[ORM\ManyToOne(targetEntity: TrackingDelay::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?TrackingDelay $currentTrackingDelay = null;
 
@@ -545,7 +545,7 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @return Collection|Pack[]
+     * @return Collection<int, Pack>
      */
     public function getContent(): Collection {
         return $this->content;
@@ -858,7 +858,11 @@ class Pack implements PairedEntity {
         return $this;
     }
     public function isBasicUnit(): bool {
-        return !$this->referenceArticle && !$this->article;
+        return (
+            !$this->referenceArticle
+            && !$this->article
+            && !$this->isGroup()
+        );
     }
 
     public function shouldHaveTrackingDelay(): bool {
