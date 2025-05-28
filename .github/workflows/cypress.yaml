@@ -58,7 +58,11 @@ jobs:
                 run: chmod -R 777 projects/wiistock/
 
             -   name: Build containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
+                run: |
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up owasp-modsecurity --build --no-start -d
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up mysql --build --no-start -d
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-nginx --build --no-start -d
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistock files
                 run: |
@@ -66,7 +70,11 @@ jobs:
                       docker cp projects/wiistock/. cypress_wiistock-php:/project
 
             -   name: Start containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+                run: |
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start owasp-modsecurity
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start mysql --build
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-nginx
+                  docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
 
             -   name: Give right to www-data user
                 run: docker exec cypress_wiistock-php chown -R www-data:www-data /project
