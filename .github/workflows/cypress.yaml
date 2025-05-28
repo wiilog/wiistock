@@ -58,7 +58,7 @@ jobs:
                 run: chmod -R 777 projects/wiistock/
 
             -   name: Build containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php wiistock-nginx mysql owasp-modsecurity  --build --no-start -d
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php wiistock-nginx mysql owasp-modsecurity --build --no-start -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistock files
                 run: |
@@ -95,7 +95,7 @@ jobs:
                 run: docker exec cypress_wiistock-php yarn build:only:production
 
             -   name: Run cypress
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress --no-recreate owasp-modsecurity # --exit-code-from cypress : exit with the same code as cypress
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
 
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
