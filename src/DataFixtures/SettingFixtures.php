@@ -140,6 +140,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL => [
                 'default' => false,
             ],
+            Setting::INCLUDE_LIMIT_TREATMENT_DATE => [
+                'default' => false,
+            ],
             Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
@@ -435,6 +438,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
             ],
             Setting::INCLUDE_PACK_NATURE => [
+                'default' => false,
+            ],
+            Setting::INCLUDE_LIMIT_DATE_TREATMENT => [
                 'default' => false,
             ],
             Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
