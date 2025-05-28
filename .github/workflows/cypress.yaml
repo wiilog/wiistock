@@ -66,7 +66,7 @@ jobs:
                       docker cp projects/wiistock/. cypress_wiistock-php:/project
 
             -   name: Start containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php wiistock-nginx mysql owasp-modsecurit
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php wiistock-nginx mysql owasp-modsecurity
 
             -   name: Give right to www-data user
                 run: docker exec cypress_wiistock-php chown -R www-data:www-data /project

@@ -6,7 +6,7 @@ describe('Test cypress setup', () => {
 
         cy.request('/.env', {failOnStatusCode: false})
             .then((resp) => {
-                expect(resp.status).to.eq(301);
+                expect(resp.status).to.eq(403);
             });
     });
 });
