@@ -1,6 +1,6 @@
 #!/bin/sh
 
-docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml up wiistock-php -d --build
+docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml up wiistock-php wiistock-nginx mysql owasp-modsecurity -d --build
 docker exec --user www-data cypress_wiistock-php yarn install
 docker exec --user www-data cypress_wiistock-php composer install
 docker exec --user www-data cypress_wiistock-php yarn build:only:dev
