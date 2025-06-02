@@ -21,8 +21,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-                    ref: main
-
+                    ref: WIIS-12609
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
 
@@ -59,16 +58,18 @@ jobs:
                 run: chmod -R 777 projects/wiistock/
 
             -   name: Build containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php wiistock-nginx mysql owasp-modsecurity --build --no-start -d
 
-            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock-cypress_php:/project
+            -   name: volume mount does not work on docker in docker so we manually copy the wiistock files
+                run: |
+                      docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template cypress_wiistock-owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.github.conf.template
+                      docker cp projects/wiistock/. cypress_wiistock-php:/project
 
             -   name: Start containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php wiistock-nginx mysql owasp-modsecurity
 
             -   name: Give right to www-data user
-                run: docker exec wiistock-cypress_php chown -R www-data:www-data /project
+                run: docker exec cypress_wiistock-php chown -R www-data:www-data /project
 
             #            -   name: get the version of wiistock config/services.yaml and store it in the environment
             #                run: |
@@ -76,22 +77,22 @@ jobs:
             #                    export VERSION=$(cat version.txt)
 
             -   name: Install composer dependencies in app
-                run: docker exec wiistock-cypress_php composer install
+                run: docker exec cypress_wiistock-php composer install
 
             -   name: Create database
-                run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
+                run: docker exec cypress_wiistock-php php bin/console doctrine:database:create --if-not-exists
 
             -   name: Create routing
-                run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
+                run: docker exec cypress_wiistock-php php bin/console fos:js-routing:dump
 
             -   name: Convert enums
-                run: docker exec wiistock-cypress_php php bin/console app:update:enums
+                run: docker exec cypress_wiistock-php php bin/console app:update:enums
 
             -   name: Install yarn dependencies in app
-                run: docker exec wiistock-cypress_php yarn
+                run: docker exec cypress_wiistock-php yarn
 
             -   name: Build assets in app
-                run: docker exec wiistock-cypress_php yarn build:only:production
+                run: docker exec cypress_wiistock-php yarn build:only:production
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
@@ -99,9 +100,10 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
-                    docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
-                    docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
+                  docker ps
+                  docker cp cypress_wiistock:/var/www/cypress/logs/ cypress_logs
+                  docker cp cypress_wiistock:/var/www/cypress/videos/ cypress_videos
+                  docker cp cypress_wiistock:/var/www/var/log/dev.log dev_log
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()

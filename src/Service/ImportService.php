@@ -2338,9 +2338,7 @@ class ImportService
         return $fieldsToAssociate;
     }
 
-    public function resetCache(): void
-    {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
+    public function resetCache(): void {
         $associatedDocumentTypesStr = $this->settingsService->getValue($this->entityManager,Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
