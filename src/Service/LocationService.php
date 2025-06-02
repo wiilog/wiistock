@@ -412,7 +412,7 @@ class LocationService {
 
 
                 $this->csvExportService->putLine($handle, [
-                    $this->formatService->location($location->getLabel(), 'Non défini'),
+                    $this->formatService->location($location, 'Non défini'),
                     $location->getDescription() ?: 'Non défini',
                     $this->formatService->bool($location->getIsDeliveryPoint()),
                     $this->formatService->bool($location->isOngoingVisibleOnMobile()),

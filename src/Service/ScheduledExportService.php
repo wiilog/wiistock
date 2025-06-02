@@ -7,7 +7,6 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
-use App\Entity\Emplacement;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
@@ -48,7 +47,7 @@ class ScheduledExportService {
         private TruckArrivalService       $truckArrivalService,
         private ReceiptAssociationService $receiptAssociationService,
         private DisputeService            $disputeService,
-        private EmplacementDataService    $locationService,
+        private LocationService           $locationService,
         private EmergencyService          $emergencyService,
     ) {}
 

@@ -87,7 +87,15 @@
                                     },
                                 }),
                                 class: "statut dropdown-item",
-                            }
+                            },
+                            {
+                                title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                                icon: "fa fa-file-csv",
+                                class: "dropdown-item pointer",
+                                attributes : {
+                                    onclick: "saveExportFile('get_locations_csv', false)"
+                                },
+                            },
                         ]
                     } %}
                 </div>
