@@ -137,7 +137,7 @@ class HandlingController extends AbstractController {
                     $carry[$test['id']] = $test['label'];
                     return $carry;
                 }, []),
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'types' => $types,
@@ -145,7 +145,7 @@ class HandlingController extends AbstractController {
                     ->filter(static fn(Type $type) => $type->isActive())
                     ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
-                'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+                'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name),
                 'preFill' => $settingsService->getValue($entityManager, Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
             "typesFilter" => $typesFilter,
@@ -182,7 +182,7 @@ class HandlingController extends AbstractController {
         $typeId = $request->request->get('id');
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $receivers = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
+        $receivers = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::receivers->name);
         $receiversId = $receivers[$typeId] ?? [];
         $users = [];
         foreach ($receiversId as $receiverId) {
@@ -208,7 +208,7 @@ class HandlingController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, false);
+        $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, true);
 
         $handling = new Handling();
         $date = new DateTime('now');
@@ -439,7 +439,7 @@ class HandlingController extends AbstractController {
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
-            $receiversParameters = $handlingParameters[FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING];
+            $receiversParameters = $handlingParameters[FixedFieldEnum::receivers->name];
 
             $handlings = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
@@ -559,7 +559,7 @@ class HandlingController extends AbstractController {
     public function editHandling(Handling               $handling,
                                  EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $emergencies = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY))
+        $emergencies = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name))
             ->map(fn($emergency) => [
                 "label" => $emergency,
                 "value" => $emergency,

@@ -28,24 +28,21 @@
                         {% set right = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING')) %}
                         {{ form.select(field.name, trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false), required, {
                             items: handlingStatus
-                            | filter((status) =>
-                            (
-                            status.state == constant('App\\Entity\\Statut::TREATED')
-                            and right
-                            )
-                            or status.state != constant('App\\Entity\\Statut::TREATED')
-                            )
-                            | map((status) => {
-                                value: status.id,
-                                label: status.labelIn(userLanguage, defaultLanguage),
-                                class: 'd-none',
-                                'type-id': status.type.id
-                            }),
+                                | filter((status) =>
+                                    (status.state == constant('App\\Entity\\Statut::TREATED') and right)
+                                        or status.state != constant('App\\Entity\\Statut::TREATED')
+                                )
+                                | map((status) => {
+                                    value: status.id,
+                                    label: status.labelIn(userLanguage, defaultLanguage),
+                                    class: 'd-none',
+                                    'type-id': status.type.id
+                                }),
                             emptyOption: {
                                 selected: true,
                                 text: trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false),
                                 value: ''
-                            }
+                            },
                         }) }}
                         {% endif %}
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
