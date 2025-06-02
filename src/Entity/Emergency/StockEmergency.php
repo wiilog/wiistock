@@ -29,7 +29,7 @@ class StockEmergency extends Emergency implements AttachmentContainer {
     private ?int $alreadyReceivedQuantity = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Emplacement $expectedLocation = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]

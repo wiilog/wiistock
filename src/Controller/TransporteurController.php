@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Attachment;
 use App\Entity\Chauffeur;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
 use App\Exceptions\FormException;

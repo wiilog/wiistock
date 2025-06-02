@@ -8,6 +8,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Dispatch;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryLocationMission;
@@ -113,6 +114,7 @@ class UserService {
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
         $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
         $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -140,6 +142,7 @@ class UserService {
             + $shippingRequestRepository->count(['plannedBy' => $user->getId()]) + $shippingRequestRepository->count(['treatedBy' => $user->getId()])
             + $shippingRequestRepository->countByRequesters($user->getId());
         $hasExternalLinks = $deliveryStationLineRepository->countByUser($user);
+        $hasEmergencies = $emergencyRepository->count(['buyer' => $user]);
 
         return [
             mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
@@ -159,6 +162,7 @@ class UserService {
             "historique(s) de statut" => $hasStatusHistory,
             "demande(s) d'expédition" => $hasShippingRequest,
             "lien(s) externe" => $hasExternalLinks,
+            "urgences" => $hasEmergencies,
         ];
 	}
 
