@@ -67,14 +67,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_HANDLING => [
-                ['code' => FixedFieldEnum::loadingZone->name, 'label' => FixedFieldEnum::loadingZone->name, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::loadingZone->name, 'label' => FixedFieldEnum::loadingZone->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::unloadingZone->name, 'label' => FixedFieldEnum::unloadingZone->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
                 ['code' => FixedFieldEnum::carriedOutOperationCount->name, 'label' => FixedFieldEnum::carriedOutOperationCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::receivers->name, 'label' => FixedFieldEnum::receivers->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
                 ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldEnum::status->name, 'label' => FixedFieldEnum::status->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldEnum::type->name, 'label' => FixedFieldEnum::type->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::status->name, 'label' => FixedFieldEnum::status->value, 'displayedCreate' => true, 'displayedEdit' => true, 'default' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::type->name, 'label' => FixedFieldEnum::type->value, 'displayedCreate' => true, 'displayedEdit' => true, 'default' => true, 'displayedFilters' => true],
             ],
 
             FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [

@@ -109,6 +109,10 @@ abstract class FixedField {
         FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
             FixedFieldEnum::attachments->name,
         ],
+        FixedFieldStandard::ENTITY_CODE_HANDLING => [
+            FixedFieldEnum::status->name,
+            FixedFieldEnum::type->name,
+        ],
     ];
 
     public const ALWAYS_DISPLAYED_FIELDS = [
@@ -120,6 +124,10 @@ abstract class FixedField {
         ],
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        ],
+        FixedFieldStandard::ENTITY_CODE_HANDLING => [
+            FixedFieldEnum::status->name,
+            FixedFieldEnum::type->name,
         ],
     ];
 

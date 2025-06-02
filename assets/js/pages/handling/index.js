@@ -72,7 +72,6 @@ function initNewHandlingEditor(modal) {
     Select2Old.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
     initDatePickers();
-    //fillDatePickers('[name="expectedAt"]')
 }
 
 function callbackSaveFilter() {
