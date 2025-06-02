@@ -201,7 +201,9 @@ function datatableDrawCallback({response, callback, table, $table, needsPagingHi
         callback();
     }
 
-    renderDtInfo($(table.table().container()));
+    if (table && typeof table.table === "function") {
+        renderDtInfo($(table.table().container()));
+    }
 }
 
 export function moveSearchInputToHeader($searchInputContainer) {
@@ -298,17 +300,24 @@ export function initDataTable($table, options) {
 
     //Executed after each table refresh (show/hide, sorting, etc.)
     //Ensure the icon info is always on the correct column
-    const drawCallback = (response) => {
+    const drawCallback = function (response) {
+        const datatableApi = this.api ? this.api() : null;
         datatableDrawCallback(Object.assign({
-            table: datatableToReturn,
+            table: datatableApi,
             response,
             $table
         }, drawConfig || {}));
-        initHeaderInfo(datatableToReturn, columnInfoConfig);
+
+        if (datatableApi) {
+            initHeaderInfo(datatableApi, columnInfoConfig);
+        }
     };
 
     const headerCallback = function () {
-        initHeaderInfo(this.api(), columnInfoConfig);
+        const api = this.api ? this.api() : null;
+        if (api) {
+            initHeaderInfo(api, columnInfoConfig);
+        }
         if (config.headerCallback) {
             config.headerCallback.apply(this, arguments);
         }
@@ -372,6 +381,20 @@ export function initDataTable($table, options) {
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: drawCallback,
             headerCallback:headerCallback,
+            initComplete: function () {
+                let $searchInputContainer = $table.parents(`.dataTables_wrapper`).find(`.dataTables_filter`);
+                moveSearchInputToHeader($searchInputContainer);
+                if (initCompleteCallback) {
+                    initCompleteCallback();
+                }
+                attachDropdownToBodyOnDropdownOpening($table);
+                if (config.page && config.page !== ``) {
+                    getAndApplyOrder(config, datatableToReturn);
+                } else {
+                    datatableToReturn.off(`column-reorder`);
+                }
+                initHeaderInfo(datatableToReturn, columnInfoConfig);
+            }
 
         }, colReorderActivated, config));
 
@@ -461,6 +484,9 @@ function hash(str, seed = 0) {
 }
 
 function getAndApplyOrder(config, datatable) {
+    if (!datatable || typeof datatable.off !== "function") {
+        return;
+    }
     const params = {
         page: config.page,
     };
@@ -496,6 +522,10 @@ function getAndApplyOrder(config, datatable) {
  */
 function initHeaderInfo(api,
                         config) {
+    if (!api || typeof api.table !== "function" || !api.table()) {
+        return;
+    }
+
     $(api.table().header()).find('.header-info').remove();
 
     config.forEach(({name, info}) => {
