@@ -3,14 +3,13 @@
 namespace App\Service;
 
 use App\Entity\Action;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 
 use App\Entity\Menu;
 use App\Entity\Reception;
-use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -89,6 +88,7 @@ class FournisseurDataService
 
     public function isSupplierUsed(Fournisseur $supplier, EntityManagerInterface $entityManager): array {
         $receptionRepository = $entityManager->getRepository(Reception::class);
+        $emergencyRepository = $entityManager->getRepository(Emergency::class);
 
         $usedBy = [];
 
@@ -108,7 +108,7 @@ class FournisseurDataService
             $usedBy[] = 'arrivages';
         }
 
-        if (!$supplier->getEmergencies()->isEmpty()) {
+        if ($emergencyRepository->count(['supplier' => $supplier]) > 0) {
             $usedBy[] = 'urgences';
         }
 
