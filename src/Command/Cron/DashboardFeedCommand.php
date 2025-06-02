@@ -103,9 +103,7 @@ class DashboardFeedCommand extends Command {
         }
         catch (Throwable $dispatchException) {
             $componentsArray = is_array($components)
-                ? Stream::from($components)
-                    ->map(static fn(Dashboard\Component $component) => $component)
-                    ->toArray()
+                ? $components
                 : [$components];
 
             foreach ($componentsArray as $component) {
