@@ -4,6 +4,8 @@
 
 {% block title %}Référentiel | Emplacements{% endblock %}
 
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+
 {% block page_content %}
     <input type="hidden" id="listEmplacementIdToPrint">
     <div class="m-4 wii-page-card">
@@ -45,57 +47,64 @@
                     </div>
                 </button>
                 {% endif %}
-                <div class="btn-group">
-                    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                        <button type="button"
-                                data-toggle="modal"
-                                data-cy-name="new-location-button"
-                                data-target="#modalNewLocation"
-                                class="btn btn-primary split-button d-none new-location">
-                            <div class="d-flex align-items-center">
-                                <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
-                                Nouvel emplacement
-                            </div>
-                        </button>
-                    {% endif %}
-
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split d-none action-button"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-
-                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right filters-container">
-                        <div tabindex="0"
-                             class="dropdown-item printButton user-select-none disabled has-tooltip  d-flex align-items-center"
-                             onclick="printLocationsBarCodes($(this), event)"
-                             title="Veuillez faire une recherche pour imprimer.">
-                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                            Imprimer les étiquettes
-                        </div>
-                        <div class="statut dropdown-item">
-                            {{ form.checkbox('statut', 'Statut emplacement actif', false, active, {
-                                inputClass: 'filter-checkbox',
+                <div class="btn-group dispatch-button-container filters-container new-location">
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight : hasRightToCreate,
+                                title: "Nouvel Emplacement",
+                                icon : "fa fa-plus",
+                                class : "btn btn-primary split-button d-none",
                                 attributes: {
-                                    onchange: 'saveFilters(PAGE_EMPLACEMENT, "#locationsTable")',
+                                    "data-toggle": "modal",
+                                    "data-cy-name": "new-location-button",
+                                    "data-target": "#modalNewLocation",
                                 },
-                            }) }}
-                        </div>
-                        <a class="dropdown-item pointer"
-                           onclick="saveExportFile('get_locations_csv', false)">
-                            <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                        </a>
-                    </div>
+                            },
+                            {
+                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                icon: "fa fa-cog",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalFieldModes",
+                                },
+                            },
+                            {
+                                title: "Imprimer les étiquettes",
+                                icon: "fa fa-print",
+                                class: "dropdown-item printButton user-select-none disabled has-tooltip  d-flex align-items-center",
+                                attributes : {
+                                    "title": "Veuillez faire une recherche pour imprimer.",
+                                    "onclick": "printLocationsBarCodes($(this), event)",
+                                    "tabindex": "0"
+                                }
+                            },
+                            {
+                                title: form.checkbox('statut', 'Statut emplacement actif', false, active, {
+                                    inputClass: 'filter-checkbox',
+                                    attributes: {
+                                        onchange: 'saveFilters(PAGE_EMPLACEMENT, "#locationsTable")',
+                                    },
+                                }),
+                                class: "statut dropdown-item",
+                            },
+                            {
+                                title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                                icon: "fa fa-file-csv",
+                                class: "dropdown-item pointer",
+                                attributes : {
+                                    onclick: "saveExportFile('get_locations_csv', false)"
+                                },
+                            },
+                        ]
+                    } %}
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-12 locationsTableContainer">
-                <table id="locationsTable" class="table w-100"></table>
+                <table id="locationsTable" data-initial-visible="{{ fields | json_encode }}" class="table w-100"></table>
             </div>
             <div class="col-12 groupsTableContainer">
                 <table id="groupsTable" class="table w-100"></table>
@@ -130,6 +139,21 @@
             elements: [
                 {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                 {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+            ],
+        }
+    } %}
+
+    {% include "utils/fields-modes.html.twig" with {
+        fields,
+        table: 'locationsTable',
+        page: constant('App\\Controller\\FieldModesController::PAGE_EMPLACEMENT'),
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
             ],
         }
     } %}

@@ -3,14 +3,14 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fields\FixedFieldEnum;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Emplacement;
 
 class ImportEmplacementFixtures extends Fixture
 {
-    public EmplacementDataService $emplacementDataService;
+    public LocationService $locationService;
 
     public function load(ObjectManager $manager)
     {
@@ -36,7 +36,7 @@ class ImportEmplacementFixtures extends Fixture
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
-                $emplacement = $this->emplacementDataService->persistLocation($manager, [
+                $emplacement = $this->locationService->persistLocation($manager, [
                     FixedFieldEnum::name->name => $label,
                     FixedFieldEnum::description->name => $description,
                 ]);

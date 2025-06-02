@@ -29,7 +29,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\NotificationService;
 use App\Service\OperationHistoryService;
 use App\Service\SettingsService;
@@ -749,7 +749,7 @@ class TransportController extends AbstractController {
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
                                     AttachmentService       $attachmentService,
-                                    EmplacementDataService  $emplacementDataService): Response
+                                    LocationService         $locationService): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -775,7 +775,7 @@ class TransportController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = $emplacementDataService->persistLocation($manager, [
+            $patient = $locationService->persistLocation($manager, [
                 FixedFieldEnum::name->name => "Patient",
                 FixedFieldEnum::description->name => "Unités logistiques livrées chez un patient",
             ]);

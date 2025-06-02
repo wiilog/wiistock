@@ -56,7 +56,7 @@ class ArticleDataService
         private RefArticleDataService  $refArticleDataService,
         private FormatService          $formatService,
         private TranslationService     $translation,
-        private EmplacementDataService $emplacementDataService,
+        private LocationService        $locationService,
         private FieldModesService      $fieldModesService,
         private CSVExportService       $CSVExportService,
         private FreeFieldService       $freeFieldService,
@@ -338,7 +338,7 @@ class ArticleDataService
             } else {
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {
-                    $location = $this->emplacementDataService->persistLocation($entityManager, [
+                    $location = $this->locationService->persistLocation($entityManager, [
                         FixedFieldEnum::name->name => Emplacement::LABEL_A_DETERMINER,
                     ]);
                 }
