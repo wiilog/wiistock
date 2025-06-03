@@ -71,8 +71,8 @@
                             </div>
                             <div class="col-3">
                                 <div class="d-flex flex-column">
-                                    <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
-                                    <span class="wii-body-text">{{ project ? project.code : '-' }}</span>
+                                    <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet") }}</label>
+                                    <span class="wii-body-text">{{ project|format_helper('project', '-') }}</span>
                                 </div>
                             </div>
                             {% for name, value in freeFields ?? [] %}

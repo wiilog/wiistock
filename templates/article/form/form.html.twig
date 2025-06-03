@@ -133,7 +133,7 @@
                             <div class="col-12 col-md-6 d-flex">
                                 {% set required = fieldsParam|isFieldRequired(fieldProject.name, article.id ? 'requiredEdit' : 'requiredCreate') %}
                                 {{ form.select(fieldProject.name, {
-                                    text: fieldProject.value,
+                                    text: trans('Référentiel', 'Projet', "Projet", false),
                                     url: asset('svg/document.svg'),
                                 }, required, {
                                     type: 'project',

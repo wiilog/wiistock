@@ -251,6 +251,7 @@ class ArticleDataService
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $projectRepository = $entityManager->getRepository(Project::class);
+        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
 
         $statusLabel = $data->get('statut') ?? Article::STATUT_ACTIF;
         $statut = $this->cacheService->getEntity($entityManager, Statut::class, Article::CATEGORIE, $statusLabel)
@@ -333,7 +334,7 @@ class ArticleDataService
             }
 
             if ($data->has(FixedFieldEnum::nativeCountry->name)) {
-                $nativeCountry = $entityManager->find(NativeCountry::class, $data->getInt(FixedFieldEnum::nativeCountry->name));
+                $nativeCountry = $nativeCountryRepository->find($data->getInt(FixedFieldEnum::nativeCountry->name));
                 $existing->setNativeCountry($nativeCountry);
             }
         } else {
@@ -354,6 +355,10 @@ class ArticleDataService
 
             $project = $data->has(FixedFieldEnum::project->name)
                 ? $projectRepository->find($data->get(FixedFieldEnum::project->name))
+                : null;
+
+            $nativeCountry = $data->has(FixedFieldEnum::nativeCountry->name)
+                ? $nativeCountryRepository->find($data->getInt(FixedFieldEnum::nativeCountry->name))
                 : null;
 
             $articleFournisseurId = $data->getInt('articleFournisseur');
@@ -379,11 +384,8 @@ class ArticleDataService
                 ->setRFIDtag($data->get('rfidTag'))
                 ->setBatch($data->get(FixedFieldEnum::batch->name))
                 ->setCurrentLogisticUnit($data->get('currentLogisticUnit'))
-                ->setExpiryDate($this->formatService->parseDatetime($data->get(FixedFieldEnum::expiryDate->name), ['Y-m-d', 'd/m/Y']));
-
-            if($nativeCountryId = $data->get(FixedFieldEnum::nativeCountry->name)) {
-                $article->setNativeCountry($entityManager->find(NativeCountry::class, $nativeCountryId));
-            }
+                ->setExpiryDate($this->formatService->parseDatetime($data->get(FixedFieldEnum::expiryDate->name), ['Y-m-d', 'd/m/Y']))
+                ->setNativeCountry($nativeCountry);
 
             $entityManager->persist($article);
         }
@@ -494,7 +496,7 @@ class ArticleDataService
             'lu' => $this->templating->render("lu_icon.html.twig", [
                 'lu' => $ul,
             ]),
-            'project' => $article->getProject() ? $this->formatService->project($article->getProject()) : '',
+            'project' => $this->formatService->project($article->getProject()),
             "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',

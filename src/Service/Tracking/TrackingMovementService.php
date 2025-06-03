@@ -1712,6 +1712,7 @@ class TrackingMovementService {
                 )["movement"];
 
                 $luDrop->setLogisticUnitParent($pack);
+                $article->setProject($trackingPack->getProject());
                 $movements[] = $luDrop;
             }
 

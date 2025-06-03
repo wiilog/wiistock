@@ -735,6 +735,8 @@ class ShippingRequestController extends AbstractController {
                         );
                         $entityManager->persist($trackingMovementDropLogisticUnit);
                         $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
+
+                        $article->setProject($trackingMovementDrop->getPack()->getProject());
                     }
 
                     $requestLine = new ShippingRequestLine();
