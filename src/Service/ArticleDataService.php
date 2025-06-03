@@ -333,8 +333,8 @@ class ArticleDataService
             }
 
             if ($data->has(FixedFieldEnum::nativeCountry->name)) {
-                $nativeCountryId = $data->getInt(FixedFieldEnum::nativeCountry->name);
-                $existing->setNativeCountry($nativeCountryId ? $entityManager->find(NativeCountry::class, $data->getInt(FixedFieldEnum::nativeCountry->name)) : null);
+                $nativeCountry = $entityManager->find(NativeCountry::class, $data->getInt(FixedFieldEnum::nativeCountry->name));
+                $existing->setNativeCountry($nativeCountry);
             }
         } else {
             if ($data->has('emplacement')) {
@@ -494,9 +494,7 @@ class ArticleDataService
             'lu' => $this->templating->render("lu_icon.html.twig", [
                 'lu' => $ul,
             ]),
-            'project' => $article->getProject()
-                ? $this->formatService->project($article->getProject())
-                : ($article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? ''),
+            'project' => $article->getProject() ? $this->formatService->project($article->getProject()) : '',
             "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
