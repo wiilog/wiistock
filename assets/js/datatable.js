@@ -178,7 +178,7 @@ function overrideSearch($input, $table) {
     $input.addClass(`form-control`);
 }
 
-function datatableDrawCallback({response, callback, table, $table, needsPagingHide, needsSearchHide, hidePaging}) {
+function datatableDrawCallback({response, callback, $table, needsPagingHide, needsSearchHide, hidePaging}) {
     const recordsDisplay = response.fnRecordsDisplay();
     if(needsPagingHide && recordsDisplay !== undefined) {
         $table
@@ -199,10 +199,6 @@ function datatableDrawCallback({response, callback, table, $table, needsPagingHi
 
     if (callback) {
         callback();
-    }
-
-    if (table && typeof table.table === "function") {
-        renderDtInfo($(table.table().container()));
     }
 }
 
@@ -298,18 +294,35 @@ export function initDataTable($table, options) {
         }
         : {};
 
+    const initComplete = options.initComplete
+        ? options.initComplete
+        : () => {
+        let $searchInputContainer = $table.parents(`.dataTables_wrapper`).find(`.dataTables_filter`);
+        moveSearchInputToHeader($searchInputContainer);
+        if (initCompleteCallback) {
+            initCompleteCallback();
+        }
+        attachDropdownToBodyOnDropdownOpening($table);
+        if (config.page && config.page !== ``) {
+            getAndApplyOrder(config, datatableToReturn);
+        } else {
+            datatableToReturn.off(`column-reorder`);
+        }
+    }
+
     //Executed after each table refresh (show/hide, sorting, etc.)
-    //Ensure the icon info is always on the correct column
-    const drawCallback = function (response) {
-        const datatableApi = this.api ? this.api() : null;
+    //Ensure the info icon is always on the correct column
+    const drawCallback = options.drawCallback
+        ? options.drawCallback
+        : (response) => {
         datatableDrawCallback(Object.assign({
-            table: datatableApi,
+            table: datatableToReturn,
             response,
             $table
         }, drawConfig || {}));
 
-        if (datatableApi) {
-            initHeaderInfo(datatableApi, columnInfoConfig);
+        if (datatableToReturn) {
+            initHeaderInfo(datatableToReturn, columnInfoConfig);
         }
     };
 
@@ -380,22 +393,8 @@ export function initDataTable($table, options) {
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: drawCallback,
+            initComplete: initComplete,
             headerCallback:headerCallback,
-            initComplete: function () {
-                let $searchInputContainer = $table.parents(`.dataTables_wrapper`).find(`.dataTables_filter`);
-                moveSearchInputToHeader($searchInputContainer);
-                if (initCompleteCallback) {
-                    initCompleteCallback();
-                }
-                attachDropdownToBodyOnDropdownOpening($table);
-                if (config.page && config.page !== ``) {
-                    getAndApplyOrder(config, datatableToReturn);
-                } else {
-                    datatableToReturn.off(`column-reorder`);
-                }
-                initHeaderInfo(datatableToReturn, columnInfoConfig);
-            }
-
         }, colReorderActivated, config));
 
     const $datatableContainer = $(datatableToReturn.table().container());
@@ -484,8 +483,10 @@ function hash(str, seed = 0) {
 }
 
 function getAndApplyOrder(config, datatable) {
+    // If not set, "Cannot read properties of null"
+    // ("arrivage_index" page)
     if (!datatable || typeof datatable.off !== "function") {
-        return;
+         return;
     }
     const params = {
         page: config.page,
@@ -514,42 +515,44 @@ function getAndApplyOrder(config, datatable) {
 
 /**
  * Add i icon with a tooltip info according to config parameter
- * @param api
+ * @param {*} api
  * @param {Array<{
- *     id: number,
+ *     name: string,
  *     info: string,
  * }>} config Collection of object with id the datatable id column and the message to display
  */
 function initHeaderInfo(api,
                         config) {
-    if (!api || typeof api.table !== "function" || !api.table()) {
-        return;
-    }
 
-    $(api.table().header()).find('.header-info').remove();
-
+    const $header = $(api.table().header());
+    // Remove existing info icon : avoid duplicates
+    $header.find('.header-info').remove();
+    // Add the info icon where needed
     config.forEach(({name, info}) => {
-        if (!info) return;
+        if (!info) {
+            return;
+        }
 
-        const visibleIndex = api.columns().indexes().toArray().find(index => {
+        const allColumnIndexes = api.columns().indexes().toArray();
+        const columnIndexByName = allColumnIndexes.find(index => {
             return api.settings()[0].aoColumns[index].name === name;
         });
 
-        if (visibleIndex === undefined) return;
+        if (columnIndexByName === undefined) {
+            return;
+        }
 
-        const $th = $(api.column(visibleIndex).header());
-
-        $th.find('.header-info').remove();
+        const $th = $(api.column(columnIndexByName).header());
 
         const $content = $th.contents().not('.header-info');
-            // wrap title + icon
-            $th.html(
-                $('<span/>', {class: 'd-flex justify-content-between align-items-center'})
-                    .append($content)
-                    .append($('<i/>', {
-                        class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
-                        title: info,
-                    }))
-            );
-        });
-    }
+        // wrap title + icon
+        $th.html(
+            $('<span/>', {class: 'd-flex justify-content-between align-items-center'})
+                .append($content)
+                .append($('<i/>', {
+                    class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
+                    title: info,
+                }))
+        );
+    });
+}
