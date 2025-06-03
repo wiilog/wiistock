@@ -320,25 +320,13 @@ export function initDataTable($table, options) {
                 response,
                 $table
             }, drawConfig || {}));
-
-            const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
-            overrideSearch($searchInput, $table);
-
-            setTimeout(() => {
-            if (datatableToReturn) {
-                initHeaderInfo(datatableToReturn, columnInfoConfig);
-            }
-
-            $('body > [role=tooltip]').remove();
-            });
         };
 
     const headerCallback = options.headerCallback
         ? options.headerCallback
         : () => {
-            if (datatableToReturn) {
-                initHeaderInfo(datatableToReturn, columnInfoConfig);
-            }
+            initHeaderInfo(datatableToReturn, columnInfoConfig);
+
             if (config.headerCallback) {
                 config.headerCallback.apply(this, arguments);
             }
@@ -400,7 +388,18 @@ export function initDataTable($table, options) {
             },
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
-            drawCallback: drawCallback,
+            drawCallback: (response) => {
+                const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
+                overrideSearch($searchInput, $table);
+
+                //remove any ghost tooltip that could be caused by
+                //datatable refresh while a tooltip is open
+                $(`body > [role=tooltip]`).remove();
+
+                setTimeout(() => {
+                    drawCallback(response);
+                });
+            },
             initComplete: () => {
                 setTimeout(() => {
                     initComplete();
