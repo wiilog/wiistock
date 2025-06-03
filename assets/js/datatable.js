@@ -178,7 +178,7 @@ function overrideSearch($input, $table) {
     $input.addClass(`form-control`);
 }
 
-function datatableDrawCallback({response, callback, table, $table, needsPagingHide, needsSearchHide, hidePaging}) {
+function datatableDrawCallback({response, callback, $table, needsPagingHide, needsSearchHide, hidePaging}) {
     const recordsDisplay = response.fnRecordsDisplay();
     if(needsPagingHide && recordsDisplay !== undefined) {
         $table
@@ -200,8 +200,6 @@ function datatableDrawCallback({response, callback, table, $table, needsPagingHi
     if (callback) {
         callback();
     }
-
-    renderDtInfo($(table.table().container()));
 }
 
 export function moveSearchInputToHeader($searchInputContainer) {
@@ -250,7 +248,7 @@ export function initDataTable($table, options) {
     (config.columns || []).forEach((column, id) => {
         if (column.info) {
             columnInfoConfig.push({
-                id,
+                name: column.name,
                 info: column.info,
             });
         }
@@ -296,16 +294,6 @@ export function initDataTable($table, options) {
         }
         : {};
 
-    const drawCallback = options.drawCallback
-        ? options.drawCallback
-        : (response) => {
-            datatableDrawCallback(Object.assign({
-                table: datatableToReturn,
-                response,
-                $table
-            }, drawConfig || {}));
-        };
-
     const initComplete = options.initComplete
         ? options.initComplete
         : () => {
@@ -319,6 +307,28 @@ export function initDataTable($table, options) {
                 getAndApplyOrder(config, datatableToReturn);
             } else {
                 datatableToReturn.off(`column-reorder`);
+            }
+        }
+
+    //Executed after each table refresh (show/hide, sorting, etc.)
+    //Ensure the info icon is always on the correct column
+    const drawCallback = options.drawCallback
+        ? options.drawCallback
+        : (response) => {
+            datatableDrawCallback(Object.assign({
+                table: datatableToReturn,
+                response,
+                $table
+            }, drawConfig || {}));
+        };
+
+    const headerCallback = options.headerCallback
+        ? options.headerCallback
+        : () => {
+            initHeaderInfo(datatableToReturn, columnInfoConfig);
+
+            if (config.headerCallback) {
+                config.headerCallback.apply(this, arguments);
             }
         };
 
@@ -380,28 +390,25 @@ export function initDataTable($table, options) {
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
-
                 overrideSearch($searchInput, $table);
-                setTimeout(() => {
-                    drawCallback(response);
-                });
 
                 //remove any ghost tooltip that could be caused by
                 //datatable refresh while a tooltip is open
                 $(`body > [role=tooltip]`).remove();
+
+                setTimeout(() => {
+                    drawCallback(response);
+                });
             },
             initComplete: () => {
                 setTimeout(() => {
                     initComplete();
                 });
             },
-            headerCallback: (...args) => {
-                const [thead] = args;
-                initHeaderInfo(thead, columnInfoConfig);
-
-                if (config.headerCallback) {
-                    config.headerCallback(...args);
-                }
+            headerCallback: () => {
+                setTimeout(() => {
+                    headerCallback();
+                });
             },
         }, colReorderActivated, config));
 
@@ -423,12 +430,6 @@ function setPreviousAction($table, type = SEARCH_ACTION) {
             .removeAttr(`previous-action`)
             .removeData(`previous-action`);
     }
-}
-
-function renderDtInfo($table) {
-    $table
-        .find(`.dataTables_info`)
-        .addClass(`pt-0`);
 }
 
 export function initSearchDate(table, columnName = `date`) {
@@ -491,6 +492,7 @@ function hash(str, seed = 0) {
 }
 
 function getAndApplyOrder(config, datatable) {
+
     const params = {
         page: config.page,
     };
@@ -518,33 +520,44 @@ function getAndApplyOrder(config, datatable) {
 
 /**
  * Add i icon with a tooltip info according to config parameter
- * @param {HTMLTableSectionElement} theadHtml
+ * @param {*} api
  * @param {Array<{
- *     id: number,
+ *     name: string,
  *     info: string,
  * }>} config Collection of object with id the datatable id column and the message to display
  */
-function initHeaderInfo(theadHtml,
+function initHeaderInfo(api,
                         config) {
-    const $ths = $(theadHtml).find(`th`);
-    for (const {id, info} of config) {
+
+    const $header = $(api.table().header());
+    // Remove existing info icon : avoid duplicates
+    $header.find('.header-info').remove();
+    // Add the info icon where needed
+    config.forEach(({name, info}) => {
         if (!info) {
-            continue;
+            return;
         }
 
-        const $th = $ths.eq(id);
-        if (!$th.find('.header-info').exists()) {
-            const $content = $th.html();
+        const allColumnIndexes = api.columns().indexes().toArray();
+        const columnIndexByName = allColumnIndexes.find(index => {
+            return api.settings()[0].aoColumns[index].name === name;
+        });
 
-            // wrap title + icon
-            $th.html(
-                $('<span/>', {class: 'd-flex justify-content-between align-items-center'})
-                    .append($content)
-                    .append($('<i/>', {
-                        class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
-                        title: info,
-                    }))
-            );
+        if (columnIndexByName === undefined) {
+            return;
         }
-    }
+
+        const $th = $(api.column(columnIndexByName).header());
+
+        const $content = $th.contents().not('.header-info');
+        // wrap title + icon
+        $th.html(
+            $('<span/>', {class: 'd-flex justify-content-between align-items-center'})
+                .append($content)
+                .append($('<i/>', {
+                    class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
+                    title: info,
+                })),
+        );
+    });
 }
