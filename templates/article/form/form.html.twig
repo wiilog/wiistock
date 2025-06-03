@@ -123,14 +123,11 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="wii-section-title d-flex align-items-center pl-3">
-                    <span class="wii-icon wii-icon-document wii-icon-15px-primary mr-2"></span>{{ trans('Référentiel', 'Projet', "Projet", false) }}
-                </div>
                 <div class="content">
-                    <div class="row mt-3">
+                    <div class="row mt-2">
                         {% set fieldProject = constant('App\\Entity\\Fields\\FixedFieldEnum::project') %}
                         {% if fieldsParam|isFieldRequired(fieldProject.name, article.id ? 'displayedEdit' : 'displayedCreate') %}
-                            <div class="col-12 col-md-6 d-flex">
+                            <div class="col-12 col-md-6 d-flex mb-2">
                                 {% set required = fieldsParam|isFieldRequired(fieldProject.name, article.id ? 'requiredEdit' : 'requiredCreate') %}
                                 {{ form.select(fieldProject.name, {
                                     text: trans('Référentiel', 'Projet', "Projet", false),

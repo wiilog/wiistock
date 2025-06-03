@@ -118,13 +118,6 @@
                                     <span class="wii-body-text">{{ article.project|format_helper('project', '-') }}</span>
                                 </label>
                             </div>
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône projet" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Assigné le</span>
-                                    <span class="wii-body-text">{{ currentProjectDate ? currentProjectDate | format_helper('longDate', {time: true}) : '-' }}</span>
-                                </label>
-                            </div>
                         </div>
                         {% if projectHistory is not empty %}
                             <table class="table mt-2">
