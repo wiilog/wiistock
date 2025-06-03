@@ -151,7 +151,7 @@ CREATE TABLE dw_reception
     arrivage_id              integer,
     prix_unitaire            float,
     frais_livraison          float,
-    pieces_jointes           varchar(255)
+    pieces_jointes           text
 );
 
 CREATE TABLE dw_reference_article

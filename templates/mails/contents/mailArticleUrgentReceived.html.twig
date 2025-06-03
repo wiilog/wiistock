@@ -10,7 +10,7 @@
     <div>Commentaire de l'urgence : {{ emergency.comment|format_helper('html') }}</div>
     <div>Emplacement attendu de l'urgence : {{ emergency.expectedLocation|format_helper('location') }}</div>
     <div>Numéro de commande de l'urgence : {{ emergency.orderNumber }}</div>
-    <div>Transporteur de l'urgence : {{ emergency.expectedLocation|format_helper('carrier') }}</div>
+    <div>Transporteur de l'urgence : {{ emergency.carrier|format_helper('carrier') }}</div>
     <div>Numéro de tracking transporteur de l'urgence : {{ emergency.carrierTrackingNumber }}</div>
     <br>
     <br>
