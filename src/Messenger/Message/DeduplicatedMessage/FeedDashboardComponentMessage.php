@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Messenger\Dashboard;
+namespace App\Messenger\Message\DeduplicatedMessage;
 
-use App\Messenger\MessageInterface;
 use App\Service\Dashboard\DashboardComponentGenerator\DashboardComponentGenerator;
-use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
-use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueMessage;
 
-class FeedDashboardComponentMessage implements UniqueMessage, MessageInterface {
+class FeedDashboardComponentMessage implements DeduplicatedMessageInterface {
 
     /**
      * @param class-string<DashboardComponentGenerator> $generatorClass
      */
-    public function __construct(private int $componentId, private string $generatorClass) {}
+    public function __construct(
+        private int    $componentId,
+        private string $generatorClass
+    ) {
+    }
 
     public function getComponentId(): ?int {
         return $this->componentId;
@@ -26,7 +27,8 @@ class FeedDashboardComponentMessage implements UniqueMessage, MessageInterface {
     }
 
     public function getUniqueKey(): string {
-        return $this->componentId;
+        $classCode = str_replace("\\", "_", get_class($this));
+        return "{$classCode}_{$this->componentId}";
     }
 
     public function normalize(): array {
