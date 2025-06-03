@@ -297,44 +297,52 @@ export function initDataTable($table, options) {
     const initComplete = options.initComplete
         ? options.initComplete
         : () => {
-        let $searchInputContainer = $table.parents(`.dataTables_wrapper`).find(`.dataTables_filter`);
-        moveSearchInputToHeader($searchInputContainer);
-        if (initCompleteCallback) {
-            initCompleteCallback();
+            let $searchInputContainer = $table.parents(`.dataTables_wrapper`).find(`.dataTables_filter`);
+            moveSearchInputToHeader($searchInputContainer);
+            if (initCompleteCallback) {
+                initCompleteCallback();
+            }
+            attachDropdownToBodyOnDropdownOpening($table);
+            if (config.page && config.page !== ``) {
+                getAndApplyOrder(config, datatableToReturn);
+            } else {
+                datatableToReturn.off(`column-reorder`);
+            }
         }
-        attachDropdownToBodyOnDropdownOpening($table);
-        if (config.page && config.page !== ``) {
-            getAndApplyOrder(config, datatableToReturn);
-        } else {
-            datatableToReturn.off(`column-reorder`);
-        }
-    }
 
     //Executed after each table refresh (show/hide, sorting, etc.)
     //Ensure the info icon is always on the correct column
     const drawCallback = options.drawCallback
         ? options.drawCallback
         : (response) => {
-        datatableDrawCallback(Object.assign({
-            table: datatableToReturn,
-            response,
-            $table
-        }, drawConfig || {}));
+            datatableDrawCallback(Object.assign({
+                table: datatableToReturn,
+                response,
+                $table
+            }, drawConfig || {}));
 
-        if (datatableToReturn) {
-            initHeaderInfo(datatableToReturn, columnInfoConfig);
-        }
-    };
+            const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
+            overrideSearch($searchInput, $table);
 
-    const headerCallback = function () {
-        const api = this.api ? this.api() : null;
-        if (api) {
-            initHeaderInfo(api, columnInfoConfig);
-        }
-        if (config.headerCallback) {
-            config.headerCallback.apply(this, arguments);
-        }
-    };
+            setTimeout(() => {
+            if (datatableToReturn) {
+                initHeaderInfo(datatableToReturn, columnInfoConfig);
+            }
+
+            $('body > [role=tooltip]').remove();
+            });
+        };
+
+    const headerCallback = options.headerCallback
+        ? options.headerCallback
+        : () => {
+            if (datatableToReturn) {
+                initHeaderInfo(datatableToReturn, columnInfoConfig);
+            }
+            if (config.headerCallback) {
+                config.headerCallback.apply(this, arguments);
+            }
+        };
 
     const initial = $table.data(`initial-data`);
 
@@ -393,8 +401,16 @@ export function initDataTable($table, options) {
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: drawCallback,
-            initComplete: initComplete,
-            headerCallback:headerCallback,
+            initComplete: () => {
+                setTimeout(() => {
+                    initComplete();
+                });
+            },
+            headerCallback: () => {
+                setTimeout(() => {
+                    headerCallback();
+                });
+            },
         }, colReorderActivated, config));
 
     const $datatableContainer = $(datatableToReturn.table().container());
@@ -415,12 +431,6 @@ function setPreviousAction($table, type = SEARCH_ACTION) {
             .removeAttr(`previous-action`)
             .removeData(`previous-action`);
     }
-}
-
-function renderDtInfo($table) {
-    $table
-        .find(`.dataTables_info`)
-        .addClass(`pt-0`);
 }
 
 export function initSearchDate(table, columnName = `date`) {
@@ -483,11 +493,7 @@ function hash(str, seed = 0) {
 }
 
 function getAndApplyOrder(config, datatable) {
-    // If not set, "Cannot read properties of null"
-    // ("arrivage_index" page)
-    if (!datatable || typeof datatable.off !== "function") {
-         return;
-    }
+
     const params = {
         page: config.page,
     };
@@ -552,7 +558,7 @@ function initHeaderInfo(api,
                 .append($('<i/>', {
                     class: 'header-info has-tooltip wii-icon wii-icon-info wii-icon-10px ml-2 bg-primary',
                     title: info,
-                }))
+                })),
         );
     });
 }
