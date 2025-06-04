@@ -92,4 +92,13 @@ enum FixedFieldEnum: string
     case reference = "Référence";
     case dateStart = "Date de début";
     case dateEnd = "Date de fin";
+    case project = "Projet";
+    case batch = "Lot";
+    case anomaly = "Anomalie";
+    case expiryDate = "Date de péremption";
+    case deliveryNoteLine = "Ligne bon de livraison";
+    case manufacturedAt = "Date de fabrication";
+    case productionDate = "Date de production";
+    case purchaseOrderLine = "Ligne commande d'achat";
+    case nativeCountry = "Pays d'origine";
 }

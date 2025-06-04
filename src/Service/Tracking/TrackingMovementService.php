@@ -1675,6 +1675,9 @@ class TrackingMovementService {
 
             // now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
+
+            $packProject = $pack?->getProject();
+
             // then change the project of the article according to the pack project
             $this->projectHistoryRecordService->changeProject($manager, $article, $pack?->getProject(), $trackingDate);
 
@@ -1711,7 +1714,9 @@ class TrackingMovementService {
                     $options + ["stockAction" => true],
                 )["movement"];
 
-                $luDrop->setLogisticUnitParent($pack);
+                if ($packProject) {
+                    $article->setProject($packProject);
+                }
                 $movements[] = $luDrop;
             }
 

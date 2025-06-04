@@ -86,16 +86,17 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_ARTICLE => [
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_UNIT_PRICE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_UNIT_PRICE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_BATCH, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_BATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_ANOMALY, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_ANOMALY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_EXPIRY_DATE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_EXPIRY_DATE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_COMMENT, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_COMMENT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_MANUFACTURED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::unitPrice->name, 'label' => FixedFieldEnum::unitPrice->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::batch->name, 'label' => FixedFieldEnum::batch->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::anomaly->name, 'label' => FixedFieldEnum::anomaly->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::expiryDate->name, 'label' => FixedFieldEnum::expiryDate->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::comment->name, 'label' => FixedFieldEnum::comment->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::deliveryNoteLine->name, 'label' => FixedFieldEnum::deliveryNoteLine->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::manufacturedAt->name, 'label' => FixedFieldEnum::manufacturedAt->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::productionDate->name, 'label' => FixedFieldEnum::productionDate->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::purchaseOrderLine->name, 'label' => FixedFieldEnum::purchaseOrderLine->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::nativeCountry->name, 'label' => FixedFieldEnum::nativeCountry->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::project->name, 'label' => FixedFieldEnum::project->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
         ];
 
