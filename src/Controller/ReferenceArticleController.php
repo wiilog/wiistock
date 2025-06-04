@@ -10,6 +10,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
@@ -501,6 +502,8 @@ class ReferenceArticleController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
+            $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
+            $stockEmergencyRepository = $entityManager->getRepository(StockEmergency::class);
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -521,12 +524,14 @@ class ReferenceArticleController extends AbstractController
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || $refArticle->getTrackingPack()
                 || $shippingRequestLineRepository->count(['reference' => $refArticle]) > 0
+                || $dispatchReferenceArticleRepository->count(['referenceArticle' => $refArticle]) > 0
+                || $stockEmergencyRepository->count(['referenceArticle' => $refArticle]) > 0
                 || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception, une expédition ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception, un acheminement, une urgence, une expédition ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }

@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryLocationMission;
