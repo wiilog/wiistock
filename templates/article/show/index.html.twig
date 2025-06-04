@@ -105,16 +105,11 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
-                    <div class="wii-section-title d-flex align-items-center pl-3">
-                        <span class="wii-icon wii-icon-document wii-icon-15px-primary mr-2"></span>{{ trans('Référentiel', 'Projet', "Projet", false) }}
-                    </div>
-                    <div class="content">
-                        <div class="row">
-                            <div class="col-12 col-md-6 d-flex">
+                        <div class="row mt-3">
+                            <div class="col-12 col-md-4 d-flex">
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) | lower }}</span>
+                                    <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet") }}</span>
                                     <span class="wii-body-text">{{ article.project|format_helper('project', '-') }}</span>
                                 </label>
                             </div>

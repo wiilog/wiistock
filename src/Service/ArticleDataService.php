@@ -287,6 +287,15 @@ class ArticleDataService
         $type = $refArticle->getType();
         $quantity = max(($data->getInt('quantite', 0)), 0); // protection contre quantités négatives
 
+        $projectId = $data->getInt(FixedFieldEnum::project->name);
+        $project = $projectId
+            ? $projectRepository->find($projectId)
+            : null;
+        $nativeCountryId = $data->getInt(FixedFieldEnum::nativeCountry->name);
+        $nativeCountry = $nativeCountryId
+            ? $nativeCountryRepository->find($nativeCountryId)
+            : null;
+
         if ($existing) {
             if ($data->has('rfidTag')) {
                 $existing->setRFIDtag($data->get('rfidTag'));
@@ -329,12 +338,10 @@ class ArticleDataService
             }
 
             if ($data->has(FixedFieldEnum::project->name)) {
-                $project = $projectRepository->find($data->get(FixedFieldEnum::project->name));
                 $existing->setProject($project);
             }
 
             if ($data->has(FixedFieldEnum::nativeCountry->name)) {
-                $nativeCountry = $nativeCountryRepository->find($data->getInt(FixedFieldEnum::nativeCountry->name));
                 $existing->setNativeCountry($nativeCountry);
             }
         } else {
@@ -352,14 +359,6 @@ class ArticleDataService
                 }
                 $location->setIsActive(true);
             }
-
-            $project = $data->has(FixedFieldEnum::project->name)
-                ? $projectRepository->find($data->get(FixedFieldEnum::project->name))
-                : null;
-
-            $nativeCountry = $data->has(FixedFieldEnum::nativeCountry->name)
-                ? $nativeCountryRepository->find($data->getInt(FixedFieldEnum::nativeCountry->name))
-                : null;
 
             $articleFournisseurId = $data->getInt('articleFournisseur');
 

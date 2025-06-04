@@ -101,7 +101,7 @@
                 <div class="content">
                     <div class="row">
                         {% if article.id %}
-                            <div class="col-12 col-md-5 d-flex">
+                            <div class="col-12 col-md-6 d-flex form-group">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date d'entrée en stock</span>
@@ -114,20 +114,17 @@
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
-                            <div class="col-12 col-md-4 d-flex">
+                            <div class="col-12 col-md-6 d-flex form-group">
                                 {{ form.switch('conform', {url: '/svg/reference_article/threshold.svg', text: 'Anomalie'}, required, [
                                     {label: 'Oui', value: '0', checked: article.id and article.conform is not null and article.conform == 0},
                                     {label: 'Non', value: '1', checked: not article.id or (article.id and article.conform is not null and article.conform == 1)},
                                 ]) }}
                             </div>
                         {% endif %}
-                    </div>
-                </div>
-                <div class="content">
-                    <div class="row mt-2">
+
                         {% set fieldProject = constant('App\\Entity\\Fields\\FixedFieldEnum::project') %}
                         {% if fieldsParam|isFieldRequired(fieldProject.name, article.id ? 'displayedEdit' : 'displayedCreate') %}
-                            <div class="col-12 col-md-6 d-flex mb-2">
+                            <div class="col-12 col-md-6 d-flex form-group">
                                 {% set required = fieldsParam|isFieldRequired(fieldProject.name, article.id ? 'requiredEdit' : 'requiredCreate') %}
                                 {{ form.select(fieldProject.name, {
                                     text: trans('Référentiel', 'Projet', "Projet", false),

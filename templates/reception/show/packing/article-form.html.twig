@@ -7,7 +7,7 @@
 {% set displayAction = constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
 {% set requiredAction = constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
 
-<div class="col-2">
+<div class="col-12 col-md-4 col-lg-2">
     <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
         {{ form.input('quantityToReceive', 'Article(s)', true, 1, {
             type: 'number',
@@ -15,28 +15,29 @@
         }) }}
     </div>
 </div>
-<div class="col-10">
-    <div class="values">
-        <div class="d-flex">
-            <div class="col-2 form-group mt-2">
+<div class="col-12 col-md-8 col-lg-10">
+    <div class="values p-3">
+        <div class="row">
+            <div class="col-12 col-lg-3 form-group mt-2">
                 {% set receivedQuantity = receptionReferenceArticle.quantite ?? 0 %}
                 {% set quantityToReceived = receptionReferenceArticle.quantiteAR ?? 0 %}
                 {% set quantity = quantityToReceived - receivedQuantity %}
                 {{ form.number('quantity', 'Quantité', true, quantity ? quantity : null, {
                     buttons: false,
+                    labelClass: 'w-100',
                     min: 1,
                 }) }}
             </div>
             {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::batch') %}
             {% if fieldsParam|isFieldRequired(field.name, displayAction) %}
-                <div class="col-3 form-group mt-2">
+                <div class="col-12 col-lg-3 form-group mt-2">
                     {{ form.input(field.name, field.value, fieldsParam|isFieldRequired(field.name, requiredAction)) }}
                 </div>
             {% endif %}
 
             {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expiryDate') %}
             {% if fieldsParam|isFieldRequired(field.name, displayAction) %}
-                <div class="col-3 form-group mt-2">
+                <div class="col-12 col-lg-3 form-group mt-2">
                     {{ form.input(field.name, field.value, fieldsParam|isFieldRequired(field.name, requiredAction), '', {
                         type: 'date',
                     }) }}
@@ -45,7 +46,7 @@
 
             {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::project') %}
             {% if fieldsParam|isFieldRequired(field.name, displayAction) %}
-                <div class="col-3 form-group mt-2">
+                <div class="col-12 col-lg-3 form-group mt-2">
                     {{ form.select(field.name, field.value, fieldsParam|isFieldRequired(field.name, requiredAction), {
                         type: 'project',
                         items: packProject
@@ -62,10 +63,9 @@
         {% include 'free_field/freeFieldsEdit.html.twig' with {
             freeFieldManagementRules: type.freeFieldManagementRules,
             freeFieldValues: [],
-            colType: 'col-md-4 col-12',
+            colType: 'col-12 col-lg-3 ',
             requiredType: 'requiredCreate',
             actionType: 'new',
-            containerClasses: 'row px-3'
         } %}
     </div>
 </div>
