@@ -7,8 +7,10 @@ use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\IOT\Sensor;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
@@ -22,6 +24,7 @@ use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Type\CategoryType;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
@@ -105,7 +108,7 @@ class PackService {
         $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
-            'fields' => $this->getPackListColumnVisibleConfig($currentUser),
+            'fields' => $this->getPackListColumnVisibleConfig($currentUser, $this->entityManager),
         ]);
 
         $packs = $queryResult["data"];
@@ -188,7 +191,17 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        return [
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+
+        $freeFieldsData = [];
+        foreach ($freeFields as $freeField) {
+            $id = $freeField->getId();
+            $columnKey = "free_field_$id";
+            $freeFieldsData[$columnKey] = $arrival ? $arrival->getFreeFieldValue($id) : '';
+        }
+
+        return array_merge([
             'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
                 'pack' => $pack,
@@ -227,7 +240,7 @@ class PackService {
                     "from" => $this->formatService->pack($pack->getGroup()),
                 ])
                 : '',
-        ];
+        ],$freeFieldsData);
     }
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
@@ -578,14 +591,16 @@ class PackService {
                 ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
-            $columnsVisible
+            $columnsVisible,
         );
     }
 
-    public function getPackListColumnVisibleConfig(Utilisateur $currentUser): array {
+    public function getPackListColumnVisibleConfig(Utilisateur $currentUser,
+                                                   EntityManagerInterface $entityManager): array {
         $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
         $hasRightAddToCart = $this->userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART);
-
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
@@ -620,8 +635,9 @@ class PackService {
                 ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement'],
                 ['name' => 'group', 'title' =>  'Groupe rattaché'],
             ],
-            [],
-            $columnsVisible
+            $freeFields,
+            $columnsVisible,
+            false
         );
     }
 
@@ -961,7 +977,7 @@ class PackService {
     }
 
     public function getCsvHeader(): array {
-        return  [
+        $header =  [
             $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
             $this->translationService->translate('Traçabilité', 'Général', 'Nature', false),
             $this->translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
@@ -976,6 +992,12 @@ class PackService {
             'Poids (kg)',
             'Volume (m3)',
         ];
+            $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+            $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+            foreach ($freeFields as $freeField) {
+                $header[] = $freeField->getLabel();
+            }
+        return $header;
     }
 
 
@@ -984,8 +1006,10 @@ class PackService {
                                            EntityManagerInterface $entityManager): callable {
         $packRepository = $entityManager->getRepository(Pack::class);
         $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
-        return function ($handle) use ($packs) {
+        return function ($handle) use ($packs, $freeFields) {
             foreach ($packs as $pack) {
                 $mvtData = $this->trackingMovementService->getFromColumnData([
                     'entity' => $pack['entity'],
@@ -994,12 +1018,12 @@ class PackService {
                 ]);
 
                 $pack = Stream::from($mvtData, $pack)->toArray();
-                $this->putPackLine($handle, $pack);
+                $this->putPackLine($handle, $pack, $freeFields);
             }
         };
     }
 
-    public function putPackLine($handle, array $pack): void {
+    public function putPackLine($handle, array $pack, array $freeFields = []): void {
         $line = [
             $pack['code'],
             $pack['nature'],
@@ -1015,6 +1039,15 @@ class PackService {
             $pack['weight'],
             $pack['volume'],
         ];
+
+        $freeFieldsValues = $pack['freeFieldsValues'];
+
+        foreach ($freeFields as $freeField) {
+            $value = $freeFieldsValues[$freeField->getId()] ?? '';
+
+            $line[] = $value;
+        }
+
         $this->CSVExportService->putLine($handle, $line);
     }
 

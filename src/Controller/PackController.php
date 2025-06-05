@@ -6,10 +6,12 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -60,9 +62,8 @@ class PackController extends AbstractController {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
-
-        $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
-
+        $freeFields = $packService->getPackListColumnVisibleConfig($this->getUser(), $entityManager);
+        $fields = $packService->getPackListColumnVisibleConfig($this->getUser(), $entityManager);
         $data = $request->query;
 
         $dashboardComponentId = $data->get("dashboardComponentId");
@@ -104,6 +105,7 @@ class PackController extends AbstractController {
             'fromDashboard' => $fromDashboard ?? false,
             'packWithTracking' => $isPackWithTracking,
             'trackingDelayEvent' => $trackingDelayEvent ?? null,
+            'freeFields' => $freeFields
         ]);
     }
 
@@ -120,13 +122,18 @@ class PackController extends AbstractController {
         $arrival = $logisticUnit->getArrivage();
         $truckArrival = $arrival?->getTruckArrival();
 
-        $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
+        $fields = $packService->getPackListColumnVisibleConfig($this->getUser(), $entityManager);
         $lastMessage = $logisticUnit->getLastMessage();
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
 
         // get last tracking delay for select
         // only last 10
         $lastTenTrackingDelays = $trackingDelayRepository->findLastTrackingDelaysByPack($logisticUnit);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $type = $arrival?->getType();
+        $freeFields = $type
+            ? $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARRIVAGE)
+            : [];
 
         return $this->render('pack/show.html.twig', [
             "packActionButtons" => $packService->getActionButtons($logisticUnit, $hasPairing),
@@ -144,6 +151,7 @@ class PackController extends AbstractController {
             "currentTrackingDelay" => $packService->formatTrackingDelayData($logisticUnit),
             "lastTenTrackingDelays" => $lastTenTrackingDelays,
             "hasPairing" => $hasPairing,
+            "freeFields" => $freeFields
         ]);
     }
 

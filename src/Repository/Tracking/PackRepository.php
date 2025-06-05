@@ -6,6 +6,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Reception;
@@ -24,6 +25,8 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
+use App\Entity\Type\CategoryType;
+use App\Entity\CategorieCL;
 
 class PackRepository extends EntityRepository
 {
@@ -97,6 +100,7 @@ class PackRepository extends EntityRepository
             ->addSelect('join_supplier.nom AS supplier')
             ->addSelect('join_carrier.label AS carrier')
             ->addSelect('join_arrival.numeroCommandeList AS orderNumbers')
+            ->addSelect('join_arrival.freeFields AS freeFieldsValues')
             ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
             ->leftJoin('pack.lastAction', 'join_last_action')
             ->leftJoin('pack.group', 'join_group')
@@ -181,6 +185,10 @@ class PackRepository extends EntityRepository
             ->leftJoin('pack.article', 'article')
             ->andWhere('article.currentLogisticUnit IS NULL');
         $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
+
+        $queryBuilder->leftJoin('pack.arrivage', 'arrival');
+        $freeFieldsRepository = $this->getEntityManager()->getRepository(FreeField::class);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -296,6 +304,10 @@ class PackRepository extends EntityRepository
                     "child_articles_search.barCode LIKE :value"
                 ];
 
+                foreach ($freeFields as $freeField) {
+                    $freeFieldId = $freeField->getId();
+                    $searchParams[] = "JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"') LIKE :value";
+                }
                 $queryBuilder
                     ->leftJoin('pack.arrivage', 'search_arrival')
                     ->leftJoin('pack.lastAction', 'search_last_action')
@@ -385,8 +397,12 @@ class PackRepository extends EntityRepository
         if (!empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
             if (!empty($order)) {
-                $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
-                if ($column === 'location') {
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+                //Extract id from freefield column name
+                if (preg_match('/^free_field_(\d+)$/', $column, $matches)) {
+                   $freeFieldId = $matches[1];
+                    $queryBuilder->orderBy("JSON_UNQUOTE(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"'))", $order);
+                } else if ($column === 'ongoingLocation') {
                     $queryBuilder
                         ->leftJoin('pack.lastAction', 'order_packLocation_pack_lastAction')
                         ->leftJoin('order_packLocation_pack_lastAction.emplacement', 'order_packLocation_pack_lastAction_emplacement')

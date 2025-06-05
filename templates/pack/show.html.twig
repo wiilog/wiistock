@@ -313,6 +313,19 @@
                             <table id="projectHistoryTable" class="table w-100"></table>
                         </div>
                     </div>
+                    <div class="wii-box mt-3">
+                        {% if arrival %}
+                        {% set plural = freeFields | length > 1 ? 's' : '' %}
+                        <div class="header wii-title">Champ{{ plural }} libre{{ plural }}</div>
+                        <div class="px-3">
+                            {% include 'free_field/freeFieldsShow.html.twig' with {
+                                containerClass: 'content row',
+                                values: arrival.freeFields,
+                                freeFields: freeFields,
+                            } %}
+                        </div>
+                        {% endif %}
+                    </div>
                 {% endif %}
                 {% if isGroup %}
                     <div class="wii-box">
