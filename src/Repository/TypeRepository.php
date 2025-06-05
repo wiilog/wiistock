@@ -7,6 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Dispute;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Handling;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Reception;
@@ -210,6 +211,7 @@ class TypeRepository extends EntityRepository {
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
             ['class' => TransportRequest::class, 'where' => 'item.type = :id'],
             ['class' => TransportHistoryRecord::class, 'where' => 'item.type = :id'],
+            ['class' => Emergency::class, 'where' => 'item.type = :id'],
         ];
 
         $resultsCount = array_map(function(array $table) use ($entityManager, $typeId) {
