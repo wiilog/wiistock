@@ -306,8 +306,8 @@ class PackService {
             ->setVolume($volume)
             ->setComment($comment);
 
-        if ($pack->isGroup()
-            && $this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) != 1) {
+        if (!$pack->isGroup()
+            || $this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) != 1) {
             $pack->setNature($nature);
         }
     }
