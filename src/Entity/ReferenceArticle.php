@@ -26,6 +26,8 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
+#[ORM\Index(fields: ['quantiteDisponible'])]
+#[ORM\Index(fields: ['quantiteStock'])]
 class ReferenceArticle implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;

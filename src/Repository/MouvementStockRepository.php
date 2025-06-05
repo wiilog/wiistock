@@ -515,7 +515,6 @@ class MouvementStockRepository extends EntityRepository {
             ->addSelect("article.id AS articleId")
             ->addSelect("COUNT_OVER(movement.id) AS __query_count")
             ->addSelect("reference_article.reference AS referenceReference")
-            ->addSelect("article_reference_article.reference AS articleReference")
             ->addSelect("reference_article.libelle AS referenceLabel")
             ->addSelect("article.label AS articleLabel")
             ->addSelect("reference_article.barCode AS referenceBarCode")
@@ -525,16 +524,10 @@ class MouvementStockRepository extends EntityRepository {
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleeping_stock_plan.maxStorageTime AS maxStorageTime")
             ->addSelect("DATE_ADD(movement.date, sleeping_stock_plan.maxStorageTime, 'second') AS maxStorageDate")
-            ->andWhere(
-                $expr->orX(
-                    $expr->isMemberOf(":user", "reference_article.managers"),
-                    $expr->isMemberOf(":user", "article_reference_article.managers"),
-                )
-            )
-            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur", "articles_fournisseur")
-            ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
+            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement OR reference_article = articles_fournisseur.referenceArticle')
+            ->innerJoin('reference_article.managers', 'reference_article_manager', Join::WITH, 'reference_article_manager = :user')
             ->setParameter("user", $user);
 
         self::filterSleepingStock(
@@ -565,7 +558,7 @@ class MouvementStockRepository extends EntityRepository {
                         default => throw new RuntimeException("Unknown entity, invalid id"),
                     },
                     "id" => $item["referenceArticleId"] ?? $item["articleId"],
-                    "reference" => $item["referenceReference"] ?? $item["articleReference"],
+                    "reference" => $item["referenceReference"],
                     "label" => $item["referenceLabel"] ?? $item["articleLabel"],
                     "barCode" => $item["referenceBarCode"] ?? $item["articleBarCode"],
                     "quantityStock" => $item["referenceQuantityStock"] ?? $item["articleQuantityStock"],
@@ -594,16 +587,29 @@ class MouvementStockRepository extends EntityRepository {
 
         $exprBuilder = $queryBuilder->expr();
 
+        // need to be set before other inner join else we have mysql Column not found error
+        if ($type) {
+            $queryBuilder
+                ->innerJoin("$referenceArticleAlias.type", $typeAlias);
+        }
+        else {
+            $queryBuilder
+                ->innerJoin("$referenceArticleAlias.type", $typeAlias, Join::WITH, "$typeAlias = :type")
+                ->setParameter("type", $type);
+        }
+
         $queryBuilder
             // filter all reference and article by quantity
             ->andWhere(
                 // we keep only reference or article with quantity > 0
                 $exprBuilder->orX(
+                    // case 1: reference article managed by reference
                     $exprBuilder->andX(
                         "$referenceArticleAlias.quantiteStock > 0",
                         "$referenceArticleAlias.quantiteDisponible > 0",
-                        "$referenceArticleAlias IS NOT NULL",
+                        "$articleAlias IS NULL",
                     ),
+                    // case 2: article case
                     $exprBuilder->andX(
                         "$articleAlias.quantite > 0",
                         "$articleAlias IS NOT NULL",
@@ -613,9 +619,12 @@ class MouvementStockRepository extends EntityRepository {
             // filter all reference article by statut
             ->andWhere(
                 // we keep only reference or article with statut actif
-                $exprBuilder->orX(
-                    "statut.code = :articleStatutActif",
-                    "statut.code = :referenceStatutActif",
+                $exprBuilder->andX(
+                    "statut_reference_article.code = :referenceStatutActif",
+                    $exprBuilder->orX(
+                        "statut_article.code = :articleStatutActif",
+                        "$articleAlias.id IS NULL"
+                    )
                 )
             )
             // filter all reference article by sleeping stock plan settings
@@ -636,7 +645,7 @@ class MouvementStockRepository extends EntityRepository {
                                 $referenceArticleAlias.lastSleepingStockAlertAnswer
                             ),
                             $sleepingStockPlanAlias.maxStationaryTime,
-                             'second'
+                            'second'
                         ) < CURRENT_DATE()",
                     ),
 
@@ -657,14 +666,8 @@ class MouvementStockRepository extends EntityRepository {
                     ),
                 )
             )
-            ->innerJoin(Type::class, $typeAlias, Join::WITH, $exprBuilder->orX(
-                "$typeAlias = $referenceArticleAlias.type",
-                "$typeAlias = $articleAlias.type",
-            ))
-            ->innerJoin(Statut::class , "statut", Join::WITH, $exprBuilder->orX(
-                "statut = reference_article.statut",
-                "statut = article.statut",
-            ))
+            ->innerJoin("reference_article.statut", "statut_reference_article")
+            ->leftJoin("article.statut", "statut_article")
             ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH,
                 $exprBuilder->andX(
                     "$sleepingStockPlanAlias.type = $typeAlias",
@@ -674,11 +677,5 @@ class MouvementStockRepository extends EntityRepository {
             ->setParameter("articleStatutActif", Article::STATUT_ACTIF)
             ->setParameter("referenceStatutActif", ReferenceArticle::STATUT_ACTIF)
         ;
-
-        if ($type) {
-            $queryBuilder
-                ->andWhere("$typeAlias = :type")
-                ->setParameter("type", $type);
-        }
     }
 }
