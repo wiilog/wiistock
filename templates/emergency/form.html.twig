@@ -71,7 +71,7 @@
         <div class="col-12 col-lg-6 mb-2">
             {{ form.input(constant("App\\Entity\\Emergency\\EndEmergencyCriteriaEnum::REMAINING_QUANTITY").value, 'Quantité', true, emergency.expectedQuantity ?? null, {
                 type: 'number',
-                min: 1,
+                min: remainingStockEmergencyQuantity,
             }) }}
         </div>
         <div class="col-12 col-lg-6 mb-2">

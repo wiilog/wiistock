@@ -161,6 +161,9 @@ class EmergencyService
             'emergencyTypes' => $emergencyTypes,
             'defaultType' => $defaultType,
             'fieldParams' => $fieldParams,
+            'remainingStockEmergencyQuantity' => $emergency instanceof StockEmergency
+                ? $emergency->getAlreadyReceivedQuantity()
+                : 1,
             'emergency' => $emergency ?? null,
         ];
     }
@@ -232,6 +235,10 @@ class EmergencyService
             $this->updateTrackingEmergency($entityManager, $emergency, $data);
         } else if ($emergency instanceof StockEmergency) {
             $this->updateStockEmergency($entityManager, $emergency, $data);
+
+            if(($emergency->getExpectedQuantity() - $emergency->getAlreadyReceivedQuantity()) <= 0) {
+                $this->closeEmergency($entityManager, $emergency);
+            }
         }
 
         $this->freeFieldService->manageFreeFields($emergency, $data->all(), $entityManager);
@@ -545,6 +552,10 @@ class EmergencyService
     public function closeEmergency(EntityManagerInterface $entityManager, Emergency $emergency): void {
         $now = new DateTime();
         $emergency->setClosedAt($now);
+
+        if (!$emergency->getDateEnd()) {
+            $emergency->setDateEnd($now);
+        }
 
         $entityManager->flush();
     }
