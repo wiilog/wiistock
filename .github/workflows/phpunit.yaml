@@ -29,8 +29,7 @@ jobs:
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
-                  token: ${{ secrets.WIISTOCK_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-
+                  token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
             -   name: Add generated.yaml to wiistock
                 run: |
                     touch config/generated.yaml &&

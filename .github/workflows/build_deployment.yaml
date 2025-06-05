@@ -30,7 +30,7 @@ jobs:
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
-                  token: ${{ secrets.WIISTOCK_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
+                  token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
 
             -   name: Install php dependencies
                 run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
@@ -50,7 +50,7 @@ jobs:
             -   name: Upload zip on the release
                 uses: svenstaro/upload-release-action@v2
                 with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
                     file: vendor.zip
                     asset_name: vendor.zip
                     tag: ${{ github.ref }}
@@ -70,7 +70,7 @@ jobs:
             -   name: Upload zip on the release
                 uses: svenstaro/upload-release-action@v2
                 with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
                     file: node_modules.zip
                     asset_name: node_modules.zip
                     tag: ${{ github.ref }}
@@ -103,7 +103,7 @@ jobs:
             -   name: Upload zip on the release - production
                 uses: svenstaro/upload-release-action@v2
                 with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
                     file: build-prod.zip
                     asset_name: build-prod.zip
                     tag: ${{ github.ref }}
@@ -125,7 +125,7 @@ jobs:
             -   name: Upload zip on the release - rec
                 uses: svenstaro/upload-release-action@v2
                 with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
                     file: build-rec.zip
                     asset_name: build-rec.zip
                     tag: ${{ github.ref }}
