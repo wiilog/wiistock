@@ -66,6 +66,7 @@ class DashboardFeedCommand extends Command {
                 $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
                 $this->entityManager->flush();
                 $this->loggerService->sendLog(new Exception("Component {$component->getId()} hasn't generator"));
+                continue;
             }
 
             if (is_subclass_of($generatorClass, MultipleDashboardComponentGenerator::class)) {
