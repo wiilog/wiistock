@@ -273,7 +273,6 @@ function downloadZipCache(string  $destination,
         echo "Attachment not found." . PHP_EOL;
         return;
     }
-    echo "Asset ID: $assetId" . PHP_EOL;
 
     // GitHub API URL to download the attachment
     $downloadUrl = "$githubRepoApiUrl/releases/assets/$assetId";
@@ -282,6 +281,9 @@ function downloadZipCache(string  $destination,
         'User-Agent: PHP',
         'Accept: application/octet-stream',
     ];
+
+    echo "Asset name: $assetName" . PHP_EOL;
+    echo "Asset url: $downloadUrl" . PHP_EOL;
 
     // Initialize cURL to download the attachment
     $curlHandle = curl_init();
@@ -456,7 +458,7 @@ function getReleaseAssetsIds (
 
     $assetsIds = [];
     foreach ($data['assets'] ?? [] as $asset) {
-        echo "Asset name: " . $asset['name'] . PHP_EOL;
+        echo "Asset name: " . $asset['name'] . " / Asset id: " . $asset['id'] . PHP_EOL;
         $assetsIds[$asset['name']] = $asset['id'];
     }
 
