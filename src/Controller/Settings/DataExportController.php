@@ -34,7 +34,7 @@ use App\Service\DataExportService;
 use App\Service\DispatchService;
 use App\Service\Emergency\EmergencyService;
 use App\Service\FormatService;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\ReceiptAssociationService;
@@ -241,7 +241,7 @@ class DataExportController extends AbstractController
     public function exportLocations(EntityManagerInterface $entityManager,
                                     CSVExportService       $csvService,
                                     DataExportService      $dataExportService,
-                                    EmplacementDataService $locationDataService): StreamedResponse {
+                                    LocationService        $locationDataService): StreamedResponse {
         $now = new DateTime('now');
         $today = $now->format("d-m-Y-H-i-s");
         $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);
