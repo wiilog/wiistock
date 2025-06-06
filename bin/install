@@ -3,6 +3,7 @@
 
 const ENV_PROD = "prod";
 const ENV_DEV = "dev";
+const ENV_TEST = "test";
 
 const STEP_DESCRIPTION = "description";
 const STEP_COMMANDS = "commands";
@@ -102,7 +103,7 @@ function main(): void {
         [
             STEP_DESCRIPTION => "Composer install",
             STEP_COMMANDS => function() use ($mode) {
-                if ($mode === ENV_DEV) {
+                if (in_array($mode, [ENV_DEV, ENV_TEST], true)) {
                     execCommand("composer install --working-dir /project");
                 }
                 else {
