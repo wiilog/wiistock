@@ -28,7 +28,12 @@ class FeedMultipleDashboardComponentMessage implements UniqueMessage, MessageInt
     public function getUniqueKey(): string {
         // There can be a lot of dashboard components, so to avoid the key being too long, we hash it
         // the hash is not there to securing anything but just to have a shorter and unique key. 😉
-        return hash('md5', Stream::from($this->componentIds)->sort(static fn($a, $b) => $a <=> $b)->join('_'));
+        return hash(
+            'md5',
+            Stream::from($this->componentIds)
+                ->sort(static fn($a, $b) => $a <=> $b)
+                ->join('_'),
+        );
     }
 
     public function normalize(): array {
