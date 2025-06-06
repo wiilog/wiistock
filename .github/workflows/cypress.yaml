@@ -36,6 +36,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock
                     ref: ${{ github.event.pull_request.head.sha }}
+                    token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
                     path: projects/wiistock
 
             -   name: Login to docker hub
