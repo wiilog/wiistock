@@ -300,7 +300,8 @@ class ImportService
         private ProductionRequestService $productionRequestService,
         private DispatchService $dispatchService,
         private FreeFieldService $freeFieldService,
-        private SettingsService $settingsService
+        private SettingsService $settingsService,
+        private MemoryService $memoryService,
     ){
         $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->resetCache();
@@ -393,15 +394,7 @@ class ImportService
     public function treatImport(EntityManagerInterface $entityManager,
                                 Import                 $import,
                                 int                    $mode = self::IMPORT_MODE_PLAN): int {
-        $memoryLimit = ini_get('memory_limit');
-        if (preg_match('/^(\d+)(.)$/', $memoryLimit, $matches)) {
-            if ($matches[2] == 'M') {
-                $memoryLimit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
-            } else if ($matches[2] == 'K') {
-                $memoryLimit = $matches[1] * 1024; // nnnK -> nnn KB
-            }
-        }
-
+        $memoryLimit = $this->memoryService->getMemoryLimit();
         $this->currentImport = $import;
         $this->entityManager = $entityManager;
         $this->resetCache();
@@ -510,8 +503,10 @@ class ImportService
                     $this->clearEntityManagerAndRetrieveImport();
                     if (!$smallFile) {
                         while (($row = fgetcsv($file, 0, ';')) !== false) {
-                            if ($memoryLimit*0.9 < memory_get_usage(true)) {
-                                $this->attachmentService->putCSVLines($logFile, [["L'import comporte trop de lignes. Veuillez l'importer en plusieurs fois."]], $this->scalarCache["logFileMapper"]);
+                            if ($memoryLimit * 0.9 < memory_get_usage(true)) {
+                                $errorMessage = "L'import comporte trop de lignes. Veuillez l'importer en plusieurs fois.";
+                                $this->currentImport->setLastErrorMessage($errorMessage);
+                                $this->attachmentService->putCSVLines($logFile, [[$errorMessage]], $this->scalarCache["logFileMapper"]);
                                 break;
                             }
                             $logRow = $this->treatImportRow(

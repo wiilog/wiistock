@@ -54,7 +54,7 @@ class forceFinishImport extends Command {
 
         $io->success('Import found');
 
-        if ($io->confirm("Voulez-vous vraiment finir l'import ?", false)) {
+        if ($io->confirm("Are you sure you want to finish the import?", false)) {
             $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
             $now = new DateTime();
             $import
