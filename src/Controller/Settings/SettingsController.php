@@ -2512,7 +2512,9 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION,
+                                        CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON, CategoryType::ARRIVAGE,
+                                        CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY])) {
                 $data[] = [
                     "label" => "Actif",
                     "value" => $formService->macro("checkbox", "active", '', null, $type ? $type->isActive() : true),
@@ -2651,7 +2653,9 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION,
+                                        CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON, CategoryType::ARRIVAGE,
+                                        CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY])) {
                 $data[] = [
                     "label" => "Actif",
                     "value" => $this->formatService->bool($type?->isActive(), "Non"),
