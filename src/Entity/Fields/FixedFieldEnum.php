@@ -23,6 +23,9 @@ enum FixedFieldEnum: string
     case productArticleCode = "Code produit/article";
     case quantity = "Quantité";
     case emergency = "Urgence";
+    case loadingZone = "chargement";
+    case unloadingZone = "déchargement";
+    case carriedOutOperationCount = "nombre d'opération(s) réalisée(s)";
     case projectNumber = "Numéro projet";
     case comment = "Commentaire";
     case treatmentAt = "Date de traitement";
@@ -49,7 +52,7 @@ enum FixedFieldEnum: string
     case urgent = "Urgent";
     case code = "Code";
     case possibleCustoms = "Douanes possible";
-    case orderNumber = "N° commande";
+    case orderNumber = "N° de commande";
     case destination = "Destination";
     case customerName = "Client";
     case customerPhone = "Téléphone client";
@@ -75,18 +78,27 @@ enum FixedFieldEnum: string
     case stopTrackingTimerOnDrop = "Emplacement de dépose finale";
     case pauseTrackingTimerOnDrop = "Emplacement de pause";
     case newNatureOnPick = "Nouvelle nature à la prise sur emplacement";
+    case newNatureOnPickEnabled = "Activer le changement de nature à la prise";
+    case newNatureOnDropEnabled = "Activer le changement de nature à la dépose";
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
     case registrationNumber = "Immatriculation";
     case unloadingLocation = "Emplacement de déchargement";
-
-    public static function fromCase(string $case): string|null {
-        try {
-            return (new ReflectionEnum(self::class))
-                ->getCase($case)
-                ->getValue()
-                ->value;
-        } catch (ReflectionException) {
-            return null;
-        }
-    }
+    case supplier = "Fournisseur";
+    case expectedEmergencyLocation = "Emplacement attendu de l'urgence";
+    case buyer = "Acheteur";
+    case postNumber = "N° poste";
+    case internalArticleCode = "Code article interne";
+    case supplierArticleCode = "Code article fournisseur";
+    case reference = "Référence";
+    case dateStart = "Date de début";
+    case dateEnd = "Date de fin";
+    case project = "Projet";
+    case batch = "Lot";
+    case anomaly = "Anomalie";
+    case expiryDate = "Date de péremption";
+    case deliveryNoteLine = "Ligne bon de livraison";
+    case manufacturedAt = "Date de fabrication";
+    case productionDate = "Date de production";
+    case purchaseOrderLine = "Ligne commande d'achat";
+    case nativeCountry = "Pays d'origine";
 }

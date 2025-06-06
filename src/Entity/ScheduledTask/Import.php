@@ -6,7 +6,7 @@ use App\Entity\Attachment;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\MouvementStock;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ScheduledTask\ImportRepository;
 use DateTime;
@@ -173,7 +173,6 @@ class Import extends ScheduledTask {
             'articleFournisseurReference' => 'Référence article fournisseur',
             'typeLabel' => 'type',
             'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
-            'emergencyComment' => 'commentaire urgence',
             'quantity' => 'quantité',
             'batch' => 'Lot',
             'location' => 'Emplacement',
@@ -218,15 +217,25 @@ class Import extends ScheduledTask {
             'targetLocationPicking' => 'Emplacement cible picking',
             FixedFieldEnum::name->name => FixedFieldEnum::name->value,
             FixedFieldEnum::description->name => FixedFieldEnum::description->value,
-            'dateMaxTime' => 'Délai traça HH:MM',
-            'allowedPackNatures' => "Natures autorisées",
+            FixedFieldEnum::maximumTrackingDelay->name => FixedFieldEnum::maximumTrackingDelay->value,
+            FixedFieldEnum::allowedNatures->name =>  FixedFieldEnum::allowedNatures->value,
             FixedFieldEnum::allowedDeliveryTypes->name => FixedFieldEnum::allowedDeliveryTypes->value,
             FixedFieldEnum::allowedCollectTypes->name => FixedFieldEnum::allowedCollectTypes->value,
-            'isDeliveryPoint' => 'Point de livraison',
-            'isOngoingVisibleOnMobile' => 'Encours visible nomade',
-            'isActive' => 'Actif',
-            'signatory' => 'Signataire',
+            FixedFieldEnum::isDeliveryPoint->name => FixedFieldEnum::isDeliveryPoint->value,
+            FixedFieldEnum::isOngoingVisibleOnMobile->name => FixedFieldEnum::isOngoingVisibleOnMobile->value,
+            FixedFieldEnum::status->name => FixedFieldEnum::status->value,
             FixedFieldEnum::signatories->name => FixedFieldEnum::signatories->value,
+            FixedFieldEnum::allowedTemperatures->name => FixedFieldEnum::allowedTemperatures->value,
+            FixedFieldEnum::zone->name => FixedFieldEnum::zone->value,
+            FixedFieldEnum::managers->name => FixedFieldEnum::managers->value,
+            FixedFieldEnum::sendEmailToManagers->name => FixedFieldEnum::sendEmailToManagers->value,
+            FixedFieldEnum::startTrackingTimerOnPicking->name => FixedFieldEnum::startTrackingTimerOnPicking->value,
+            FixedFieldEnum::stopTrackingTimerOnDrop->name => FixedFieldEnum::stopTrackingTimerOnDrop->value,
+            FixedFieldEnum::pauseTrackingTimerOnDrop->name => FixedFieldEnum::pauseTrackingTimerOnDrop->value,
+            FixedFieldEnum::newNatureOnPick->name => FixedFieldEnum::newNatureOnPick->value,
+            FixedFieldEnum::newNatureOnDrop->name => FixedFieldEnum::newNatureOnDrop->value,
+            FixedFieldEnum::newNatureOnPickEnabled->name => FixedFieldEnum::newNatureOnPickEnabled->value,
+            FixedFieldEnum::newNatureOnDropEnabled->name => FixedFieldEnum::newNatureOnDropEnabled->value,
 
             'possibleCustoms' => 'Possible douane',
 

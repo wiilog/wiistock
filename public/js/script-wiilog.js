@@ -32,6 +32,7 @@ const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
+const PAGE_EMERGENCIES = 'emergencies';
 const PAGE_NOTIFICATIONS = 'notifications';
 const PAGE_TRUCK_ARRIVAL = 'truckArrival';
 const PAGE_SHIPPING = 'shipping_request';
@@ -732,9 +733,12 @@ function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = fal
 
     const time = appendTime ? ' HH:mm' : '';
     const destinationFormat = DATE_FORMATS_TO_DISPLAY[format] + time;
+
     $(selector).each(function () {
-        if ($(this).data('init')) {
-            const dateValue = ($(this).data('init') === `now` ? moment() : moment($(this).data('init'), sourceFormat + time)).format(destinationFormat);
+        const initDate = $(this).data('init');
+
+        if (initDate) {
+            const dateValue = (initDate === `now` ? moment() : moment(initDate, sourceFormat + time)).format(destinationFormat);
             $(this)
                 .data("DateTimePicker")
                 .format(destinationFormat)
@@ -786,6 +790,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'statut':
                 case 'carriers':
                 case 'emplacement':
+                case 'lastLocation':
                 case 'pickLocation':
                 case 'dropLocation':
                 case 'demCollecte':
@@ -806,6 +811,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'logisticUnits':
                 case 'locationWithGroups':
                 case 'unloadingLocation':
+                case 'emergencyAppliedTo':
+                case 'emergencyStatut':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);

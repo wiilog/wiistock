@@ -7,12 +7,13 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Dispute;
+use App\Entity\Emergency\Emergency;
 use App\Entity\Handling;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -156,7 +157,7 @@ class TypeRepository extends EntityRepository {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT t.id, t.label
-            FROM App\Entity\Type t
+            FROM App\Entity\Type\Type t
             JOIN t.category c
             WHERE c.label = :category"
         );
@@ -188,7 +189,7 @@ class TypeRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(t)
-            FROM App\Entity\Type t
+            FROM App\Entity\Type\Type t
             WHERE LOWER(t.label) = :label
            "
         )->setParameter('label', $label);
@@ -210,6 +211,7 @@ class TypeRepository extends EntityRepository {
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
             ['class' => TransportRequest::class, 'where' => 'item.type = :id'],
             ['class' => TransportHistoryRecord::class, 'where' => 'item.type = :id'],
+            ['class' => Emergency::class, 'where' => 'item.type = :id'],
         ];
 
         $resultsCount = array_map(function(array $table) use ($entityManager, $typeId) {
@@ -233,7 +235,7 @@ class TypeRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT t
-            FROM App\Entity\Type t
+            FROM App\Entity\Type\Type t
             WHERE LOWER(t.label) = :label
            "
         )->setParameter('label', strtolower($label));
@@ -251,7 +253,7 @@ class TypeRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT t
-            FROM App\Entity\Type t
+            FROM App\Entity\Type\Type t
             JOIN t.category c
             WHERE t.label = :typeLabel
             AND c.label = :categoryLabel
@@ -271,6 +273,21 @@ class TypeRepository extends EntityRepository {
             ->andWhere('category.id = :category')
             ->andWhere('type.active = 1')
             ->setParameter("category", $categoryType);
+
+        return QueryBuilderHelper::count($queryBuilder, 'type');
+    }
+
+    public function countDefaultTypeByCategoryTypeLabels(array $categoryLabels, Type $type): int
+    {
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label IN (:category)')
+            ->andWhere('type.defaultType = 1')
+            ->andWhere('type.id != :typeId')
+            ->setParameters([
+                "category" => $categoryLabels,
+                "typeId" => $type->getId(),
+            ]);
 
         return QueryBuilderHelper::count($queryBuilder, 'type');
     }

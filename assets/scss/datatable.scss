@@ -270,3 +270,7 @@ table.no-border-top th {
 .subentities-table {
     table-layout: fixed;
 }
+
+.dataTables_wrapper .dataTables_info {
+    padding-top: 0;
+}

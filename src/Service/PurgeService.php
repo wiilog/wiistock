@@ -78,6 +78,7 @@ class PurgeService {
 
         // in this case we archive only sub entities of pack but not the pack
         if (!$pack->isBasicUnit()
+            || $pack->isGroup()
             || $pack->getArrivage()
             || !$pack->getDispatchPacks()->isEmpty()
             || !$pack->getChildArticles()->isEmpty()

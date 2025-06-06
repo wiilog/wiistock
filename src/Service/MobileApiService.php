@@ -195,30 +195,30 @@ class MobileApiService {
         return $color;
     }
 
-    public function getMobileParameters(SettingsService $globalsParameters, EntityManagerInterface $entityManager): array {
-        $arrivalNumberFormat = $globalsParameters->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT);
+    public function getMobileParameters(EntityManagerInterface $entityManager): array {
+        $arrivalNumberFormat = $this->settingsService->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT);
         return Stream::from([
-            "skipValidationsManualTransfer" => $globalsParameters->getValue($entityManager, Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "skipValidationsLivraisons" => $globalsParameters->getValue($entityManager, Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesLivraisons" => $globalsParameters->getValue($entityManager, Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
-            "skipValidationsToTreatTransfer" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "displayReferencesOnTransferCards" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
-            "dropOnFreeLocation" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_FREE_DROP) == 1,
-            "displayTargetLocationPicking" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION) == 1,
-            "skipValidationsPreparations" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesPreparations" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_SKIP_QUANTITIES) == 1,
-            "preparationDisplayArticleWithoutManual" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
-            "manualDeliveryDisableValidations" => $globalsParameters->getValue($entityManager, Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
-            "rfidPrefix" => $globalsParameters->getValue($entityManager, Setting::RFID_PREFIX) ?: null,
-            "forceDispatchSignature" => $globalsParameters->getValue($entityManager, Setting::FORCE_GROUPED_SIGNATURE),
-            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getValue($entityManager, Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
-            "displayReferenceCodeAndScan" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
-            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getValue($entityManager, Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
-            "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
-            "displayManualDelayStart" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START) == 1,
+            "skipValidationsManualTransfer" => $this->settingsService->getValue($entityManager, Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "skipValidationsLivraisons" => $this->settingsService->getValue($entityManager, Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesLivraisons" => $this->settingsService->getValue($entityManager, Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
+            "skipValidationsToTreatTransfer" => $this->settingsService->getValue($entityManager, Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "displayReferencesOnTransferCards" => $this->settingsService->getValue($entityManager, Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
+            "dropOnFreeLocation" => $this->settingsService->getValue($entityManager, Setting::TRANSFER_FREE_DROP) == 1,
+            "displayTargetLocationPicking" => $this->settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION) == 1,
+            "skipValidationsPreparations" => $this->settingsService->getValue($entityManager, Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesPreparations" => $this->settingsService->getValue($entityManager, Setting::PREPARATION_SKIP_QUANTITIES) == 1,
+            "preparationDisplayArticleWithoutManual" => $this->settingsService->getValue($entityManager, Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
+            "manualDeliveryDisableValidations" => $this->settingsService->getValue($entityManager, Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
+            "rfidPrefix" => $this->settingsService->getValue($entityManager, Setting::RFID_PREFIX) ?: null,
+            "forceDispatchSignature" => $this->settingsService->getValue($entityManager, Setting::FORCE_GROUPED_SIGNATURE),
+            "deliveryRequestDropOnFreeLocation" => $this->settingsService->getValue($entityManager, Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
+            "displayReferenceCodeAndScan" => $this->settingsService->getValue($entityManager, Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
+            "articleLocationDropWithReferenceStorageRule" => $this->settingsService->getValue($entityManager, Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
+            "displayWarningWrongLocation" => $this->settingsService->getValue($entityManager, Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
+            "displayManualDelayStart" => $this->settingsService->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START) == 1,
             "arrivalNumberFormat" => Arrivage::AVAILABLE_ARRIVAL_NUMBER_FORMATS[$arrivalNumberFormat]
                 ?? Arrivage::AVAILABLE_ARRIVAL_NUMBER_FORMATS[UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG],
-            "rfidOnMobileTrackingMovements" => $globalsParameters->getValue($entityManager, Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS) == 1,
+            "rfidOnMobileTrackingMovements" => $this->settingsService->getValue($entityManager, Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS) == 1,
         ])
             ->toArray();
     }

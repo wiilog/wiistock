@@ -20,7 +20,7 @@ class FixedFieldByTypeRepository extends EntityRepository {
         $delimiter = ' ';
         $attributes = $attributes ?: FixedFieldByType::ATTRIBUTES;
 
-        $subQuery = function (string $field) use ($delimiter, $entity): string {
+        $subQuery = function (string $field) use ($delimiter): string {
             return $this->createQueryBuilder("fixedFieldByType_$field")
                 ->select("GROUP_CONCAT(DISTINCT join_$field.id SEPARATOR '$delimiter')")
                 ->leftJoin("fixedFieldByType_$field.$field", "join_$field", Join::WITH, "fixedFieldByType_$field = fixedFieldByType")

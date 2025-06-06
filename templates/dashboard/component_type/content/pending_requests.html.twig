@@ -5,10 +5,10 @@
 {% set kinds = [
     { value: 'delivery', label: trans('Demande', 'Livraison', 'Livraison', false)},
     { value: 'collect', label: 'Collecte' },
-    { value: 'handling', label: 'Service', categoryType: constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') },
-    { value: 'dispatch', label: 'Acheminement', categoryType: constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH')},
+    { value: 'handling', label: 'Service', categoryType: constant('App\\Entity\\Type\\CategoryType::DEMANDE_HANDLING') },
+    { value: 'dispatch', label: 'Acheminement', categoryType: constant('App\\Entity\\Type\\CategoryType::DEMANDE_DISPATCH')},
     { value: 'transfer', label: 'Transfert' },
-    { value: 'production', label: 'Production', categoryType: constant('App\\Entity\\CategoryType::PRODUCTION') },
+    { value: 'production', label: 'Production', categoryType: constant('App\\Entity\\Type\\CategoryType::PRODUCTION') },
 ] %}
 
 {% block content %}

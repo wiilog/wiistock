@@ -20,7 +20,7 @@ let packsTableConfig = {
         data: {
             codeUl: $('#lu-code').val(),
             natures: $('[name="natures"]').val(),
-            locations: $('[name="emplacement"]').val(),
+            lastLocation: $('[name="lastLocation"]').val(),
             isPackWithTracking: $('[name="packWithTracking"]').is(':checked'),
             fromDashboard: $('[name="fromDashboard"]').val(),
             trackingDelayEvent: $('[name="trackingDelayEvent"]').val(),

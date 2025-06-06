@@ -1,0 +1,23 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 wii-small-text">
+            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez paramétrer leur visibilité et
+            leur caractère obligatoire.
+        </div>
+    </div>
+    <div class="row p-3 typeChoice">
+        <div class="col-12 mb-3 wii-small-text">
+            {% block filters %}
+                {{ form.switch('type', null, false, types, {expanded: true}) }}
+            {% endblock %}
+        </div>
+    </div>
+    <table id="table-stock-emergency-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
+        {% include 'datatable/main-header.html.twig' with {
+            cells: 5,
+            needsFilterColumn: false,
+        } %}
+    </table>
+</div>

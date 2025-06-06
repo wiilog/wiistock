@@ -22,20 +22,31 @@
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="type">{{ trans('Demande', 'Général', 'Statut') }}*</label>
-                        <select name="status" class="form-control data w-100 needed">
-                            <option value="">{{ trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false) }}</option>
-                            {% for status in handlingStatus %}
-                                {% if
-                                    (
-                                    status.state == constant('App\\Entity\\Statut::TREATED')
-                                    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
-                                    ) or status.state != constant('App\\Entity\\Statut::TREATED') %}
-                                    <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.labelIn(userLanguage, defaultLanguage)}}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::status') %}
+                        {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        {% set right = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING')) %}
+                        {{ form.select(field.name, trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false), required, {
+                            items: handlingStatus
+                                | filter((status) =>
+                                    (status.state == constant('App\\Entity\\Statut::TREATED') and right)
+                                        or status.state != constant('App\\Entity\\Statut::TREATED')
+                                )
+                                | map((status) => {
+                                    value: status.id,
+                                    label: status.labelIn(userLanguage, defaultLanguage),
+                                    class: 'd-none',
+                                    'type-id': status.type.id
+                                }),
+                            emptyOption: {
+                                selected: true,
+                                text: trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false),
+                                value: ''
+                            },
+                        }) }}
+                        {% endif %}
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
+                        {{ form.hidden('defaultStatuses', defaultStatuses|json_encode ) }}
                         <div class="error-empty-status d-none">
                             {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],
@@ -55,10 +66,11 @@
                         </div>
                     </div>
 
-                    {% set objectField = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
-                    {% if fieldsParam|isFieldRequired(objectField.name, 'displayedCreate') %}
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
                         <div class="form-group needed col-md-6 col-12">
-                            {{ form.input(objectField.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), fieldsParam|isFieldRequired(objectField.name, 'requiredCreate'), null) }}
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), required, null) }}
                         </div>
                     {% endif %}
 
@@ -67,22 +79,24 @@
                         <label class="data wii-body-text" value="{{ app.user.id }}">{{ app.user.username }}</label>
                     </div>
 
-                    <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
-                        <input type="text"
-                               name="desired-date"
-                               title="Date attendue"
-                               class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
-                               placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
-                               data-init="{{ preFill ? (setting_value('REMOVE_HOURS_DATETIME') ? "now"|date('Y-m-d') : "now"|date('Y-m-d H:i')) }}"
-                               autocomplete="off"/>
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
+                    {% set removeHours = setting_value('REMOVE_HOURS_DATETIME') %}
+                    {% set dateFormat = app.user.displayedDateFormat ~ (not removeHours ? ' hh:mm') %}
+                    {% set preFillDate = preFill ? (removeHours ? "now" | date('Y-m-d') : "now" | date('Y-m-d H:i')) : '' %}
+                    <div class="form-group needed col-md-6 col-12">
+                        {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Date attendue'), true, null, {
+                            inputClass: removeHours ? 'date-field' : 'datetime-field',
+                            additionalAttributes: [
+                                { name: 'data-init', value: preFillDate }
+                            ]
+                        })  }}
                     </div>
 
-                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        {% set isFieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            {{ form.select('emergency', trans('Demande', 'Général', 'Urgences', false), isFieldRequired, {
+                            {{ form.select(field.name, trans('Demande', 'Général', 'Urgences', false), required, {
                                 items:emergencies|map((item) => {
                                     value: item,
                                     label: item
@@ -96,40 +110,46 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name" for="source">{{ trans('Demande', 'Services', 'Modale et détails', 'Chargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
-                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="source">
+
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::loadingZone') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        <div class="form-group needed col-md-6 col-12">
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Chargement'), required, null) }}
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name" for="destination">{{ trans('Demande', 'Services', 'Modale et détails', 'Déchargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
-                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="destination">
+
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::unloadingZone') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        <div class="form-group needed col-md-6 col-12">
+                            {{ form.input(field.name, trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, null) }}
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        <div class="form-group col-md-6 col-12">
-                            <label for="carriedOutOperationCount" class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
-                            <input type="number"
-                                   min="0"
-                                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"
-                                   name="carriedOutOperationCount">
+
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::carriedOutOperationCount') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
+                        <div class="form-group needed col-md-6 col-12">
+                            {{ form.number(field.name, trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), required, null, {
+                                labelClass: 'w-100',
+                                min: 0
+                            }) }}
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+
+
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receivers') %}
+                    {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
-                            <select name="receivers"
-                                    class="form-control data ajax-autocomplete-user receivers w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"
-                                    multiple>
-                            </select>
+                            {{ form.select(field.name, trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires'), required, {
+                                type: 'user',
+                                multiple :true,
+                                inputClass: 'receivers-picker',
+                            }) }}
                         </div>
                     {% endif %}
 
@@ -153,11 +173,9 @@
                         </div>
                     </div>
 
+                    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::comment') %}
                     <div class="form-group col-12">
-                        <label for="comment"><span class="wii-field-name wii-field-name-sub">{{ trans('Général', null, 'Modale', 'Commentaire') }}</span></label>
-                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>
-                        </div>
+                        {{ form.wysiwyg(field.name, trans('Général', null, 'Modale', 'Commentaire'), false, null) }}
                     </div>
                     <div class="form-group col-12">
                         {% include 'attachment/attachment.html.twig' with {
@@ -170,7 +188,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewHandling'}
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewHandling', type: 'submit'}
                 ],
             } %}
 

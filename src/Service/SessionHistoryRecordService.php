@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
-use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
@@ -13,7 +13,6 @@ use App\EventListener\Doctrine\PasswordChangedListener;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use WiiCommon\Helper\Stream;
 
 class SessionHistoryRecordService{
 

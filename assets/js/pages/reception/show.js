@@ -12,6 +12,7 @@ import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
 import {clearPackListSearching} from "@app/pages/pack/common";
 import {initCommentHistoryForm, initTableArticleLitige} from "@app/pages/dispute/common";
+import {getHTMLText} from "@app/utils";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -426,24 +427,35 @@ function articleChanged($select) {
     let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantite, urgent, emergencyComment} = selectedReference[0];
+        wrapLoadingOnActionButton($('.modal-body'), () => (
+            AJAX.route(GET, `reference_stock_emergencies`, {referenceArticle: selectedReference[0].id})
+                .json()
+                .then(({emergencyComment, hasEmergencies}) => {
+                    const {typeQuantite} = selectedReference[0];
 
-        $addArticleLigneSubmit.prop(`disabled`, false);
-        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
+                    $addArticleLigneSubmit.prop(`disabled`, false);
+                    $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
 
-        const $emergencyContainer = $(`.emergency`);
-        const $emergencyCommentContainer =  $(`.emergency-comment`);
-        if (urgent) {
-            $emergencyContainer.removeClass(`d-none`);
-            $emergencyCommentContainer.text(emergencyComment);
-        } else {
-            $emergencyContainer.addClass(`d-none`);
-            $emergencyCommentContainer.text(``);
-        }
-        $modal.find(`.body-add-ref`)
-            .removeClass(`d-none`)
-            .addClass(`d-flex`);
-        $('#innerNewRef').html(``);
+                    const $emergencyContainer = $(`.emergency`);
+                    const $emergencyCommentContainer =  $(`.commentOverflow`);
+                    const $emergencyComment =  $(`.emergency-comment`);
+
+                    if (hasEmergencies) {
+                        $emergencyContainer.removeClass(`d-none`);
+                        const emergencyCommentText = $('<div/>', {html: emergencyComment}).text();
+                        $emergencyCommentContainer.toggleClass('d-none', getHTMLText(emergencyCommentText).length === 0);
+                        $emergencyComment.html(emergencyComment);
+                    } else {
+                        $emergencyContainer.addClass(`d-none`);
+                        $emergencyComment.text(``);
+                    }
+
+                    $modal.find(`.body-add-ref`)
+                        .removeClass(`d-none`)
+                        .addClass(`d-flex`);
+                    $('#innerNewRef').html(``);
+                })
+        ));
     }
     else {
         $addArticleAndRedirectSubmit.addClass(`d-none`);
@@ -800,7 +812,7 @@ function loadReceptionLines({start, search} = {}) {
                                     {data: 'receivedQuantity', title: 'Reçu'},
                                     {data: FixedFieldEnum.unitPrice.name, title: FixedFieldEnum.unitPrice.value},
                                     {data: 'emergency', visible: false},
-                                    {data: 'comment', visible: false},
+                                    {data: 'emergencyComment', visible: false},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
@@ -814,10 +826,13 @@ function loadReceptionLines({start, search} = {}) {
                                     dataToCheck: 'emergency',
                                     color: 'danger',
                                     callback: (row, data) => {
-                                        if (data.emergency && data.comment) {
-                                            const $row = $(row);
-                                            $row.attr('title', data.comment);
-                                            initTooltips($row);
+                                        if (data.emergency && data.emergencyComment) {
+                                            const cleanedComment = getHTMLText(data.emergencyComment);
+                                            if (cleanedComment) {
+                                                const $row = $(row);
+                                                $row.attr('title', cleanedComment);
+                                                initTooltips($row);
+                                            }
                                         }
                                     }
                                 },
@@ -937,7 +952,7 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
         AJAX
             .route(POST, `reception_new_with_packing`, { reception })
             .json(data)
-            .then(({success, articleIds, msg}) => {
+            .then(({success, articleIds, msg, entete}) => {
                 if (success) {
                     let templates;
                     try {
@@ -945,6 +960,8 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     } catch (error) {
                         templates = [];
                     }
+
+                    $('.zone-entete').html(entete);
 
                     // call default template by default
                     templates.push(null);

@@ -16,7 +16,7 @@ $(function () {
 
 export function initializeFastDeliveryRequest($container) {
     $container.find('.add-row').on('click', function() {
-        Form.create($modalNewDeliveryStationLine, {clearOnOpen: true}).submitTo(`POST`, `delivery_station_line_new`, {
+        Form.create($modalNewDeliveryStationLine, {resetView: ['open', 'close']}).submitTo(`POST`, `delivery_station_line_new`, {
             tables: [deliveryStationTable],
         });
 

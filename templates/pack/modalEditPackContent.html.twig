@@ -22,7 +22,7 @@
                 disabled: true,
             }) }}
         </div>
-        {% if  isGroup %}
+        {% if isGroup %}
             <div class="form-group col-md-6 col-12">
                 {{ form.input('groupChildrenLength', trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL"), false, pack.content | length, {
                     disabled: true,
@@ -30,9 +30,11 @@
             </div>
         {% endif %}
         <div class="form-group col-md-6 col-12">
+            {% set groupGetChildTrackingDelay = pack.isGroup and setting_value('GROUP_GET_CHILD_TRACKING_DELAY') %}
             {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
             {{ form.select('nature', trans('Traçabilité', 'Général', "Nature"), false, {
                 type: '',
+                disabled: groupGetChildTrackingDelay,
                 items: natures | map(nature => ({
                     label: nature.label,
                     value: nature.id,

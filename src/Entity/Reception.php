@@ -9,6 +9,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Type\Type;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use DateTimeInterface;
@@ -87,9 +88,6 @@ class Reception implements AttachmentContainer {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $storageLocation = null;
-
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $urgentArticles = null;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
@@ -398,16 +396,6 @@ class Reception implements AttachmentContainer {
 
     public function setManualUrgent(?bool $manualUrgent): self {
         $this->manualUrgent = $manualUrgent;
-        return $this;
-    }
-
-    public function hasUrgentArticles(): ?bool {
-        return $this->urgentArticles;
-    }
-
-    public function setUrgentArticles(?bool $urgentArticles): self {
-        $this->urgentArticles = $urgentArticles;
-
         return $this;
     }
 

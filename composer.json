@@ -1,152 +1,150 @@
 {
-    "name": "wiilog/wiistock",
-    "version": "1.0.0",
-    "type": "project",
-    "license": "proprietary",
-    "description": "Wiistock web application",
-    "minimum-stability": "stable",
-    "prefer-stable": true,
-    "require": {
-        "php": "^8.2",
-        "ext-ctype": "*",
-        "ext-iconv": "*",
-        "ext-intl": "*",
-        "ext-json": "*",
-        "ext-pdo": "*",
-        "ext-yaml": "*",
-        "ext-zip": "*",
-        "beberlei/doctrineextensions": "^1.3",
-        "composer/package-versions-deprecated": "1.11.99.4",
-        "composer/semver": "^3.2",
-        "cron/cron-bundle": "^3.1",
-        "doctrine/annotations": "^1.13",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "^2.5",
-        "doctrine/doctrine-fixtures-bundle": "^3.4",
-        "doctrine/doctrine-migrations-bundle": "^3.2",
-        "doctrine/orm": "^2.10",
-        "friendsofsymfony/jsrouting-bundle": "^3.1",
-        "google/apiclient": "^2.12",
-        "jetbrains/phpstorm-attributes": "^1.0",
-        "knplabs/knp-snappy-bundle": "^1.9",
-        "nbgrp/onelogin-saml-bundle": "^1.1",
-        "nelmio/cors-bundle": "^2.2",
-        "ovh/ovh": "^3.0",
-        "phpdocumentor/reflection-docblock": "^5.3",
-        "phpoffice/phpword": "1.2.0",
-        "phpseclib/phpseclib": "^3.0",
-        "scienta/doctrine-json-functions": "^5.0",
-        "symfony/asset": "6.4.*",
-        "symfony/console": "6.4.*",
-        "symfony/css-selector": "6.4.*",
-        "symfony/doctrine-messenger": "6.4.*",
-        "symfony/dom-crawler": "6.4.*",
-        "symfony/dotenv": "6.4.*",
-        "symfony/expression-language": "6.4.*",
-        "symfony/filesystem": "6.4.*",
-        "symfony/finder": "6.4.*",
-        "symfony/flex": "^1.3.1",
-        "symfony/form": "6.4.*",
-        "symfony/framework-bundle": "6.4.*",
-        "symfony/http-client": "6.4.*",
-        "symfony/intl": "6.4.*",
-        "symfony/mailer": "6.4.*",
-        "symfony/mailjet-mailer": "6.4.*",
-        "symfony/messenger": "6.4.*",
-        "symfony/mime": "6.4.*",
-        "symfony/monolog-bundle": "^3.1",
-        "symfony/notifier": "6.4.*",
-        "symfony/process": "6.4.*",
-        "symfony/property-access": "6.4.*",
-        "symfony/property-info": "6.4.*",
-        "symfony/proxy-manager-bridge": "6.4.*",
-        "symfony/security-bundle": "6.4.*",
-        "symfony/serializer": "6.4.*",
-        "symfony/string": "6.4.*",
-        "symfony/twig-bundle": "6.4.*",
-        "symfony/validator": "6.4.*",
-        "symfony/web-link": "6.4.*",
-        "symfony/webpack-encore-bundle": "^1.14",
-        "symfony/yaml": "6.4.*",
-        "twig/extra-bundle": "^3.3",
-        "twig/intl-extra": "^3.4",
-        "twig/string-extra": "^3.3",
-        "twig/twig": "^3.3",
-        "wiilog/barcode-bundle": "dev-master",
-        "wiilog/common": "dev-master",
-        "wiilog/zpl-generator": "dev-master"
+  "name": "wiilog/wiistock",
+  "version": "1.0.0",
+  "type": "project",
+  "license": "proprietary",
+  "description": "Wiistock web application",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "ext-amqp": "*",
+    "ext-ctype": "*",
+    "ext-iconv": "*",
+    "ext-intl": "*",
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "ext-yaml": "*",
+    "ext-zip": "*",
+    "beberlei/doctrineextensions": "^1.3",
+    "composer/package-versions-deprecated": "1.11.99.4",
+    "composer/semver": "^3.2",
+    "cron/cron-bundle": "^3.1",
+    "doctrine/annotations": "^1.13",
+    "doctrine/dbal": "^3",
+    "doctrine/doctrine-bundle": "^2.5",
+    "doctrine/doctrine-fixtures-bundle": "^3.4",
+    "doctrine/doctrine-migrations-bundle": "^3.2",
+    "doctrine/orm": "^2.10",
+    "friendsofsymfony/jsrouting-bundle": "^3.1",
+    "google/apiclient": "^2.12",
+    "jetbrains/phpstorm-attributes": "^1.0",
+    "knplabs/knp-snappy-bundle": "^1.9",
+    "nbgrp/onelogin-saml-bundle": "^1.1",
+    "nelmio/cors-bundle": "^2.2",
+    "ovh/ovh": "^3.0",
+    "phpdocumentor/reflection-docblock": "^5.3",
+    "phpoffice/phpword": "1.2.0",
+    "phpseclib/phpseclib": "^3.0",
+    "scienta/doctrine-json-functions": "^5.0",
+    "symfony/amqp-messenger": "6.4.*",
+    "symfony/asset": "6.4.*",
+    "symfony/console": "6.4.*",
+    "symfony/css-selector": "6.4.*",
+    "symfony/dom-crawler": "6.4.*",
+    "symfony/dotenv": "6.4.*",
+    "symfony/expression-language": "6.4.*",
+    "symfony/filesystem": "6.4.*",
+    "symfony/finder": "6.4.*",
+    "symfony/flex": "^1.3.1",
+    "symfony/form": "6.4.*",
+    "symfony/framework-bundle": "6.4.*",
+    "symfony/http-client": "6.4.*",
+    "symfony/intl": "6.4.*",
+    "symfony/lock": "6.4.*",
+    "symfony/mailer": "6.4.*",
+    "symfony/mailjet-mailer": "6.4.*",
+    "symfony/messenger": "6.4.*",
+    "symfony/mime": "6.4.*",
+    "symfony/monolog-bundle": "^3.1",
+    "symfony/notifier": "6.4.*",
+    "symfony/process": "6.4.*",
+    "symfony/property-access": "6.4.*",
+    "symfony/property-info": "6.4.*",
+    "symfony/proxy-manager-bridge": "6.4.*",
+    "symfony/security-bundle": "6.4.*",
+    "symfony/serializer": "6.4.*",
+    "symfony/string": "6.4.*",
+    "symfony/twig-bundle": "6.4.*",
+    "symfony/validator": "6.4.*",
+    "symfony/web-link": "6.4.*",
+    "symfony/webpack-encore-bundle": "^1.14",
+    "symfony/yaml": "6.4.*",
+    "twig/extra-bundle": "^3.3",
+    "twig/intl-extra": "^3.4",
+    "twig/string-extra": "^3.3",
+    "twig/twig": "^3.3",
+    "wiilog/barcode-bundle": "dev-master",
+    "wiilog/common": "dev-master",
+    "wiilog/zpl-generator": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "symfony/browser-kit": "6.4.*",
+    "symfony/debug-bundle": "6.4.*",
+    "symfony/maker-bundle": "^1.25",
+    "symfony/phpunit-bridge": "6.4.*",
+    "symfony/stopwatch": "6.4.*",
+    "symfony/web-profiler-bundle": "6.4.*"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": {
+      "*": "dist"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "symfony/browser-kit": "6.4.*",
-        "symfony/debug-bundle": "6.4.*",
-        "symfony/maker-bundle": "^1.25",
-        "symfony/phpunit-bridge": "6.4.*",
-        "symfony/stopwatch": "6.4.*",
-        "symfony/web-profiler-bundle": "6.4.*"
+    "sort-packages": true,
+    "allow-plugins": {
+      "symfony/flex": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "App\\Tests\\": "tests/"
+    }
+  },
+  "replace": {
+    "symfony/polyfill-ctype": "*",
+    "symfony/polyfill-iconv": "*",
+    "symfony/polyfill-php72": "*"
+  },
+  "scripts": {
+    "auto-scripts": {
+      "cache:clear": "symfony-cmd",
+      "assets:install %PUBLIC_DIR%": "symfony-cmd"
     },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": {
-            "*": "dist"
-        },
-        "sort-packages": true,
-        "allow-plugins": {
-            "symfony/flex": true
-        }
-    },
-    "autoload": {
-        "psr-4": {
-            "App\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "App\\Tests\\": "tests/"
-        }
-    },
-    "replace": {
-        "symfony/polyfill-ctype": "*",
-        "symfony/polyfill-iconv": "*",
-        "symfony/polyfill-php72": "*"
-    },
-    "scripts": {
-        "auto-scripts": {
-            "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
-        },
-        "post-install-cmd": [
-            "@auto-scripts"
-        ],
-        "post-update-cmd": [
-            "@auto-scripts"
-        ]
-    },
-    "conflict": {
-        "symfony/symfony": "6.4.*"
-    },
-    "extra": {
-        "symfony": {
-            "allow-contrib": "true",
-            "require": "6.4.*"
-        }
-    },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/wiilog/common-php.git"
-        },
-        {
-            "type": "git",
-            "url": "https://github.com/wiilog/barcode-bundle.git"
-        },
-        {
-            "type": "git",
-            "url": "https://github.com/wiilog/zpl-generator.git"
-        },
-        {
-          "type": "git",
-          "url": "https://github.com/wiilog/doctrine-messenger.git"
-        }
+    "post-install-cmd": [
+      "@auto-scripts"
+    ],
+    "post-update-cmd": [
+      "@auto-scripts"
     ]
+  },
+  "conflict": {
+    "symfony/symfony": "6.4.*"
+  },
+  "extra": {
+    "symfony": {
+      "allow-contrib": "true",
+      "require": "6.4.*"
+    }
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/wiilog/common-php.git"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/wiilog/barcode-bundle.git"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/wiilog/zpl-generator.git"
+    }
+  ]
 }

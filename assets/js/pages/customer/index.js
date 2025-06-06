@@ -41,7 +41,7 @@ function initCustomerTable() {
 }
 
 function initializeNewModal(table) {
-    Form.create(`#modalNewCustomer`, {clearOnOpen: true})
+    Form.create(`#modalNewCustomer`, {resetView: ['open', 'close']})
         .submitTo(POST, `customer_new`, {
             tables: [table]
         })

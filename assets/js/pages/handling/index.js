@@ -1,4 +1,6 @@
 import Routing from '@app/fos-routing';
+import {POST} from "@app/ajax";
+import Form from "@app/form";
 import {exportFile} from "@app/utils";
 
 global.callbackSaveFilter = callbackSaveFilter;
@@ -26,7 +28,6 @@ $(function() {
         Select2Old.user($('.filter-select2[name="utilisateurs"]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
         Select2Old.user($('.filter-select2[name="receivers"]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
         Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgence', false));
-        Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
 
         filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
             updateSelectedStatusesCount($(this).closest('.statuses-filter').find('[name*=statuses-filter]:checked').length);
@@ -128,18 +129,16 @@ function initDatatable(params) {
 
 function initModals(tableHandling) {
     let $modalNewHandling = $("#modalNewHandling");
-    let $submitNewHandling = $("#submitNewHandling");
-    let urlNewHandling = Routing.generate('handling_new', true);
-    InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {
+    Form.create($modalNewHandling).submitTo(POST,'handling_new', {
         tables: [tableHandling],
         keepModal: $modalNewHandling.is(`.keep-handling-modal-open`),
         success: () => $modalNewHandling.find(`.free-fields-container [data-type]`).addClass(`d-none`),
-    });
+    })
 
     let $modalDeleteHandling = $('#modalDeleteHandling');
-    let $submitDeleteHandling = $('#submitDeleteHandling');
-    let urlDeleteHandling = Routing.generate('handling_delete', true);
-    InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
+    Form.create($modalDeleteHandling).submitTo(POST, 'handling_delete', {
+        tables: [tableHandling],
+    });
 
     Select2Old.user($modalNewHandling.find('.ajax-autocomplete-user[name=receivers]'))
 }

@@ -33,8 +33,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
-#[ORM\Index(fields: ["datetime"], name: "IDX_WIILOG_DATETIME")]
-#[ORM\Index(fields: ["uniqueIdForMobile"], name: "IDX_WIILOG_UNIQUE_ID_FOR_MOBILE")]
+#[ORM\Index(fields: ["datetime"])]
+#[ORM\Index(fields: ["uniqueIdForMobile"])]
 class TrackingMovement implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
@@ -74,7 +74,7 @@ class TrackingMovement implements AttachmentContainer {
      * The data will be used in TrackingMovementListener after flush to launch message to recalculate delay.
      *
      * @see TrackingMovementService::createTrackingMovement()
-     * @see TrackingDelayService::shouldCalculateTrackingDelay()
+     * @see TrackingDelayService::getPackThatRequireTrackingDelay()
      */
     public array $calculateTrackingDelayData = [];
 

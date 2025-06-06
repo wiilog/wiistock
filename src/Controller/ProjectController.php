@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Menu;
@@ -136,8 +137,10 @@ class ProjectController extends AbstractController
         $projectHistoryRecordRepository = $manager->getRepository(ProjectHistoryRecord::class);
         $deliveryRequestReferenceLineRepository = $manager->getRepository(DeliveryRequestReferenceLine::class);
         $deliveryRequestArticleLineRepository = $manager->getRepository(DeliveryRequestArticleLine::class);
+        $articleRepository = $manager->getRepository(Article::class);
 
         $project = $projectRepository->find($id);
+        $articleCount = $articleRepository->count(['project' => $project]);
         $logisticUnitCount = $packRepository->count(['project' => $project]);
         $projectHistoryRecordCount = $projectHistoryRecordRepository->count(['project' => $project]);
         $requestLineCount = (
@@ -148,7 +151,8 @@ class ProjectController extends AbstractController
         return $this->json([
             'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount) && empty($requestLineCount),
             'html' => match(true) {
-                $logisticUnitCount > 0         => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
+                $logisticUnitCount > 0         => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs unités logistiques vous ne pouvez pas le supprimer</span>',
+                $articleCount > 0              => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à un ou plusieurs articles vous ne pouvez pas le supprimer</span>',
                 $projectHistoryRecordCount > 0 => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à un ou plusieurs historiques de ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ', vous ne pouvez pas le supprimer</span>',
                 $requestLineCount > 0          => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs lignes de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ', vous ne pouvez pas le supprimer</span>',
                 default                        => '<span>Voulez-vous réellement supprimer ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' ?</span>'

@@ -2,14 +2,13 @@
 
 namespace App\Entity\Security;
 
-use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\Utilisateur;
 use App\Repository\Security\AccessTokenRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AccessTokenRepository::class)]
-#[ORM\Index(fields: ["type"], name: "IDX_WIILOG_TYPE")]
+#[ORM\Index(fields: ["type"])]
 class AccessToken extends Token {
     #[ORM\Column(type: Types::STRING, enumType: AccessTokenTypeEnum::class)]
     private ?AccessTokenTypeEnum $type = null;

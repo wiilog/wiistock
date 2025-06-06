@@ -9,12 +9,12 @@
                 {
                     label: 'Import unique',
                     value: "unique-import-checkbox",
-                    checked: not import.type or import.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_IMPORT'),
+                    checked: not import.type or import.type.label == constant('App\\Entity\\Type\\Type::LABEL_UNIQUE_IMPORT'),
                 },
                 {
                     label: 'Import planifié',
                     value: "scheduled-import-checkbox",
-                    checked: import.type and import.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_IMPORT'),
+                    checked: import.type and import.type.label == constant('App\\Entity\\Type\\Type::LABEL_SCHEDULED_IMPORT'),
                 },
             ], {
                 onChange: "toggleImportType($(this))"
@@ -27,7 +27,7 @@
 
 <div class="unique-import"></div>
 
-<div class="{{ edit and import.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_IMPORT') ? '' : 'd-none' }} scheduled-import">
+<div class="{{ edit and import.type.label == constant('App\\Entity\\Type\\Type::LABEL_SCHEDULED_IMPORT') ? '' : 'd-none' }} scheduled-import">
     <div>
         {% include 'planner/planner.html.twig' with {
             frequency: import.scheduleRule ? import.scheduleRule.frequency,

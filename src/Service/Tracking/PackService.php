@@ -18,6 +18,7 @@ use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
+use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -70,6 +71,7 @@ class PackService {
         private TrackingMovementService     $trackingMovementService,
         private Twig_Environment            $templating,
         private EntityManagerInterface      $entityManager,
+        private TrackingDelayService        $trackingDelayService,
     ) {}
 
     public function getDataForDatatable($params = null): array {
@@ -80,13 +82,13 @@ class PackService {
         $filters = [];
         $fromDashboard = $params->getBoolean("fromDashboard");
         $naturesFilter = $params->all("natures");
-        $locationsFilter = $params->all("locations");
+        $locationsFilter = $params->all("lastLocation");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
         $trackingDelayEvent = $params->get("trackingDelayEvent");
         if($fromDashboard) {
             $filters = [
                 ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
-                ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
+                ...($locationsFilter ? [["field" => "lastLocation", "value" => $locationsFilter]] : []),
                 ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
                 ...($trackingDelayEvent ? [["field" => "trackingEventTypes", "value" => DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEvent]]] : []),
             ];
@@ -172,8 +174,7 @@ class PackService {
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
-        $user = $this->userService->getUser();
-        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
+
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -187,8 +188,6 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        /** @var TrackingMovement $lastPackMovement */
-        $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
@@ -206,18 +205,11 @@ class PackService {
             ]),
             'nature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
-            'project' => $pack->getProject()?->getCode(),
-            'lastMovementDate' => $lastPackMovement
-                ? ($lastPackMovement->getDatetime()
-                    ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
-                    : '')
-                : '',
+            'project' => $this->formatService->project($pack->getProject()),
+            'lastMovementDate' => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'location' => $lastPackMovement
-                ? ($lastPackMovement->getEmplacement()
-                    ? $lastPackMovement->getEmplacement()->getLabel()
-                    : '')
-                : '',
+            'ongoingLocation' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
+            'lastLocation' => $this->formatService->location($pack->getLastMovement()?->getEmplacement()),
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
@@ -312,8 +304,12 @@ class PackService {
         $pack
             ->setWeight($weight)
             ->setVolume($volume)
-            ->setNature($nature)
             ->setComment($comment);
+
+        if (!$pack->isGroup()
+            || $this->settingsService->getValue($entityManager, Setting::GROUP_GET_CHILD_TRACKING_DELAY) != 1) {
+            $pack->setNature($nature);
+        }
     }
 
     public function createPack(EntityManagerInterface $entityManager,
@@ -573,7 +569,12 @@ class PackService {
                 ["name" => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
                 ["name" => 'project', 'title' => $this->translationService->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
                 ["name" => 'lastMvtDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
-                ["name" => 'lastLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                [
+                    "name" => 'ongoingLocation',
+                    "title" => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    "info" => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                    "searchable" => true,
+                ],
                 ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
@@ -601,7 +602,15 @@ class PackService {
                 ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
-                ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                [
+                    'name' => 'ongoingLocation',
+                    'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement encours'),
+                    'info' => $this->translationService->translate("Traçabilité", "Général", "Emplacement sur lequel se trouve l'unité logistique actuellement", false),
+                ],
+                [
+                    'name' => 'lastLocation',
+                    'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'),
+                ],
                 ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
                 ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
                 ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
@@ -825,26 +834,6 @@ class PackService {
      * }
      */
     public function formatTrackingDelayData(Pack $pack): array {
-        if($pack->isGroup()) {
-            $packChildSortedByDelay = Stream::from($pack->getContent())
-                ->filterMap(function(Pack $pack) {
-                    $remainingTime = $this->getTrackingDelayRemainingTime($pack);
-                    // ignore pack without tracking delay
-                    return isset($remainingTime)
-                        ? [
-                            "pack" => $pack,
-                            "remainingTime" => $remainingTime,
-                        ]
-                        : null;
-                })
-                ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
-
-            $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
-
-            /** @var Pack $pack */
-            $pack = $firstPackChild ?: $pack;
-        }
-
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
 
         $remainingTime = $this->getTrackingDelayRemainingTime($pack);
@@ -875,6 +864,31 @@ class PackService {
             "dateHTML" => $this->formatService->datetime($limitTreatmentDate ?? null, null),
         ];
     }
+
+    /**
+     * Return the child of the group which have the shortest tracking delay.
+     *
+     * @param array<Pack> $inAdditionChildren children not already in the group in database
+     */
+    public function getChildPackWithShortestDelay(Pack  $group,
+                                                  array $inAdditionChildren = []): ?Pack {
+        $packChildSortedByDelay = Stream::from($group->getContent(), $inAdditionChildren)
+            ->unique()
+            ->filterMap(function(Pack $pack) {
+                $remainingTime = $this->getTrackingDelayRemainingTime($pack);
+                // ignore pack without tracking delay
+                return isset($remainingTime)
+                    ? [
+                        "pack" => $pack,
+                        "remainingTime" => $remainingTime,
+                    ]
+                    : null;
+            })
+            ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
+
+        return $packChildSortedByDelay->first()["pack"] ?? null;
+    }
+
 
     public function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getCurrentTrackingDelay();
@@ -1013,7 +1027,10 @@ class PackService {
                     'hasRight' => $pack->getArrivage(),
                     'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
                     'icon' => 'wii-icon wii-icon-printer-black',
-                    'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()?->getId(), 'pack' => $pack->getId() ]),
+                    'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [
+                        'arrivage' => $pack->getArrivage()?->getId(),
+                        'pack' => $pack->getId()
+                    ]),
                 ],
                 [
                     'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
@@ -1074,5 +1091,36 @@ class PackService {
                 ],
             ],
         ]);
+    }
+
+    public function updateTrackingDelayWithPackCode(EntityManagerInterface $entityManager,
+                                                    string                 $packCode): bool {
+        if (!$packCode) {
+            return false;
+        }
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $packOrGroup = $packRepository->findOneBy(["code" => $packCode]);
+
+        if (!$packOrGroup) {
+            return false;
+        }
+
+        if ($packOrGroup->isGroup()){
+            $pack = $this->getChildPackWithShortestDelay($packOrGroup);
+            $trackingDelay = $pack?->getCurrentTrackingDelay();
+
+            // clear columns if there is no pack in the group
+            $packOrGroup
+                ->setCurrentTrackingDelay($trackingDelay)
+                ->setNature($pack?->getNature());
+        }
+        else {
+            // if it's a simple pack we calculate its tracking delay
+            $this->trackingDelayService->updatePackTrackingDelay($entityManager, $packOrGroup);
+        }
+
+        $entityManager->flush();
+        return true;
     }
 }

@@ -7,7 +7,7 @@
     </div>
     <div class="row my-1">
         <div class="col-md-6 col-12">
-            {% set settingShippingReferenceDefaultType = setting_value('SHIPPING_REFERENCE_DEFAULT_TYPE', 'App\\Entity\\Type') %}
+            {% set settingShippingReferenceDefaultType = setting_value('SHIPPING_REFERENCE_DEFAULT_TYPE', 'App\\Entity\\Type\\Type') %}
             {{ form.select(setting('SHIPPING_REFERENCE_DEFAULT_TYPE'), "Type", true, {
                 type: 'referenceType',
                 placeholder: "Sélectionnez un type",

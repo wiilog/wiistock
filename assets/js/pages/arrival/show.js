@@ -154,7 +154,7 @@ function openTableHisto($modalEditLitige, dispute = undefined) {
 function initPackDatatable(arrivalId, columns) {
     return initDataTable('tablePacks', {
         ajax: {
-            "url": Routing.generate('packs_api', {arrivage: arrivalId}),
+            "url": Routing.generate('arrival_packs_api', {arrivage: arrivalId}),
             "type": POST,
         },
         domConfig: {
@@ -201,7 +201,7 @@ function initDisputeDatatable(arrivalId) {
 function initPackModals(arrivalId, packDatatable) {
     let $modalAddPacks = $('#modalAddPacks');
     Form
-        .create($modalAddPacks, {clearOnOpen: true})
+        .create($modalAddPacks, {resetView: ['open', 'close']})
         .addProcessor((data) => {
             data.append('arrivalId', arrivalId);
         })
@@ -250,7 +250,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
 
     let $modalNewLitige = $('#modalNewLitige');
     Form
-        .create($modalNewLitige, {clearOnOpen: true})
+        .create($modalNewLitige, {resetView: ['open', 'close']})
         .addProcessor((data) => {
             data.append('reloadArrivage', arrivalId);
         })
@@ -275,7 +275,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
 
     let $modalEditLitige = $('#modalEditLitige');
     Form
-        .create($modalEditLitige, {clearOnOpen: true})
+        .create($modalEditLitige, {resetView: ['open', 'close']})
         .addProcessor((data) => {
             data.append('reloadArrivage', arrivalId);
             data.append('comment', $modalEditLitige.find('[name="comment"]').val());

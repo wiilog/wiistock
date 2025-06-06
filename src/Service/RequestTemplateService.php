@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
@@ -22,7 +21,8 @@ use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLineArticle;
 use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Service\Cache\CacheService;
 use DateInterval;
 use DateTime;

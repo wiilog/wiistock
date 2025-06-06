@@ -7,7 +7,6 @@ import {getUserFiltersByPage} from "@app/utils";
 global.newTruckArrival = newTruckArrival;
 
 $(function () {
-    Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
     initDateTimePicker('#dateMin, #dateMax');
 
     const requestQuery = GetRequestQuery();

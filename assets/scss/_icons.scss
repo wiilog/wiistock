@@ -142,6 +142,7 @@ $icons: (
     "production": "../../public/svg/production.svg",
     "camera": "../../public/svg/camera.svg",
     "links": "../../public/svg/links.svg",
+    "emergency-menu": "../../public/svg/emergency-menu.svg",
 );
 
 @each $iconName, $iconPath in $icons {

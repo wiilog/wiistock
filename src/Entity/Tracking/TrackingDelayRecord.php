@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Like a trackingMovement copy
  */
 #[ORM\Entity(repositoryClass: TrackingDelayRecordRepository::class)]
-#[ORM\Index(fields: ["date"], name: "IDX_WIILOG_DATE")]
+#[ORM\Index(fields: ["date"])]
 class TrackingDelayRecord {
 
     public const TYPE_ARRIVAL = 'Arrivage';

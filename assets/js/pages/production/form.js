@@ -18,7 +18,7 @@ export function displayAttachmentRequired($select) {
 }
 
 export function openModalUpdateProductionRequestStatus($container, $modalUpdateProductionRequestStatus, productionRequest, successCallback){
-    Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
+    Form.create($modalUpdateProductionRequestStatus, {resetView: ['open', 'close']})
         .clearOpenListeners()
         .onOpen(() => {
             Modal.load(`production_request_update_status_content`,
@@ -94,7 +94,7 @@ export function initDeleteProductionRequest(){
 
 export function initModalNewProductionRequest($modal, tables, onOpen) {
     Form
-        .create($modal, {clearOnOpen: true})
+        .create($modal, {resetView: ['open', 'close']})
         .onOpen(onOpen)
         .submitTo(POST, `production_request_new`, {
             tables: tables,

@@ -6,10 +6,10 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
+use App\Entity\Emergency\StockEmergency;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryLocationMission;
@@ -20,22 +20,29 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\ScheduledTask\Export;
 use App\Entity\Setting;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
-use App\Service\EmplacementDataService;
+use App\Service\LocationService;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -48,21 +55,28 @@ class LocationController extends AbstractController {
 
     #[Route("/api", name: "emplacement_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, EmplacementDataService $emplacementDataService): Response {
-        return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
+    public function api(Request $request, LocationService $locationService): Response {
+        return $this->json($locationService->getEmplacementDataByParams($request->request));
     }
 
     #[Route("/index", name: "emplacement_index", methods: ["GET"])]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION])]
-    public function index(EntityManagerInterface $entityManager): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          LocationService $locationService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
-        $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
+        $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, LocationService::PAGE_EMPLACEMENT, $this->getUser());
         $active = $filterStatus ? $filterStatus->getValue() : false;
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $fields = $locationService->getColumnVisibleConfig($currentUser, FieldModesController::PAGE_EMPLACEMENT);
 
         return $this->render("emplacement/index.html.twig", [
             "newZone" => new Zone(),
             "active" => $active,
+            "fields" => $fields,
         ]);
     }
 
@@ -70,10 +84,10 @@ class LocationController extends AbstractController {
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        EmplacementDataService $emplacementDataService): Response {
+                        LocationService $locationService): Response {
         $data = $request->request;
 
-        $emplacement = $emplacementDataService->persistLocation($entityManager, $data, true);
+        $emplacement = $locationService->persistLocation($entityManager, $data, true);
         $entityManager->flush();
 
         $label = $emplacement->getLabel();
@@ -120,7 +134,7 @@ class LocationController extends AbstractController {
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         EmplacementDataService $locationService): Response {
+                         LocationService $locationService): Response {
         $data = $request->request;
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -313,5 +327,23 @@ class LocationController extends AbstractController {
         return $this->json([
             'results' => $locations
         ]);
+    }
+
+    #[Route("/csv", name: "get_locations_csv", options: ["expose" => true], methods: [self::GET])]
+    public function exportLocations(EntityManagerInterface $entityManager,
+                                    CSVExportService       $csvService,
+                                    DataExportService      $dataExportService,
+                                    LocationService $locationDataService): StreamedResponse
+    {
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_LOCATION, $now);
+
+        return $csvService->streamResponse(
+            $locationDataService->getExportFunction(
+                $entityManager,
+            ), "export-emplacement-$today.csv",
+            $locationDataService->getCsvHeader()
+        );
     }
 }

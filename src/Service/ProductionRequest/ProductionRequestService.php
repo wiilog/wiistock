@@ -7,7 +7,6 @@ use App\Controller\Settings\StatusController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
@@ -23,7 +22,8 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
@@ -94,7 +94,7 @@ class ProductionRequestService
                                             bool $dispatchMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
+        $freeFields = $champLibreRepository->findByTypeCategoriesAndFreeFieldCategories([CategorieCL::PRODUCTION_REQUEST]);
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [];
@@ -206,7 +206,7 @@ class ProductionRequestService
         $typeColor = $productionRequest->getType()->getColor();
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::PRODUCTION_REQUEST, CategoryType::PRODUCTION);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::PRODUCTION_REQUEST);
         }
 
         $productionRequestId = $productionRequest->getId();

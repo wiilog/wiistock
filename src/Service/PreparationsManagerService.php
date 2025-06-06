@@ -234,7 +234,7 @@ class PreparationsManagerService
                             'entityManager' => $entityManager,
                         ]
                     );
-                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                    $dropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                         $lu,
                         $locationEndPrepa,
                         $user,
@@ -248,9 +248,12 @@ class PreparationsManagerService
                         ]
                     );
                     $entityManager->persist($pickTrackingMovement);
-                    $entityManager->persist($DropTrackingMovement);
+                    $entityManager->persist($dropTrackingMovement);
 
-                    $lu->setLastOngoingDrop($DropTrackingMovement)->setLastAction($DropTrackingMovement);
+                    $lu
+                        ->setLastOngoingDrop($dropTrackingMovement)
+                        ->setLastMovement($dropTrackingMovement)
+                        ->setLastAction($dropTrackingMovement);
                 }
             }
         }

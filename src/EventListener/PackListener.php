@@ -5,7 +5,7 @@ namespace App\EventListener;
 
 use App\Entity\Nature;
 use App\Entity\Tracking\Pack;
-use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -50,7 +50,7 @@ class PackListener implements EventSubscriber {
     #[AsEventListener(event: "postFlush")]
     public function postFlush(): void {
         foreach ($this->insertedPacks as $pack) {
-            if ($pack?->getNature()?->getTrackingDelay()) {
+            if ($pack?->shouldHaveTrackingDelay()) {
                 $this->messageBus->dispatch(new CalculateTrackingDelayMessage($pack->getCode()));
             }
         }

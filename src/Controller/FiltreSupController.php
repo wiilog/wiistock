@@ -104,6 +104,7 @@ class FiltreSupController extends AbstractController
                 'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
+                'lastLocation' => FiltreSup::FIELD_LAST_LOCATION,
                 'locationPickWithGroups' => FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS,
                 'locationDropWithGroups' => FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS,
                 'pickLocation' => FiltreSup::FIELD_PICK_LOCATION,
@@ -130,6 +131,8 @@ class FiltreSupController extends AbstractController
                 'drivers' => FiltreSup::FIELD_DRIVERS,
                 'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
                 'unloadingLocation' => FiltreSup::FIELD_UNLOADING_LOCATION,
+                'emergencyAppliedTo' => FiltreSup::FIELD_EMERGENCY_APPLIED_TO,
+                'emergencyStatut' => FiltreSup::FIELD_EMERGENCY_STATUT,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

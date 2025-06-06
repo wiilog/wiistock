@@ -4,12 +4,12 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Service\DateTimeService;
 use App\Service\NatureService;
 use App\Service\TranslationService;

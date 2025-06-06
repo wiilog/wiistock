@@ -16,7 +16,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;

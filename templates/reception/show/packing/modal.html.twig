@@ -11,17 +11,17 @@
                 <div class="row reference-container"
                      data-form-id="reference-container-form">
                     <input name="reception" type="hidden" value="{{ reception.id }}"/>
-                    <div class="form-group col-4">
+                    <div class="col-12 col-lg-4 form-group">
                         <label class="wii-field-name">Référence</label>
                         <select class="form-control select2-autocomplete-ref-articles w-100"
                                 name="referenceToReceive"></select>
                     </div>
-                    <div class="form-group col-4">
+                    <div class="col-12 col-lg-4 form-group">
                         <label class="wii-field-name">Référence fournisseur</label>
                         <select class="form-control select2 w-100" name="articleFournisseurDefault"></select>
                     </div>
                     {% if reception %}
-                        <div class="form-group col-4">
+                        <div class="col-12 col-lg-4 form-group">
                             <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
                             <select class="w-100 form-control wii-field-text"
                                     name="pack"

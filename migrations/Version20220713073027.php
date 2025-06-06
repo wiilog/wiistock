@@ -56,7 +56,7 @@ final class Version20220713073027 extends AbstractMigration
                 Action::DISPLAY_ENCO,
             ],
             ActionsFixtures::SUB_MENU_EMERGENCYS => [
-                Action::DISPLAY_URGE,
+                Action::DISPLAY_EMERGENCY,
                 Action::CREATE_EMERGENCY,
             ]
         ];

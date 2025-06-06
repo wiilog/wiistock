@@ -725,7 +725,7 @@ class ShippingRequestController extends AbstractController {
                             null,
                             TrackingMovement::TYPE_DROP_LU,
                             [
-                                'from'=>$shippingRequest,
+                                'from' => $shippingRequest,
                                 'shippingRequest'=> $shippingRequest,
                                 'refOrArticle' => $article,
                                 'mouvementStock' => $stockMovement,
@@ -735,6 +735,11 @@ class ShippingRequestController extends AbstractController {
                         );
                         $entityManager->persist($trackingMovementDropLogisticUnit);
                         $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
+
+                        $packProject = $trackingMovementDrop->getPack()?->getProject();
+                        if ($packProject) {
+                            $article->setProject($packProject);
+                        }
                     }
 
                     $requestLine = new ShippingRequestLine();

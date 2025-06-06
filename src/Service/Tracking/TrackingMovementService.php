@@ -7,7 +7,6 @@ use App\Entity\Article;
 use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -29,6 +28,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
+use App\Entity\Type\CategoryType;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Serializer\SerializerUsageEnum;
@@ -342,7 +342,16 @@ class TrackingMovementService {
                     $isNewGroupInstance = true;
                 }
 
+                $groupChildren = $this->findAllPacks($entityManager, $packCodes);
+
                 if ($isNewGroupInstance) {
+                    if ($this->settingsService->getValue($entityManager, Setting::DROP_MOVEMENT_ON_GROUPING) == 1) {
+                        $this->retrieveDataFromChildPackToTreatMostRapidly($parentPack, $operator, $date, Stream::from($groupChildren)->filter()->values(), $dropTrackingMovement);
+                        if ($dropTrackingMovement) {
+                            $createdMovements[] = $dropTrackingMovement;
+                        }
+                    }
+
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $parentPack,
                         null,
@@ -365,10 +374,8 @@ class TrackingMovementService {
                     throw new FormException("Le groupe $packParentCode ne peut pas contenir plus de $limit unités logistiques.");
                 }
 
-                foreach ($packCodes as $packCode) {
-
+                foreach ($groupChildren as $packCode => $movedPack) {
                     $packParent = null;
-                    $movedPack = $packRepository->findOneBy(['code' => $packCode]);
 
                     $packSplittingCase = $movedPack?->getGroup() !== null;
 
@@ -575,8 +582,8 @@ class TrackingMovementService {
         $this->managePackLinksWithTracking(
             $entityManager,
             [
+                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : []), // before $tracking because it is certainly an older movement
                 $tracking,
-                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : [])
             ]
         );
         $this->managePackLinksWithOperations($entityManager, $tracking, [
@@ -759,7 +766,7 @@ class TrackingMovementService {
         $oldNature = $pack?->getNature();
         $returnData = [];
 
-        if(($pack?->isBasicUnit() || $pack?->getLastAction() === $trackingMovement)){
+        if ($pack?->isBasicUnit() && $pack?->getLastAction() === $trackingMovement) {
             $isNatureChangeEnabled  = match (true) {
                 $trackingMovement->isDrop()    => $location?->isNewNatureOnDropEnabled(),
                 $trackingMovement->isPicking() => $location?->isNewNatureOnPickEnabled(),
@@ -791,7 +798,7 @@ class TrackingMovementService {
                 }
             }
         } else {
-            $returnData =[
+            $returnData = [
                 "natureChanged" => false,
             ];
         }
@@ -843,6 +850,14 @@ class TrackingMovementService {
                     || $this->compareMovements($pack->getLastDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
                 )) {
                 $pack->setLastDrop($tracking);
+            }
+
+            if (($tracking->isPicking() || $tracking->isDrop())
+                && (
+                    !$pack->getLastMovement()
+                    || $this->compareMovements($pack->getLastMovement(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+                )) {
+                $pack->setLastMovement($tracking);
             }
 
             if ($tracking->isDrop()
@@ -1660,6 +1675,9 @@ class TrackingMovementService {
 
             // now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
+
+            $packProject = $pack?->getProject();
+
             // then change the project of the article according to the pack project
             $this->projectHistoryRecordService->changeProject($manager, $article, $pack?->getProject(), $trackingDate);
 
@@ -1696,7 +1714,9 @@ class TrackingMovementService {
                     $options + ["stockAction" => true],
                 )["movement"];
 
-                $luDrop->setLogisticUnitParent($pack);
+                if ($packProject) {
+                    $article->setProject($packProject);
+                }
                 $movements[] = $luDrop;
             }
 
@@ -1795,8 +1815,8 @@ class TrackingMovementService {
             foreach($children->getDispatchPacks() as $dispatchPack) {
                 $dispatch = $dispatchPack->getDispatch();
 
-                if(in_array($dispatch->getId(), $linkedDispatches)
-                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes )){
+                if (in_array($dispatch->getId(), $linkedDispatches)
+                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes)){
 
                     $date = new DateTime('now');
                     $trackingMovement = $this->createTrackingMovement(
@@ -1906,33 +1926,40 @@ class TrackingMovementService {
         if ($trackingMovement->isInitTrackingDelay()) {
             $trackingEvent = TrackingEvent::START;
         }
+
         else if ($trackingMovement->isPicking()
             && $trackingLocation->isStartTrackingTimerOnPicking()
             && !$manualDelayStart) {
-            $pack = $trackingMovement->getPack();
-            $location = $trackingMovement->getEmplacement();
-            $lastOngoingDrop = $pack->getLastOngoingDrop();
+            $isStopEvent = $trackingLocation->isStopTrackingTimerOnDrop();
+            $isPauseEvent = $trackingLocation->isPauseTrackingTimerOnDrop();
 
-            // the last ongoing drop is defined,
-            // AND its location is same as the current movement location,
-            // AND he hasn't a tracking event OR he has a STOP tracking event (see WIIS-12750 / case 1)
-            // => then we set the start event on the drop movement
-            if ($location?->getId()
-                && $lastOngoingDrop
-                && in_array($lastOngoingDrop->getEvent(), [null, TrackingEvent::STOP])
-                && $location->getId() === $lastOngoingDrop->getEmplacement()?->getId()) {
-                $trackingToSetEvent = $lastOngoingDrop;
+            // see WIIS-12751 example 2
+            if ((!$isStopEvent && !$isPauseEvent)
+                || ($isStopEvent && !$isPauseEvent)) {
+                $pack = $trackingMovement->getPack();
+                $location = $trackingMovement->getEmplacement();
+                $lastOngoingDrop = $pack->getLastOngoingDrop();
+
+                // IF the last ongoing drop is defined,
+                //    AND its location is same as the current movement location,
+                // THEN we set the start event on the drop movement instead of current movement
+                if ($location?->getId()
+                    && $lastOngoingDrop
+                    && $location->getId() === $lastOngoingDrop->getEmplacement()?->getId()) {
+                    $trackingToSetEvent = $lastOngoingDrop;
+                }
             }
 
             $trackingEvent = TrackingEvent::START;
         }
-        else if ($trackingMovement->isDrop()
-            && $trackingLocation->isStopTrackingTimerOnDrop()) {
-            $trackingEvent = TrackingEvent::STOP;
-        }
-        else if ($trackingMovement->isDrop()
-            && $trackingLocation->isPauseTrackingTimerOnDrop()) {
-            $trackingEvent = TrackingEvent::PAUSE;
+        else if ($trackingMovement->isDrop()) {
+            // priority to stop setting
+            if ($trackingLocation->isStopTrackingTimerOnDrop()) {
+                $trackingEvent = TrackingEvent::STOP;
+            }
+            else if ($trackingLocation->isPauseTrackingTimerOnDrop()) {
+                $trackingEvent = TrackingEvent::PAUSE;
+            }
         }
 
         $trackingToSetEvent->setEvent($trackingEvent ?? null);
@@ -2053,7 +2080,9 @@ class TrackingMovementService {
             $this->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
             $entityManager->persist($targetDropTrackingMovement);
 
-            $pack->setLastOngoingDrop($targetDropTrackingMovement);
+            $pack
+                ->setLastOngoingDrop($targetDropTrackingMovement)
+                ->setLastMovement($targetDropTrackingMovement);
         }
 
         $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $packParent, [
@@ -2070,5 +2099,77 @@ class TrackingMovementService {
             ->setSplittingAt(new DateTime());
 
         $entityManager->persist($packSplit);
+    }
+
+    /**
+     * @param array<Pack> $groupChildren
+     * @return void
+     * @throws Exception
+     */
+    public function retrieveDataFromChildPackToTreatMostRapidly(Pack              $group,
+                                                                Utilisateur       $operator,
+                                                                DateTime          $date,
+                                                                array             $groupChildren,
+                                                                ?TrackingMovement &$createDropMovement = null): void {
+
+        $pack = $this->packService->getChildPackWithShortestDelay($group, $groupChildren);
+
+        $location = $pack?->getLastOngoingDrop()?->getEmplacement();
+        $nature = $pack?->getNature();
+
+        if ($location) {
+            $createDropMovement = $this->createTrackingMovement(
+                $group,
+                $location,
+                $operator,
+                $date,
+                $data['fromNomade'] ?? false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+            );
+        }
+
+        if ($nature) {
+            $group->setNature($nature);
+        }
+    }
+
+    /**
+     * Associate all pack code to existing Pack entity.
+     * If Pack does not exist set null for given code.
+     * count($packCodes) == count(array returned)
+     *
+     * @param array<string> $packCodes
+     * @return array<string, Pack|null>
+     */
+    public function findAllPacks(EntityManagerInterface $entityManager,
+                                 array                  $packCodes): array {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $groupExistingChildren = Stream::from(
+            !empty($packCodes)
+                ? $packRepository->findBy(['code' => $packCodes])
+                : []
+        )
+            ->keymap(static fn(Pack $pack) => [
+                $pack->getCode(),
+                $pack
+            ])
+            ->toArray();
+
+        $groupUnexistingChildren = Stream::from($packCodes)
+            ->keymap(static fn(string $packCode) => (
+                // filter only unexisting pack
+            !isset($groupExistingChildren[$packCode])
+                ? [$packCode, null]
+                : null
+            ))
+            ->toArray();
+
+        return Stream::from(
+            $groupUnexistingChildren,
+            $groupExistingChildren
+        )
+            ->toArray();
     }
 }

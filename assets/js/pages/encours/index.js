@@ -60,10 +60,7 @@ function loadPage() {
     }
 
     AJAX
-        .route(
-            POST,
-            'check_location_delay',
-        )
+        .route(POST, 'check_location_delay')
         .json({
             locationIds: idLocationsToDisplay
         })
@@ -81,7 +78,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
         id: tableId,
         useTruckArrivals,
         natures,
-    }
+    };
 
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
     extendsDateSort('customDate');

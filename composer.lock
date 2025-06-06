@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d543d6233d89ad3ce133db0f365ed150",
+    "content-hash": "ccfc8d5c0e5445c74953648ad54e6157",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -4613,6 +4613,75 @@
             "time": "2024-03-08T08:39:12+00:00"
         },
         {
+            "name": "symfony/amqp-messenger",
+            "version": "v6.4.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/amqp-messenger.git",
+                "reference": "4149e8d799f4a69077a1a8813c4ae4ea3819ce3c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/amqp-messenger/zipball/4149e8d799f4a69077a1a8813c4ae4ea3819ce3c",
+                "reference": "4149e8d799f4a69077a1a8813c4ae4ea3819ce3c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-amqp": "*",
+                "php": ">=8.1",
+                "symfony/messenger": "^6.1|^7.0"
+            },
+            "require-dev": {
+                "symfony/event-dispatcher": "^5.4|^6.0|^7.0",
+                "symfony/process": "^5.4|^6.0|^7.0",
+                "symfony/property-access": "^5.4|^6.0|^7.0",
+                "symfony/serializer": "^5.4|^6.0|^7.0"
+            },
+            "type": "symfony-messenger-bridge",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Messenger\\Bridge\\Amqp\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony AMQP extension Messenger Bridge",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/amqp-messenger/tree/v6.4.13"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-09-25T14:18:03+00:00"
+        },
+        {
             "name": "symfony/asset",
             "version": "v6.4.8",
             "source": {
@@ -5416,54 +5485,6 @@
                 }
             ],
             "time": "2024-07-26T12:30:32+00:00"
-        },
-        {
-            "name": "symfony/doctrine-messenger",
-            "version": "v6.4.20",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/wiilog/doctrine-messenger.git",
-                "reference": "eb6ebe02cc84ba5414397dc604137eff80b7fd5e"
-            },
-            "require": {
-                "doctrine/dbal": "^2.13|^3|^4",
-                "php": ">=8.1",
-                "symfony/messenger": "^5.4|^6.0|^7.0",
-                "symfony/service-contracts": "^2.5|^3"
-            },
-            "conflict": {
-                "doctrine/persistence": "<1.3"
-            },
-            "require-dev": {
-                "doctrine/persistence": "^1.3|^2|^3",
-                "symfony/property-access": "^5.4|^6.0|^7.0",
-                "symfony/serializer": "^5.4|^6.0|^7.0"
-            },
-            "type": "symfony-messenger-bridge",
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Messenger\\Bridge\\Doctrine\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony Doctrine Messenger Bridge",
-            "homepage": "https://symfony.com",
-            "time": "2025-03-06T09:43:55+00:00"
         },
         {
             "name": "symfony/dom-crawler",
@@ -6787,6 +6808,85 @@
             "time": "2024-05-31T14:49:08+00:00"
         },
         {
+            "name": "symfony/lock",
+            "version": "v6.4.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/lock.git",
+                "reference": "a69c3dd151ab7e14925f119164cfdf65d55392a4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/lock/zipball/a69c3dd151ab7e14925f119164cfdf65d55392a4",
+                "reference": "a69c3dd151ab7e14925f119164cfdf65d55392a4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "psr/log": "^1|^2|^3",
+                "symfony/deprecation-contracts": "^2.5|^3"
+            },
+            "conflict": {
+                "doctrine/dbal": "<2.13",
+                "symfony/cache": "<6.2"
+            },
+            "require-dev": {
+                "doctrine/dbal": "^2.13|^3|^4",
+                "predis/predis": "^1.1|^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Lock\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jérémy Derussé",
+                    "email": "jeremy@derusse.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Creates and manages locks, a mechanism to provide exclusive access to a shared resource",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "cas",
+                "flock",
+                "locking",
+                "mutex",
+                "redlock",
+                "semaphore"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/lock/tree/v6.4.13"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-10-25T15:19:46+00:00"
+        },
+        {
             "name": "symfony/mailer",
             "version": "v6.4.9",
             "source": {
@@ -6934,16 +7034,16 @@
         },
         {
             "name": "symfony/messenger",
-            "version": "v6.4.12",
+            "version": "v6.4.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/messenger.git",
-                "reference": "05035355ef94de2cb054f8697e65d82f67bf89d4"
+                "reference": "5f3843b8f867569009d4cd6cbba35b3c7a33ac63"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/messenger/zipball/05035355ef94de2cb054f8697e65d82f67bf89d4",
-                "reference": "05035355ef94de2cb054f8697e65d82f67bf89d4",
+                "url": "https://api.github.com/repos/symfony/messenger/zipball/5f3843b8f867569009d4cd6cbba35b3c7a33ac63",
+                "reference": "5f3843b8f867569009d4cd6cbba35b3c7a33ac63",
                 "shasum": ""
             },
             "require": {
@@ -7001,7 +7101,7 @@
             "description": "Helps applications send and receive messages to/from other applications or via message queues",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/messenger/tree/v6.4.12"
+                "source": "https://github.com/symfony/messenger/tree/v6.4.19"
             },
             "funding": [
                 {
@@ -7017,7 +7117,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-08T12:31:10+00:00"
+            "time": "2025-02-26T07:27:03+00:00"
         },
         {
             "name": "symfony/mime",
@@ -12493,6 +12593,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
+        "ext-amqp": "*",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-intl": "*",

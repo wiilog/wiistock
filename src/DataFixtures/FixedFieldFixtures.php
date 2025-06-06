@@ -3,13 +3,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -68,12 +67,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_HANDLING => [
-                ['code' => FixedFieldStandard::FIELD_CODE_LOADING_ZONE, 'label' => FixedFieldStandard::FIELD_LABEL_LOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, 'label' => FixedFieldStandard::FIELD_LABEL_UNLOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
-                ['code' => FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
-                ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true]
+                ['code' => FixedFieldEnum::loadingZone->name, 'label' => FixedFieldEnum::loadingZone->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::unloadingZone->name, 'label' => FixedFieldEnum::unloadingZone->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
+                ['code' => FixedFieldEnum::carriedOutOperationCount->name, 'label' => FixedFieldEnum::carriedOutOperationCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::receivers->name, 'label' => FixedFieldEnum::receivers->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_USER],
+                ['code' => FixedFieldEnum::object->name, 'label' => FixedFieldEnum::object->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::status->name, 'label' => FixedFieldEnum::status->value, 'displayedCreate' => true, 'displayedEdit' => true, 'default' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::type->name, 'label' => FixedFieldEnum::type->value, 'displayedCreate' => true, 'displayedEdit' => true, 'default' => true, 'displayedFilters' => true],
             ],
 
             FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
@@ -85,30 +86,18 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_ARTICLE => [
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_UNIT_PRICE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_UNIT_PRICE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_BATCH, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_BATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_ANOMALY, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_ANOMALY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_EXPIRY_DATE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_EXPIRY_DATE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_COMMENT, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_COMMENT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_MANUFACTURED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FixedFieldStandard::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::unitPrice->name, 'label' => FixedFieldEnum::unitPrice->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::batch->name, 'label' => FixedFieldEnum::batch->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::anomaly->name, 'label' => FixedFieldEnum::anomaly->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::expiryDate->name, 'label' => FixedFieldEnum::expiryDate->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::comment->name, 'label' => FixedFieldEnum::comment->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::deliveryNoteLine->name, 'label' => FixedFieldEnum::deliveryNoteLine->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::manufacturedAt->name, 'label' => FixedFieldEnum::manufacturedAt->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::productionDate->name, 'label' => FixedFieldEnum::productionDate->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::purchaseOrderLine->name, 'label' => FixedFieldEnum::purchaseOrderLine->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::nativeCountry->name, 'label' => FixedFieldEnum::nativeCountry->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::project->name, 'label' => FixedFieldEnum::project->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
-
-            FixedFieldStandard::ENTITY_CODE_EMERGENCY => [
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_BUYER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_PROVIDER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_COMMAND_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-            ],
-
         ];
 
         $subLinesFieldCodes = [
@@ -154,7 +143,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_DISPATCH_TYPE , 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
-
             FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
                 ['code' => FixedFieldEnum::manufacturingOrderNumber->name, 'label' => FixedFieldEnum::manufacturingOrderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
@@ -168,7 +156,24 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::lineCount->name, 'label' => FixedFieldEnum::lineCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::destinationLocation->name, 'label' => FixedFieldEnum::destinationLocation->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
-
+            FixedFieldStandard::ENTITY_CODE_STOCK_EMERGENCY => [
+                ['code' => FixedFieldEnum::comment->name, 'label' => FixedFieldEnum::comment->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::orderNumber->name, 'label' => FixedFieldEnum::orderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::attachments->name, 'label' => FixedFieldEnum::attachments->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::expectedEmergencyLocation->name, 'label' => FixedFieldEnum::expectedEmergencyLocation->value, 'displayedCreate' => true, 'displayedEdit' => true],
+            ],
+            FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY => [
+                ['code' => FixedFieldEnum::buyer->name, 'label' => FixedFieldEnum::buyer->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::supplier->name, 'label' => FixedFieldEnum::supplier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::orderNumber->name, 'label' => FixedFieldEnum::orderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::postNumber->name, 'label' => FixedFieldEnum::postNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::carrier->name, 'label' => FixedFieldEnum::carrier->value, 'displayedCreate' => true, 'displayedEdit' => true],
+                ['code' => FixedFieldEnum::internalArticleCode->name, 'label' => FixedFieldEnum::internalArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false],
+                ['code' => FixedFieldEnum::supplierArticleCode->name, 'label' => FixedFieldEnum::supplierArticleCode->value, 'displayedCreate' => false, 'displayedEdit' => false],
+            ],
         ];
 
         $fieldsParamStandardRepository = $manager->getRepository(FixedFieldStandard::class);
@@ -251,9 +256,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         foreach($fixedFieldByType as $fieldEntity => $listFieldCodes) {
-            $categoryType = $fieldEntity == FixedFieldStandard::ENTITY_CODE_DISPATCH ? CategoryType::DEMANDE_DISPATCH : null;
-
-            $typeRepository->findByCategoryLabels([$categoryType]);
             $entityTypes = $typeRepository->findByCategoryLabels([$fieldEntity]);
             $entityTypes = new ArrayCollection($entityTypes);
             $emptyCollection = new ArrayCollection();

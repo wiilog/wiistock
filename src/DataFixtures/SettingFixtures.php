@@ -247,7 +247,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DROP_OFF_LOCATION_IF_EMERGENCY => [],
             Setting::DROP_OFF_LOCATION_IF_RECIPIENT => [],
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
-                "default" => json_encode(["provider", "commande"]),
+                "default" => json_encode(["supplier", "orderNumber"]),
             ],
             Setting::CONFIRM_EMERGENCY_ON_ARRIVAL => [
                 'default' => false,
@@ -448,6 +448,14 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS => [
                 'default' => false,
+            ],
+            Setting::DROP_MOVEMENT_ON_GROUPING => [
+                'default' => false,
+                SpecificService::CLIENT_FOURME => true,
+            ],
+            Setting::GROUP_GET_CHILD_TRACKING_DELAY => [
+                'default' => false,
+                SpecificService::CLIENT_FOURME => true,
             ],
         ];
 

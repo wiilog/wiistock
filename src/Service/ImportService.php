@@ -7,7 +7,6 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -33,7 +32,8 @@ use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
@@ -97,7 +97,6 @@ class ImportService
         Import::ENTITY_REF => [
             "catInv",
             "commentaire",
-            "emergencyComment",
             "dateLastInventory",
             "emplacement",
             "libelle",
@@ -187,18 +186,28 @@ class ImportService
             "targetLocationPicking",
         ],
         Import::ENTITY_LOCATION => [
-            "name",
-            "description",
-            "dateMaxTime",
-            "allowedPackNatures",
-            "allowedDeliveryTypes",
-            "allowedCollectTypes",
-            "isDeliveryPoint",
-            "isOngoingVisibleOnMobile",
-            "isActive",
-            "signatories",
-            "email",
-            "zone",
+            FixedFieldEnum::name->name,
+            FixedFieldEnum::description->name,
+            FixedFieldEnum::isDeliveryPoint->name,
+            FixedFieldEnum::isOngoingVisibleOnMobile->name,
+            FixedFieldEnum::maximumTrackingDelay->name,
+            FixedFieldEnum::status->name,
+            FixedFieldEnum::allowedNatures->name,
+            FixedFieldEnum::allowedTemperatures->name,
+            FixedFieldEnum::signatories->name,
+            FixedFieldEnum::email->name,
+            FixedFieldEnum::zone->name,
+            FixedFieldEnum::managers->name,
+            FixedFieldEnum::sendEmailToManagers->name,
+            FixedFieldEnum::allowedDeliveryTypes->name,
+            FixedFieldEnum::allowedCollectTypes->name,
+            FixedFieldEnum::startTrackingTimerOnPicking->name,
+            FixedFieldEnum::stopTrackingTimerOnDrop->name,
+            FixedFieldEnum::pauseTrackingTimerOnDrop->name,
+            FixedFieldEnum::newNatureOnPick->name,
+            FixedFieldEnum::newNatureOnDrop->name,
+            FixedFieldEnum::newNatureOnPickEnabled->name,
+            FixedFieldEnum::newNatureOnDropEnabled->name,
         ],
         Import::ENTITY_CUSTOMER => [
             "name",
@@ -267,7 +276,7 @@ class ImportService
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmplacementDataService $emplacementDataService,
+        private LocationService $locationService,
         private SettingsService $settingService,
         private Twig_Environment $templating,
         private ArticleDataService $articleDataService,
@@ -1040,9 +1049,6 @@ class ImportService
         if (isset($data['commentaire'])) {
             $refArt->setCommentaire($data['commentaire']);
         }
-        if (isset($data['emergencyComment'])) {
-            $refArt->setEmergencyComment($data['emergencyComment']);
-        }
         if (isset($data['dateLastInventory'])) {
             try {
                 $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']) ?: null);
@@ -1112,7 +1118,6 @@ class ImportService
 
             $refArt
                 ->setStatut($status)
-                ->setIsUrgent(false)
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setType($type);
         } else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
@@ -2141,7 +2146,7 @@ class ImportService
                 if (empty($defaultZoneLocation)) {
                     throw new ImportException('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
-                $location = $this->emplacementDataService->persistLocation($this->entityManager, [
+                $location = $this->locationService->persistLocation($this->entityManager, [
                     FixedFieldEnum::name->name => $data['emplacement'],
                     FixedFieldEnum::status->name => true,
                     FixedFieldEnum::isDeliveryPoint->name => false,
@@ -2278,6 +2283,8 @@ class ImportService
             }
         }
 
+        $requiredFields = Import::FIELDS_NEEDED[$entityCode] ?? [];
+
         $fieldsToAssociate = $fieldsToAssociate
             ->keymap(static fn(string $key) => [
                 $key,
@@ -2285,7 +2292,17 @@ class ImportService
                     ?? Import::FIELDS_ENTITY['default'][$key]
                     ?? $key,
             ])
-            ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
+            ->map(function (string|array $field, string|int $key) use ($requiredFields) {
+                $translated = is_array($field)
+                    ? $this->translationService->translate(...$field)
+                    : $field;
+
+                if (in_array($key, $requiredFields, true)) {
+                   $translated .= ' *';
+                }
+
+                return $translated;
+            })
             ->toArray();
 
         $categoryCLByEntity = [

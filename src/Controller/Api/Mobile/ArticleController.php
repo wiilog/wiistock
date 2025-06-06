@@ -15,7 +15,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;

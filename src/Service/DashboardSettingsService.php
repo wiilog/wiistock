@@ -19,7 +19,7 @@ use App\Entity\Nature;
 use App\Entity\ProductionRequest;
 use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ProductionRequest\ProductionRequestService;
@@ -32,6 +32,7 @@ use WiiCommon\Helper\Stream;
 class DashboardSettingsService {
 
     private const DEFAULT_COMPONENT_LIMIT = 75;
+    private const DEFAULT_IMAGE_LIMIT = 30;
 
     const MODE_EDIT = 0;
     const MODE_DISPLAY = 1;
@@ -42,6 +43,7 @@ class DashboardSettingsService {
     public const UNKNOWN_COMPONENT = 'unknown_component';
     public const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
     public const COMPONENT_COUNT_EXCEEDED = 'component_count_exceeded';
+    public const IMAGE_COUNT_EXCEEDED = 'image_count_exceeded';
 
     const COMPONENTS_NEEDING_LEGEND_TRANSLATION = [
         Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
@@ -1153,14 +1155,27 @@ class DashboardSettingsService {
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
 
-        $componentCount = Stream::from($jsonDashboard)
+        $imageComponentType = $componentTypeRepository->findOneBy(["meterKey" => Dashboard\ComponentType::EXTERNAL_IMAGE]);
+
+        $components = Stream::from($jsonDashboard)
             ->flatMap(static fn(array $jsonPage) => $jsonPage['rows'])
             ->flatMap(static fn(array $jsonRow) => $jsonRow["components"])
-            ->count();
+            ->keymap(static fn(array $component) => [
+                $component["type"] == $imageComponentType->getId() ? "images" : "components",
+                $component
+            ], true);
+
+        $componentCount = count($components['components'] ?? []);
+        $imageCount = count($components['images'] ?? []);
 
         $componentLimit = $_SERVER['APP_DASHBOARD_COMPONENT_LIMIT'] ?? self::DEFAULT_COMPONENT_LIMIT;
         if ($componentCount > $componentLimit) {
             throw new InvalidArgumentException(self::COMPONENT_COUNT_EXCEEDED . "-$componentLimit");
+        }
+
+        $imageLimit = $_SERVER['APP_DASHBOARD_IMAGE_LIMIT'] ?? self::DEFAULT_IMAGE_LIMIT;
+        if ($imageCount > $imageLimit) {
+            throw new InvalidArgumentException(self::IMAGE_COUNT_EXCEEDED . "-$imageLimit");
         }
 
         foreach ($jsonDashboard as $jsonPage) {
@@ -1363,7 +1378,11 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true, 'dateMin' => (new DateTime('now'))->format('Y-m-d')]) : null;
+                $link = $redirect
+                    ? $this->router->generate('emergency_index', [
+                        'dashboardComponentId' => $config['__componentId'],
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $statuses = $config['disputeStatuses'];

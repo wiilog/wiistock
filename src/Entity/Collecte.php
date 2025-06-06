@@ -8,6 +8,7 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Type\Type;
 use App\Repository\CollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;

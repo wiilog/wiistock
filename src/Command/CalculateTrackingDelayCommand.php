@@ -2,15 +2,13 @@
 
 namespace App\Command;
 
-use App\Entity\Tracking\Pack;
-use App\Service\Tracking\TrackingDelayService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 
 #[AsCommand(
@@ -20,11 +18,12 @@ use Symfony\Contracts\Service\Attribute\Required;
 class CalculateTrackingDelayCommand extends Command {
     public const COMMAND_NAME = 'app:tracking:calculate-delay';
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public TrackingDelayService $trackingDelayService;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private PackService $packService,
+    ) {
+        parent::__construct(self::COMMAND_NAME);
+    }
 
     protected function configure(): void {
         $this
@@ -32,16 +31,12 @@ class CalculateTrackingDelayCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $packRepository = $this->entityManager->getRepository(Pack::class);
+        $success = $this->packService->updateTrackingDelayWithPackCode($this->entityManager, $input->getArgument("code"));
+        if ($success) {
+            $this->entityManager->flush();
+        }
 
-        $pack = $packRepository->findOneBy([
-            "code" => $input->getArgument("code"),
-        ]);
-
-        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
-        $this->entityManager->flush();
-
-        return 0;
+        return Command::SUCCESS;
     }
 
 }

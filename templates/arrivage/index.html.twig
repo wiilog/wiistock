@@ -5,18 +5,18 @@
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
-        'page': 'PAGE_LU_ARRIVAL',
-        'tableSelector': '#arrivalsTable',
-        'needsDateFormatting': true,
-        'callback': '() => {clicked = true;
-        }'
+        page: 'PAGE_LU_ARRIVAL',
+        tableSelector: '#arrivalsTable',
+        needsDateFormatting: true,
+        callback: '() => {clicked = true;}',
+        disabled: not emergencyIdFilter ? '' : 'disabled',
     } %}
 {% endblock %}
 
 {% block page_content %}
     {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE'))
         and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_ARRIVAL')) %}
-    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) and not emergencyIdFilter %}
 
     <input type="hidden" id="dateMinFilter">
     <input type="hidden" id="dateMaxFilter">
@@ -26,53 +26,56 @@
     <div class="m-4 wii-page-card overflow-x-hidden">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn-group arrival-mode-container">
-                    {% if hasRightToCreate %}
-                        <button type="button"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                name="new-arrival"
-                                disabled
-                                onclick="openArrivalCreationModal()">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL') }}
-                        </button>
-                    {% elseif hasRightToExport %}
-                        <button type="button"
-                                class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
-                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                        </button>
-                    {% endif %}
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
-                        {% if hasRightToCreate and hasRightToExport %}
-                            <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
-                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                            </a>
-                        {% endif %}
-                        <a class="dropdown-item pointer"
-                           data-toggle="modal"
-                           data-target="#modalFieldModes">
-                            <i class="fa fa-cog mr-2"></i>
-                            {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
-                        </a>
-                        <a class="dropdown-item pointer dispatch-mode-button d-none">
-                            <i class="fas fa-exchange-alt mr-2"></i>
-                            {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
-                        </a>
-                    </div>
+                <div class="arrival-mode-container">
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: emergencyIdFilter,
+                                title: "Voir tous les&nbsp;" ~ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') | lower,
+                                href: path('arrivage_index'),
+                            },
+                            {
+                                hasRight: emergencyIdFilter,
+                                title: "Retour à la liste des urgences",
+                                icon : "fa fa-rotate-left",
+                                href: path('emergency_index'),
+                            },
+                            {
+                                hasRight: hasRightToCreate,
+                                title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL') ,
+                                icon: "wii-icon wii-icon-plus",
+                                    attributes: {
+                                    "disabled": "disabled",
+                                    "onclick": "openArrivalCreationModal()",
+                                    "name": "new-arrival",
+                                },
+                            },
+                            {
+                                hasRight: hasRightToExport,
+                                title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                                icon : "fa fa-file-csv",
+                                    attributes: {
+                                    "onclick" : "saveExportFile('get_arrivages_csv', true, {}, false, '" ~ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) ~ "', true)",
+                                },
+                            },
+                            {
+                                hasRight: true,
+                                title: trans('Général', null, 'Zone liste', 'Gestion des colonnes'),
+                                icon : "fa fa-cog",
+                                    attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalFieldModes",
+                                },
+                            },
+                            {
+                                hasRight: not emergencyIdFilter,
+                                title: trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer'),
+                                icon : "fa fa-cog",
+                                class: "dispatch-mode-button d-none",
+                            },
+                        ]
+                    } %}
                 </div>
-
-
                 <div class="dispatch-mode-container d-none">
                     <button type="button"
                             class="btn btn-outline-primary cancel d-inline-flex align-items-center"
@@ -94,6 +97,9 @@
                 <table id="arrivalsTable"
                        data-initial-data="{{ initial_arrivals }}"
                        data-initial-visible="{{ initial_visible_columns }}"
+                        {% if emergencyIdFilter %}
+                            data-filter-emergency="{{ emergencyIdFilter }}"
+                        {% endif %}
                        class="table w-100"></table>
             </div>
         </div>

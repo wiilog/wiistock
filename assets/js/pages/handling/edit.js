@@ -1,5 +1,6 @@
  import {getStatusHistory} from "@app/pages/handling/common";
- import Routing from '@app/fos-routing';
+ import Form from "@app/form";
+ import {POST} from "@app/ajax";
 
 $(function () {
     const handlingId = Number($(`input[name=handlingId]`).val());
@@ -7,21 +8,17 @@ $(function () {
     getStatusHistory(handlingId);
 
     let $modalDeleteHandling = $('#modalDeleteHandling');
-    let $submitDeleteHandling = $('#submitDeleteHandling');
-    let urlDeleteHandling = Routing.generate('handling_delete', true);
-    InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling);
-    initDatePickers();
-    $('#submitEditHandling').on('click', function () {
-        submitChanges($(this, handlingId));
+    Form.create($modalDeleteHandling).submitTo(POST, 'handling_delete', {
+        success: response => window.location = response.redirect,
     });
-});
 
-function submitChanges($button, handlingId) {
-    const $form = $(`.wii-form`);
-    clearFormErrors($form);
-    processSubmitAction($form, $button, $button.data(`submit`), {
+    initDatePickers();
+    Form.create('.wii-form').submitTo(POST,'handling_edit',{
+        routeParams: {
+            id: handlingId,
+        },
         success: data => {
             window.location = document.referrer;
         },
     });
-}
+});

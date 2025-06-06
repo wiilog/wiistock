@@ -22,7 +22,7 @@ class Action {
     const DISPLAY_ASSO = 'afficher associations BR';
     const DISPLAY_ENCO = 'afficher encours';
     const DISPLAY_PACK = 'afficher unité logistique';
-    const DISPLAY_URGE = 'afficher urgences';
+    const DISPLAY_EMERGENCY = 'afficher urgences';
     const LIST_ALL = 'lister tous les arrivages';
     const ADD_PACK = 'ajouter unité logistique';
     const EDIT_PACK = 'modifier unité logistique';
@@ -45,6 +45,8 @@ class Action {
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
     const TREAT_DISPUTE = 'traiter les litiges';
+
+    const EXPORT_EMERGENCIES = 'exporter les urgences';
     // menu demande
     const DISPLAY_TRANSFER_REQ = 'afficher transferts';
     const DISPLAY_DEM_LIVR = 'afficher livraisons';
@@ -186,7 +188,7 @@ class Action {
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
     const SETTINGS_DISPLAY_EMERGENCIES = 'afficher urgences';
-
+    const SETTINGS_DISPLAY_STOCK_EMERGENCIES = 'afficher urgences stock';
 
     const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';
     const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';

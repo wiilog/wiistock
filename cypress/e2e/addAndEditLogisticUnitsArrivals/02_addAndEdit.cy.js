@@ -63,7 +63,7 @@ const disputeChanged = {
 describe('Add and edit logistic units arrivals', () => {
 
     beforeEach(() => {
-        interceptRoute(routes.packs_api);
+        interceptRoute(routes.arrival_packs_api);
         interceptRoute(routes.print_arrivage_bar_codes_nature_1);
         interceptRoute(routes.print_arrivage_bar_codes_nature_2);
         interceptRoute(routes.arrivage_new);
@@ -180,7 +180,7 @@ describe('Add and edit logistic units arrivals', () => {
 
         cy.get(`${arrivalsTable} tbody tr`).last().find('td').eq(2).click();
 
-        cy.wait('@packs_api')
+        cy.wait('@arrival_packs_api')
 
         // get the first and the last logistic units to use them in the dispute
         cy.get(`${selectorTablePacks} tbody tr`).first().find('td').eq(2).then(($text) => {
@@ -249,7 +249,7 @@ describe('Add and edit logistic units arrivals', () => {
             .eq(2)
             .click();
 
-        cy.wait('@packs_api')
+        cy.wait('@arrival_packs_api')
 
         // get the first and the last logistic units to use them in the dispute modification
         cy.get(`${selectorTablePacks} tbody tr`).first().find('td').eq(2).then(($text) => {
@@ -314,7 +314,7 @@ describe('Add and edit logistic units arrivals', () => {
             .click();
 
         // wait for the packs to be loaded in datatable
-        cy.wait('@packs_api');
+        cy.wait('@arrival_packs_api');
 
         // open the modal to add a new logistic units
         cy.get("[data-target='#modalAddPacks']")
@@ -358,7 +358,7 @@ describe('Add and edit logistic units arrivals', () => {
             .eq(2)
             .click();
 
-        cy.wait('@packs_api');
+        cy.wait('@arrival_packs_api');
 
         const runout = ['NATURE 1', 'NATURE 2']
         const regex = new RegExp(`${runout.join('|')}`, 'g')
@@ -393,7 +393,7 @@ describe('Add and edit logistic units arrivals', () => {
         // click on the last logistic units arrivals to edit it
         cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click()
             .wait('@arrival_diputes_api')
-            .wait('@packs_api');
+            .wait('@arrival_packs_api');
 
         cy.get('button.split-button')
             .click()

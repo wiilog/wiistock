@@ -6,7 +6,6 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Dashboard;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
@@ -16,7 +15,8 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\DashboardSettingsService;
@@ -96,19 +96,26 @@ class DashboardSettingsController extends AbstractController {
                 throw new FormException("Vous avez un trop grand nombre de composant sur vos dashboards, la limite est de $componentLimit");
             }
             else {
-                $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
-                if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
-                    $unknownComponentLabel = $matches[1] ?? '';
-                    throw new FormException("Type de composant {$unknownComponentLabel} inconnu");
+                $imageCountExceededCode = DashboardSettingsService::IMAGE_COUNT_EXCEEDED;
+                if (preg_match("/$imageCountExceededCode-(.*)/", $message, $matches)) {
+                    $imageLimit = $matches[1] ?? '';
+                    throw new FormException("Vous avez un trop grand nombre d'image sur vos dashboards, la limite est de $imageLimit");
                 }
                 else {
-                    $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
-                    if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
-                        $title = $matches[1] ?? '';
-                        throw new FormException('Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides');
+                    $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
+                    if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
+                        $unknownComponentLabel = $matches[1] ?? '';
+                        throw new FormException("Type de composant {$unknownComponentLabel} inconnu");
                     }
                     else {
-                        throw $exception;
+                        $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
+                        if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
+                            $title = $matches[1] ?? '';
+                            throw new FormException('Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides');
+                        }
+                        else {
+                            throw $exception;
+                        }
                     }
                 }
             }
@@ -131,7 +138,7 @@ class DashboardSettingsController extends AbstractController {
      * @param Dashboard\ComponentType $componentType
      * @return Response
      */
-    #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', methods: ['POST'], options: ['expose' => true])]
+    #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', options: ['expose' => true], methods: ['POST'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function apiComponentTypeForm(Request                 $request,
                                          EntityManagerInterface  $entityManager,
@@ -160,6 +167,7 @@ class DashboardSettingsController extends AbstractController {
             "handlingTypes" => [],
             "dispatchTypes" => [],
             "productionTypes" => [],
+            "emergencyTypes" => [],
             "referenceTypes" => [],
             "managers" => [],
             "arrivalStatuses" => [],
@@ -316,6 +324,10 @@ class DashboardSettingsController extends AbstractController {
             $values['productionTypes'] = $typeRepository->findBy(['id' => $values['productionTypes']]);
         }
 
+        if (!empty($values['emergencyTypes'])) {
+            $values['emergencyTypes'] = $typeRepository->findBy(['id' => $values['emergencyTypes']]);
+        }
+
         if (!empty($values['arrivalStatuses'])) {
             $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
         }
@@ -441,6 +453,7 @@ class DashboardSettingsController extends AbstractController {
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $productionTypes = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
+        $emergencyTypes = $typeRepository->findByCategoryLabels([CategoryType::STOCK_EMERGENCY, CategoryType::TRACKING_EMERGENCY]);
         $referenceTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -465,6 +478,7 @@ class DashboardSettingsController extends AbstractController {
                     'cellIndex' => $request->request->get('cellIndex'),
                     'arrivalTypes' => $arrivalTypes,
                     'productionTypes' => $productionTypes,
+                    'emergencyTypes' => $emergencyTypes,
                     'handlingTypes' => $handlingTypes,
                     'deliveryOrderTypes' => $deliveryOrderTypes,
                     'displayDeliveryOrderWithExpectedDate' => $values['displayDeliveryOrderWithExpectedDate'] ?? '',

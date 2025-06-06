@@ -2,12 +2,10 @@
 
 namespace App\Repository\FreeField;
 
-use App\Entity\CategorieCL;
 use App\Entity\FreeField\FreeField;
-use App\Entity\Type;
+use App\Entity\Type\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -56,6 +54,34 @@ class FreeFieldRepository extends EntityRepository {
             ->andWhere("join_free_field_category.label = :category")
             ->setParameter("type", $typeCategory)
             ->setParameter("category", $freeFieldCategory)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return array<FreeField>
+     * @param array<string> $typeCategories
+     * @param array<string> $freeFieldCategories
+     */
+    public function findByTypeCategoriesAndFreeFieldCategories(array $freeFieldCategories,
+                                                               ?array $typeCategories = []): array {
+        $queryBuilder =  $this->createQueryBuilder("free_field");
+
+        $queryBuilder
+            ->join("free_field.categorieCL", "join_free_field_category")
+            ->andWhere("join_free_field_category.label IN (:category)")
+            ->setParameter("category", $freeFieldCategories);
+
+        if (!empty($typeCategories)) {
+            $queryBuilder
+                ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+                ->join("free_field_management_rules.type", "join_type")
+                ->join("join_type.category", "join_type_category")
+                ->andWhere("join_type_category.label IN (:type)")
+                ->setParameter("type", $typeCategories);
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getResult();
     }

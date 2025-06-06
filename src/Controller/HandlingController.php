@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -18,11 +17,13 @@ use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\Type;
+use App\Entity\Type\CategoryType;
+use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\HandlingService;
@@ -136,7 +137,7 @@ class HandlingController extends AbstractController {
                     $carry[$test['id']] = $test['label'];
                     return $carry;
                 }, []),
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'types' => $types,
@@ -144,7 +145,7 @@ class HandlingController extends AbstractController {
                     ->filter(static fn(Type $type) => $type->isActive())
                     ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
-                'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+                'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name),
                 'preFill' => $settingsService->getValue($entityManager, Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
             "typesFilter" => $typesFilter,
@@ -181,7 +182,7 @@ class HandlingController extends AbstractController {
         $typeId = $request->request->get('id');
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $receivers = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
+        $receivers = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::receivers->name);
         $receiversId = $receivers[$typeId] ?? [];
         $users = [];
         foreach ($receiversId as $receiverId) {
@@ -193,26 +194,28 @@ class HandlingController extends AbstractController {
     #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
-                        Request $request,
-                        HandlingService $handlingService,
-                        FreeFieldService $freeFieldService,
-                        AttachmentService $attachmentService,
-                        TranslationService $translation,
-                        UniqueNumberService $uniqueNumberService,
-                        NotificationService $notificationService,
-                        SettingsService $settingsService,
-                        StatusHistoryService $statusHistoryService): Response {
+                        Request                $request,
+                        HandlingService        $handlingService,
+                        FreeFieldService       $freeFieldService,
+                        AttachmentService      $attachmentService,
+                        TranslationService     $translation,
+                        UniqueNumberService    $uniqueNumberService,
+                        NotificationService    $notificationService,
+                        SettingsService        $settingsService,
+                        StatusHistoryService   $statusHistoryService,
+                        FixedFieldService      $fixedFieldService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $post = $request->request;
+        $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, true);
 
         $handling = new Handling();
         $date = new DateTime('now');
 
-        $status = $statutRepository->find($post->get('status'));
-        $type = $typeRepository->find($post->get('type'));
+        $status = $statutRepository->find($data->get(FixedFieldEnum::status->name));
+        $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
+
         $currentUser = $this->getUser();
 
         if (!empty($currentUser->getHandlingTypeIds())
@@ -223,28 +226,28 @@ class HandlingController extends AbstractController {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 
-        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
+        $containsHours = $data->get(FixedFieldEnum::expectedAt->name) && str_contains($data->get(FixedFieldEnum::expectedAt->name), ':');
 
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
-        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
+        $desiredDate = $data->get(FixedFieldEnum::expectedAt->name) ? DateTime::createFromFormat($format, $data->get(FixedFieldEnum::expectedAt->name)) : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
-        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+        $carriedOutOperationCount = $data->getInt('carriedOutOperationCount');
 
         $handling
             ->setNumber($handlingNumber)
             ->setCreationDate($date)
             ->setType($type)
             ->setRequester($currentUser)
-            ->setSubject(substr($post->get(FixedFieldEnum::object->name), 0, 64))
-            ->setSource($post->get('source') ?? '')
-            ->setDestination($post->get('destination') ?? '')
+            ->setObject(substr($data->get(FixedFieldEnum::object->name), 0, 64))
+            ->setSource($data->get(FixedFieldEnum::loadingZone->name) ?? '')
+            ->setDestination($data->get(FixedFieldEnum::unloadingZone->name) ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment($post->get('comment'))
-            ->setEmergency($post->get('emergency'))
-            ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
+            ->setComment($data->get(FixedFieldEnum::comment->name) ?? '')
+            ->setEmergency($data->get(FixedFieldEnum::emergency->name) ?? '')
+            ->setCarriedOutOperationCount($carriedOutOperationCount);
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
@@ -256,7 +259,7 @@ class HandlingController extends AbstractController {
             $handling->setTreatedByHandling($currentUser);
         }
 
-        $receivers = $post->get('receivers');
+        $receivers = $data->get('receivers');
         if (!empty($receivers)) {
             $ids = explode("," , $receivers);
 
@@ -268,7 +271,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $currentUser);
+        $freeFieldService->manageFreeFields($handling, $data->all(), $entityManager, $currentUser);
         $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
 
         $entityManager->persist($handling);
@@ -305,27 +308,27 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/modifier/{id}", name: "handling_edit", options: ["expose" => true], methods: "POST")]
+    #[Route("/modifier/{id}", name: "handling_edit", options: ["expose" => true], methods: [self::POST])]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
-                         Request $request,
-                         Handling $handling,
-                         FreeFieldService $freeFieldService,
-                         TranslationService $translation,
-                         AttachmentService $attachmentService): Response
-    {
+                         Request                $request,
+                         Handling               $handling,
+                         FreeFieldService       $freeFieldService,
+                         TranslationService     $translation,
+                         AttachmentService      $attachmentService,
+                         FixedFieldService      $fixedFieldService): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $post = $request->request;
-        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
+        $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, false);
+        $containsHours = $data->get(FixedFieldEnum::expectedAt->name) && str_contains($data->get(FixedFieldEnum::expectedAt->name), ':');
 
         $user = $this->getUser();
         $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
-        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
+        $desiredDate = $data->get(FixedFieldEnum::expectedAt->name) ? DateTime::createFromFormat($format, $data->get(FixedFieldEnum::expectedAt->name)) : null;
 
 
         /** @var Utilisateur $currentUser */
-        $receivers = $post->get('receivers')
-            ? explode(",", $post->get('receivers') ?? '')
+        $receivers = $data->get(FixedFieldEnum::receivers->name)
+            ? explode(",", $data->get(FixedFieldEnum::receivers->name) ?? '')
             : [];
 
         $existingReceivers = $handling->getReceivers();
@@ -341,14 +344,14 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+        $carriedOutOperationCount = $data->get(FixedFieldEnum::carriedOutOperationCount->name);
         $handling
-            ->setSubject(substr($post->get(FixedFieldEnum::object->name), 0, 64))
-            ->setSource($post->get('source') ?? $handling->getSource())
-            ->setDestination($post->get('destination') ?? $handling->getDestination())
+            ->setObject(substr($data->get(FixedFieldEnum::object->name), 0, 64))
+            ->setSource($data->get(FixedFieldEnum::loadingZone->name) ?? $handling->getSource())
+            ->setDestination($data->get(FixedFieldEnum::unloadingZone->name) ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
-            ->setComment($post->get('comment'))
-            ->setEmergency($post->get('emergency'))
+            ->setComment($data->get(FixedFieldEnum::comment->name))
+            ->setEmergency($data->get(FixedFieldEnum::emergency->name))
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)
                     ? $carriedOutOperationCount
@@ -358,9 +361,9 @@ class HandlingController extends AbstractController {
             ));
 
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
+        $freeFieldService->manageFreeFields($handling, $data->all(), $entityManager, $user);
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
+        $listAttachmentIdToKeep = $data->all('files') ?? [];
 
         $attachmentsToRemove = Stream::from($handling->getAttachments()->toArray())
             ->filter(static fn(Attachment $attachment) => !in_array($attachment->getId(), $listAttachmentIdToKeep))
@@ -382,41 +385,36 @@ class HandlingController extends AbstractController {
     }
 
 
-    #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request,
+    public function delete(Request                $request,
                            EntityManagerInterface $entityManager,
-                           TranslationService $translation): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
+                           TranslationService     $translation): Response {
+        $data = $request->request;
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-            $handling = $handlingRepository->find($data['handling']);
-            $handlingNumber = $handling->getNumber();
+        $handling = $handlingRepository->find($data->get('handling'));
+        $handlingNumber = $handling->getNumber();
 
-            if ($handling) {
-                $attachments = $attachmentRepository->findBy(['handling' => $handling]);
-                foreach ($attachments as $attachment) {
-                    $entityManager->remove($attachment);
-                }
+        if ($handling) {
+            $attachments = $attachmentRepository->findBy(['handling' => $handling]);
+            foreach ($attachments as $attachment) {
+                $entityManager->remove($attachment);
             }
-            $entityManager->flush();
-            $entityManager->remove($handling);
-            $entityManager->flush();
-
-            $number = '<strong>' . $handlingNumber . '</strong>';
-            return new JsonResponse([
-                'success' => true,
-                'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
-                'redirect'=> $this->generateUrl('handling_index')
-            ]);
         }
+        $entityManager->remove($handling);
+        $entityManager->flush();
 
-        throw new BadRequestHttpException();
+        $number = '<strong>' . $handlingNumber . '</strong>';
+        return new JsonResponse([
+            'success' => true,
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
+            'redirect'=> $this->generateUrl('handling_index')
+        ]);
     }
 
-    #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: "GET")]
+    #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function getHandlingsCSV(Request                $request,
                                     TranslationService     $translation,
@@ -441,7 +439,7 @@ class HandlingController extends AbstractController {
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
-            $receiversParameters = $handlingParameters[FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING];
+            $receiversParameters = $handlingParameters[FixedFieldEnum::receivers->name];
 
             $handlings = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
@@ -499,7 +497,7 @@ class HandlingController extends AbstractController {
         }
     }
 
-    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
+    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function show(Handling $handling, EntityManagerInterface $entityManager, UserService $userService): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -561,8 +559,7 @@ class HandlingController extends AbstractController {
     public function editHandling(Handling               $handling,
                                  EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-
-        $emergencies = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY))
+        $emergencies = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldEnum::emergency->name))
             ->map(fn($emergency) => [
                 "label" => $emergency,
                 "value" => $emergency,
@@ -580,7 +577,6 @@ class HandlingController extends AbstractController {
 
         return $this->render('handling/editHandling.html.twig', [
             'handling' => $handling,
-            'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
             'emergencies' => $emergencies,
             'fieldsParam' => $fieldsParam,
             'receivers' => $receivers,
@@ -596,9 +592,9 @@ class HandlingController extends AbstractController {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $request = json_decode($request->getContent(), true);
-        $status = $statutRepository->find($request['statut']);
-        $handling = $handlingRepository->find($request['handling']);
+        $data = $request->request;
+        $status = $statutRepository->find($data->get("statut"));
+        $handling = $handlingRepository->find($data->get('handling'));
         $requester = $this->getUser();
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [

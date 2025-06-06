@@ -1,17 +1,20 @@
+{% import 'form.html.twig' as form %}
+
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
-        <div class="input-group w-100 cursor-default">
-            <select
-                class="form-control data select2 filter-select2"
-                name="multipleTypes"
-                multiple="multiple"
-                {% if onchange is defined %}onchange="{{ onchange }}"{% endif %}
-                {{ disabled }}>
-                {% for type in types|sort((a, b) => a.label <=> b.label) %}
-                    {% set selected = (filterTypes is defined and type.label in filterTypes) ? 'selected' %}
-                    <option class="d-none" value="{{ type.id }}" {{ selected }}>{{ type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        {{ form.select(name ?? 'multipleTypes', null, false, {
+            type: '',
+            placeholder: placeholder ?? 'Types',
+            multiple: true,
+            labelClass: 'minw-100px',
+            inputClass: 'filter-select2',
+            disabled: disabled ?? false,
+            onChange: onchange ?? false,
+            items: types|map((type) => {
+                label: type.label,
+                value: type.id,
+                selected: (filterTypes is defined and type.label in filterTypes) or (type.selected is defined and type.selected),
+            }),
+        }) }}
     </div>
 </div>

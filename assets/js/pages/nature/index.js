@@ -19,7 +19,7 @@ $(function () {
     const table = initNatureTable();
 
     let $modalNewNature = $(`#modalNewNature`);
-    Form.create($modalNewNature, {clearOnOpen: true})
+    Form.create($modalNewNature, {resetView: ['open', 'close']})
         .submitTo(POST, 'nature_new', {
             tables: [table],
             success: () => {
@@ -28,7 +28,7 @@ $(function () {
         });
 
     let $modalEditNature = $(`#modalEditNature`);
-    Form.create($modalEditNature, {clearOnOpen: true})
+    Form.create($modalEditNature, {resetView: ['open', 'close']})
         .onOpen((event) => {
             Modal.load('nature_api_edit', {id: $(event.relatedTarget).data('id')}, $modalEditNature, $modalEditNature.find('.modal-body'), {
                 onOpen: () => {
