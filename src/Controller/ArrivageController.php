@@ -196,6 +196,7 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $types = $typeRepository->findAll();
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
@@ -424,7 +425,7 @@ class ArrivageController extends AbstractController {
             'alertConfigs' => $alertConfigs,
             ...!$redirectToArrival
                 ? [
-                    "new_form" => $arrivalService->generateNewForm($entityManager),
+                    "new_form" => $arrivalService->generateNewForm($entityManager, $types),
                 ] : [],
         ]);
     }
