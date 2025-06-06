@@ -304,18 +304,20 @@
                         <label class="wii-field-name" style="margin-bottom: 5px">
                             {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut') }}*
                         </label>
-                        {% set hasDefaultStatus = uniqueType and defaultStatuses|length > 0 %}
+                        {% set defaultTypeId = (typesArrival|first).id %}
+                        {% set defaultStatusId = defaultStatuses[defaultTypeId] is defined ? defaultStatuses[defaultTypeId] : null %}
+                        {% set hasDefaultStatus = uniqueType and defaultStatusId is not null %}
                         <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
                                 name="status"
                             {% if hasDefaultStatus %}
-                            data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
+                            data-init="{{ defaultStatusId }}"
                             {% endif %}>
                             <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Choisir un statut...') }}</option>
                             {% for status in statuses %}
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
-                                    {{ hasDefaultStatus and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                    {{ hasDefaultStatus and defaultStatusId == status.id ? 'selected' }}>
                                     {{ status.nom }}
                                 </option>
                             {% endfor %}
