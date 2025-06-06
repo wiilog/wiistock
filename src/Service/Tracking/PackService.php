@@ -240,7 +240,7 @@ class PackService {
                     "from" => $this->formatService->pack($pack->getGroup()),
                 ])
                 : '',
-        ],$freeFieldsData);
+        ], $freeFieldsData);
     }
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
@@ -637,7 +637,6 @@ class PackService {
             ],
             $freeFields,
             $columnsVisible,
-            false
         );
     }
 
