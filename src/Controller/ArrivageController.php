@@ -121,12 +121,7 @@ class ArrivageController extends AbstractController {
         $request->request->add(['length' => $pageLength]);
 
         return $this->render('arrivage/index.html.twig', [
-            "types" => Stream::from($activeTypes)
-                ->map(fn(Type $type) => [
-                    "id" => $type->getId(),
-                    "label" => $this->getFormatter()->type($type)
-                ])
-                ->toArray(),
+            "types" => $activeTypes,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,
