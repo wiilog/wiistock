@@ -21,7 +21,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-                    ref: WIIS-12608 # for testing purposes only TODO: not kept in like that
+                    ref: main
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
@@ -59,13 +59,16 @@ jobs:
                 run: chmod -R 777 projects/wiistock/
 
             -   name: Build containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php mysql wiistock-nginx owasp-modsecurity smtp4dev --build --no-start -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_php:/project
 
             -   name: Start containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php mysql wiistock-nginx owasp-modsecurity smtp4dev
+
+            -   name: check all containers are running
+                run: docker ps
 
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data /project

@@ -5,5 +5,5 @@ docker exec --user www-data wiistock-cypress_php yarn install
 docker exec --user www-data wiistock-cypress_php composer install
 docker exec --user www-data wiistock-cypress_php yarn build:only:dev
 xhost +
-docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml -f ../../cypress-open.yml up cypress --exit-code-from cypress
+docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml -f ../../cypress-open.yml up cypress --exit-code-from cypress mysql wiistock-nginx owasp-modsecurity smtp4dev
 
