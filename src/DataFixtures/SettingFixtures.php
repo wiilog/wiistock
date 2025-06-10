@@ -440,9 +440,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::INCLUDE_PACK_NATURE => [
                 'default' => false,
             ],
-            Setting::INCLUDE_LIMIT_DATE_TREATMENT => [
-                'default' => false,
-            ],
             Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
                 'default' => false,
             ],
