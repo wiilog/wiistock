@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: docker:28.2.2-cli
+      volumes:
+        - ${{github.workspace}}:/__w/${{ github.ref }}/${{ github.ref }}
       options: --user root
     steps:
       - name: Checkout wiistock-docker
@@ -22,15 +24,6 @@ jobs:
           repository: wiilog/wiistock-docker
           token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
           ref: WIIS-12609
-
-      - name: Setup environment wiistock-docker
-        run: cp .env.example .env
-
-      - name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
-        run: |
-          sed -i "s/^FTP_HOST=.*/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
-          sed -i "s/^FTP_USER=.*/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
-          sed -i "s/^FTP_PASSWORD=.*/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
 
       - name: Checkout wiistock
         uses: actions/checkout@v4
@@ -43,97 +36,47 @@ jobs:
       - name: Login to docker hub
         run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}  #Grégoire Personal Access Token available until Jan 1, 2026
 
-      - name: Copy .env to .env.local
-        run: cp projects/wiistock/.env projects/wiistock/.env.local
-
-      - name: Change db string URL .env.local
-        run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
-
-      - name: Change APP_ENV= to APP_ENV=dev
-        run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
-
-      - name: Add generated.yaml to wiistock
+      - name: Setup wiistock-docker environment
         run: |
-          touch projects/wiistock/config/generated.yaml &&
-          echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
+          cp .env.example .env
+          sed -i "s|^FTP_HOST=.*|FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}|g" .env
+          sed -i "s|^FTP_USER=.*|FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}|g" .env
+          sed -i "s|^FTP_PASSWORD=.*|FTP_PASSWORD=${{ secrets.WIISTOCK_DOCKER_FTP_PASSWORD }}|g" .env
+          sed -i "s|^WIISTOCK_DOCKER_HOME=.*|WIISTOCK_DOCKER_HOME=${{ github.workspace }}|g" .env
 
-      - name: Give all right to wiistock
-        run: chmod -R 777 projects/wiistock/
+      - name: Setup wiistock environment
+        run: |
+          cp projects/wiistock/.env projects/wiistock/.env.local
+          sed -i "s|^DATABASE_URL=.*|DATABASE_URL=mysql://root:example@mysql:3306/wiistock|g" projects/wiistock/.env.local
+          sed -i "s|^APP_ENV=.*|APP_ENV=dev|g" projects/wiistock/.env.local
+          echo {"parameters": {"session_lifetime": 1440}} > projects/wiistock/config/generated.yaml
 
-      - name: Build containers
+      - name: Build containers for wiistock app
         run: |
           docker compose --file docker-compose.yaml \
                          --file docker-compose.cypress.yaml \
-                         --file docker-compose.cypress.github.yaml \
                          --project-name wiistock-cypress \
-                         up wiistock-php wiistock-nginx mysql owasp-modsecurity \
+                         up wiistock-php mysql wiistock-nginx owasp-modsecurity \
                          --detach \
-                         --build \
-                         --no-start
+                         --build
 
-      - name: Volume mount like for docker-in-docker run
+      - name: Build and prepare wiistock app
         run: |
-          docker cp docker/dev/owasp-modsecurity/modsecurity-override.conf.template cypress_wiistock-owasp-modsecurity:/etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
-          docker cp projects/wiistock/. cypress_wiistock-php:/project
-
-      - name: Start containers
-        run: |
-          docker compose --file docker-compose.yaml \
-                         --file docker-compose.cypress.yaml \
-                         --file docker-compose.cypress.github.yaml \
-                         --project-name wiistock-cypress \
-                         start wiistock-php wiistock-nginx mysql owasp-modsecurity
-
-      - name: Give right to www-data user
-        run: docker exec cypress_wiistock-php chown -R www-data:www-data /project
-
-      #            -   name: get the version of wiistock config/services.yaml and store it in the environment
-      #                run: |
-      #                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
-      #                    export VERSION=$(cat version.txt)
-
-      - name: Install composer dependencies in app
-        run: docker exec cypress_wiistock-php composer install
-
-      - name: Create database
-        run: docker exec cypress_wiistock-php php bin/console doctrine:database:create --if-not-exists
-
-      - name: Create routing
-        run: docker exec cypress_wiistock-php php bin/console fos:js-routing:dump
-
-      - name: Convert enums
-        run: docker exec cypress_wiistock-php php bin/console app:update:enums
-
-      - name: Install yarn dependencies in app
-        run: docker exec cypress_wiistock-php yarn
-
-      - name: Build assets in app
-        run: docker exec cypress_wiistock-php yarn build:only:production
+          docker exec cypress_wiistock-php composer install
+          docker exec cypress_wiistock-php php bin/console doctrine:database:create --if-not-exists
+          docker exec cypress_wiistock-php php bin/console fos:js-routing:dump
+          docker exec cypress_wiistock-php php bin/console app:update:enums
+          docker exec cypress_wiistock-php yarn install
+          docker exec cypress_wiistock-php yarn build:only:production
 
       # --exit-code-from cypress: exit action with the same code as cypress
       - name: Run cypress
         run: |
           docker compose --file docker-compose.yaml \
                          --file docker-compose.cypress.yaml \
-                         --file docker-compose.cypress.github.yaml \
                          --project-name wiistock-cypress \
                          up cypress \
-                         --detach \
                          --build \
-                         --no-start
-
-      - name: Volume mount like for docker-in-docker run for cypress container
-        run: |
-          docker cp cypress_wiistock-php:/project /tmp/project
-          docker cp /tmp/project/. cypress_wiistock:/var/www
-
-      - name: Run cypress
-        run: |
-          docker compose --file docker-compose.yaml \
-                         --file docker-compose.cypress.yaml \
-                         --file docker-compose.cypress.github.yaml \
-                         --project-name wiistock-cypress \
-                         up cypress \
                          --exit-code-from cypress
 
       - name: Copy logs, videos, and dev.log from the container # run only if cypress fail
