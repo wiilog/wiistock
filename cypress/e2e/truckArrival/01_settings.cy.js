@@ -2,8 +2,6 @@ import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user= Cypress.config('user');
 import {uncaughtException} from "/cypress/support/utils";
 
-const ULFreeFieldsLines = 'table[data-table-processing=fixedFields] tbody tr';
-
 describe('Setup settings', () => {
     beforeEach(() => {
         interceptRoute(routes.settings_save);
@@ -21,36 +19,7 @@ describe('Setup settings', () => {
             .first()
             .click();
 
-        // check the table has at least one line
-        cy.get(ULFreeFieldsLines)
-            .find('td', {timeout: 10000})
-            .should('have.length.gt', 1);
-        // uncheck all the checkboxes
-        cy.get(`[data-menu=champs_fixes] input[type=checkbox]`)
-            .uncheck({force: true});
-
-
-        const columnsToCheck = [];
-        const columnsToCheckName = ["Afficher","Obligatoire"];
-
-        // get the index of the columns with her name
-        cy.get('[id^="table-truck-arrival-fixed-fields"] thead:first tr th').then(($ths) => {
-            $ths.each((index, th) => {
-                if (columnsToCheckName.includes(th.textContent)) {
-                    // get the index of the columns to check in the datatable
-                    // -4 because the first 4 columns come from ??
-                    columnsToCheck.push(index - 4);
-                }
-            });
-        })
-
-        cy.get(ULFreeFieldsLines).each((tr) => {
-            columnsToCheck.forEach((columnIndex) => {
-                cy.wrap(tr)
-                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                    .check({force: true});
-            });
-        });
+        cy.checkAllorOneRowInSettingFixedFiled("table-truck-arrival-fixed-fields", true);
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
@@ -76,35 +45,9 @@ describe('Setup settings', () => {
             .first()
             .click();
 
-        const columnsToCheck = [];
-        const columnsToCheckName = ["Afficher","Obligatoire"];
-        const numTrackingIndex = 12;
-
-        // get the index of the columns with her name
-        cy.get('[id^="table-arrival-fixed-fields"] thead:first tr th').then(($ths) => {
-            $ths.each((index, th) => {
-                if (columnsToCheckName.includes(th.textContent)) {
-                    // get the index of the columns to check in the datatable
-                    // -4 because the first 4 columns come from ??
-                    columnsToCheck.push(index - 4);
-                }
-            });
-        })
-
-        columnsToCheck.forEach((columnIndex) => {
-            cy.get(`tbody>tr:eq(${numTrackingIndex})`)
-                .find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                .uncheck({force: true});
-        });
-
-        columnsToCheck.forEach((columnIndex) => {
-                cy.get(`tbody>tr:eq(${numTrackingIndex})`)
-                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                    .check({force: true});
-        });
-
+        cy.checkAllorOneRowInSettingFixedFiled("table-arrival-fixed-fields", false, ["Numéro tracking transporteur"]);
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
     })
-})
+});
