@@ -354,9 +354,9 @@ function countDatabaseTables(string  $databaseUrl,
 function treatStep(int $index, array $step, string $logPrefix): void {
     $stepFilter = $step[STEP_FILTER] ?? null;
     if (!$stepFilter || $stepFilter()) {
-        $stepPrefix = "\033[01;32m   $logPrefix $index - \033[0m ";
+        $stepPrefix = "$logPrefix $index";
         if ($step[STEP_DESCRIPTION] ?? null) {
-            echo $stepPrefix . $step[STEP_DESCRIPTION] . PHP_EOL;
+            echo "\033[01;32m\t" . $stepPrefix . " " . $step[STEP_DESCRIPTION] . "\033[0m" . PHP_EOL;
         }
         if ($step[STEP_COMMANDS] ?? null) {
             $step[STEP_COMMANDS]();
