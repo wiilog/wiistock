@@ -20,7 +20,7 @@ export const routes = {
 
     carrier_api: {
         method: 'GET',
-        route: '/arrivage-camion/truck-arrival-lines-api',
+        route: '/arrivage-camion/truck-arrival-lines-api*',
         alias: 'lines_api'
     },
 

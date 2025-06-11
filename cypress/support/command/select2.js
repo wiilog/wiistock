@@ -42,7 +42,7 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestA
     }
 })
 
-Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '', ajax = true) => {
+Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') => {
     cy.intercept('GET', '/select/*').as('select2Request');
 
     let getName;
@@ -53,18 +53,15 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '', 
     }
 
     value.forEach(element => {
-        const test =
             cy.get(getName)
             .siblings('.select2')
             .first()
             .click()
             .type(element)
+            .wait('@select2Request')
+            .its('response.statusCode').should('eq', 200)
+            .wait(100)
 
-            if (ajax) {
-                test.wait('@select2Request')
-                    .its('response.statusCode').should('eq', 200)
-                    .wait(100)
-            }
 
             cy.get('.select2-dropdown')
                 .find('.select2-results__option')

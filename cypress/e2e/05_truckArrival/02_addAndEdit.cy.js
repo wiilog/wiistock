@@ -14,7 +14,7 @@ const truckArrival = {
 }
 const arrival = {
     fournisseur: 'FOURNISSEUR',
-    transporteur: 'DHL',
+    transporteur: 'TRANSPORTEUR',
     chauffeur: 'Georges',
     noTracking: '12345',
     firstNumeroCommandeList: '1234',
@@ -37,13 +37,17 @@ describe('Add a new truck arrival', () => {
     beforeEach(() => {
         interceptRoute(routes.number_carrier_api);
         interceptRoute(routes.transporteur_api);
+        interceptRoute(routes.truck_arrival_new);
+
+        /*interceptRoute(routes.number_carrier_api);
+        interceptRoute(routes.transporteur_api);
         interceptRoute(routes.carrier_api);
         interceptRoute(routes.location_form_new);
         interceptRoute(routes.truck_arrival_new);
         interceptRoute(routes.packs_api);
         interceptRoute(routes.print_arrivage_bar_codes_nature_1);
         interceptRoute(routes.print_arrivage_bar_codes_nature_2);
-        interceptRoute(routes.arrivage_new);
+        interceptRoute(routes.arrivage_new);*/
 
         cy.login(user);
         cy.visit('/');
@@ -93,7 +97,7 @@ describe('Add a new truck arrival', () => {
         cy.checkDataInDatatable(truckArrival, 'carrier', 'truckArrivalsTable', propertiesMap, ['registrationNumber', 'unloadingLocation', 'trackingNumbers', 'driver']);
     })
 
-    it("should add a new logistic units arrivals", () => { // à mettre dans une fonction
+    it("should add a new logistic units arrivals", () => { // à mettre dans une fonction peut être
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
@@ -160,7 +164,7 @@ describe('Add a new truck arrival', () => {
 
         cy.select2Ajax('noTracking', truckArrival.trackingNumbers[0], "modalNewArrivage");
 
-        cy.select2Ajax('noTracking', newTrackingNumber, "modalNewArrivage", '/select/*', true, true);
+        cy.select2Ajax('noTracking', newTrackingNumber, "modalNewArrivage", '/select/*', true);
 
         cy.closeAndVerifyModal(selectorModal, null, 'arrivage_new', true);
     })
