@@ -15,6 +15,7 @@ jobs:
     container:
       image: docker:28.2.2-cli
       volumes:
+        # map runner working directory with container directory to make volume mapping working with docker in docker (witchcraft)
         - ${{github.workspace}}:/__w/${{ github.ref }}/${{ github.ref }}
       options: --user root
     steps:
@@ -23,7 +24,7 @@ jobs:
         with:
           repository: wiilog/wiistock-docker
           token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-          ref: WIIS-12609
+          ref: main
 
       - name: Checkout wiistock
         uses: actions/checkout@v4
@@ -79,30 +80,23 @@ jobs:
                          --build \
                          --exit-code-from cypress
 
-      - name: Copy logs, videos, and dev.log from the container # run only if cypress fail
-        if: failure()
-        run: |
-          docker cp cypress_wiistock:/var/www/cypress/logs/ cypress_logs
-          docker cp cypress_wiistock:/var/www/cypress/videos/ cypress_videos
-          docker cp cypress_wiistock:/var/www/var/log/dev.log dev_log
-
       - name: Upload Cypress logs artifact # run only if cypress fail
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-logs
-          path: cypress_logs
+          path: ${{github.workspace}}/projects/wiistock/cypress/logs
 
       - name: Upload Cypress videos artifact # run only if cypress fail
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-videos
-          path: cypress_videos
+          path: ${{github.workspace}}/projects/wiistock/cypress/videos
 
       - name: Upload dev.log artifact # run only if cypress fail
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: dev-log-symfony
-          path: dev_log
+          path: ${{github.workspace}}/projects/wiistock/var/log/dev.log
