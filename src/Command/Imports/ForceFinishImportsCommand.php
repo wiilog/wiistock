@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Imports;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\Statut;
-use App\Service\ImportService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -16,10 +15,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:finish-import',
+    name: 'app:imports:force-finish',
     description: 'This command is made to force finish a broken import',
 )]
-class forceFinishImport extends Command {
+class ForceFinishImportsCommand extends Command {
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -64,6 +63,6 @@ class forceFinishImport extends Command {
             $entityManager->flush();
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
