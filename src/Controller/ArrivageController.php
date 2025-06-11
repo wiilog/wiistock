@@ -82,6 +82,10 @@ class ArrivageController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
+        $activeTypes = Stream::from($types)
+            ->filter(fn(Type $type) => $type->isActive())
+            ->toArray();
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
@@ -117,7 +121,7 @@ class ArrivageController extends AbstractController {
         $request->request->add(['length' => $pageLength]);
 
         return $this->render('arrivage/index.html.twig', [
-            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+            "types" => $activeTypes,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,
@@ -127,7 +131,7 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService, $userService, $entityManager)->getContent(),
-            "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
+            "initial_form" => $arrivageService->generateNewForm($entityManager, $activeTypes, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
@@ -187,6 +191,7 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $types = $typeRepository->findAll();
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
@@ -415,7 +420,7 @@ class ArrivageController extends AbstractController {
             'alertConfigs' => $alertConfigs,
             ...!$redirectToArrival
                 ? [
-                    "new_form" => $arrivalService->generateNewForm($entityManager),
+                    "new_form" => $arrivalService->generateNewForm($entityManager, $types),
                 ] : [],
         ]);
     }

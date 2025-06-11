@@ -1,129 +1,131 @@
 name: build_deployment
 
 on:
-    workflow_dispatch:
-    push:
-        tags:
-            - 'v*'
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 concurrency:
-    group: ${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    build_deployment:
-        runs-on: ubuntu-latest
-        container:
-            image: wiilog/wiistock-builder:v1.0.10
-            credentials:
-                username: ${{ secrets.DOCKER_USER }}
-                password: ${{ secrets.DOCKER_PULL_TOKEN }}
-            env:
-                APP_ENV: prod
-                APP_URL: https://<<DOMAIN_NAME>>
-            options: --user root
+  build_deployment:
+    runs-on: ubuntu-latest
+    container:
+      image: wiilog/wiistock-builder:v1.0.10
+      credentials:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PULL_TOKEN }}
+      env:
+        APP_ENV: prod
+        APP_URL: https://<<DOMAIN_NAME>>
+      options: --user root
 
-        steps:
-            -   name: Go to project
-                run: cd /project
+    steps:
+      - name: Go to project
+        run: cd /project
 
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
+      - name: Checkout wiistock
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
 
-            -   name: Install php dependencies
-                run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
+      - name: Install php dependencies
+        run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
 
-            -   name: Install zip
-                run: apk add zip
+      - name: Install zip
+        run: apk add zip
 
-            -   name: Zip vendor
-                run: zip -r -y -qq vendor.zip vendor
+      - name: Zip vendor
+        run: zip -r -y -qq vendor.zip vendor
 
-            -   name: Upload zip
-                uses: actions/upload-artifact@v4
-                with:
-                    name: vendor.zip
-                    path: vendor.zip
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor.zip
+          path: vendor.zip
 
-            -   name: Upload zip on the release
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: vendor.zip
-                    asset_name: vendor.zip
-                    tag: ${{ github.ref }}
+      - name: Upload zip on the release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
+          file: vendor.zip
+          asset_name: vendor.zip
+          tag: ${{ github.ref }}
 
-            -   name: Install js dependencies
-                run: yarn install
+      - name: Install js dependencies
+        run: yarn install
 
-            -   name: Zip node_modules
-                run: zip -r -y -qq node_modules.zip node_modules
+      - name: Zip node_modules
+        run: zip -r -y -qq node_modules.zip node_modules
 
-            -   name: Upload js dependencies
-                uses: actions/upload-artifact@v4
-                with:
-                    name: node_modules.zip
-                    path: node_modules.zip
+      - name: Upload js dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules.zip
+          path: node_modules.zip
 
-            -   name: Upload zip on the release
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: node_modules.zip
-                    asset_name: node_modules.zip
-                    tag: ${{ github.ref }}
+      - name: Upload zip on the release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
+          file: node_modules.zip
+          asset_name: node_modules.zip
+          tag: ${{ github.ref }}
 
-            -   name: Add generated.yaml
-                run: |
-                    touch config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
+      - name: Add generated.yaml
+        run: |
+          touch config/generated.yaml &&
+          echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
 
-            -   name: Generate routes
-                run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
+      - name: Generate routes
+        run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
-            -   name: Generate fixedField Enum
-                run: php bin/console app:update:enums
+      - name: Generate fixedField Enum
+        run: php bin/console app:update:enums
 
-            -   name: Build js - production
-                run: yarn build:only:production
-                env:
-                    APP_CONTEXT: prod
+      - name: Build js - production
+        run: yarn build:only:production
+        env:
+          APP_CONTEXT: prod
 
-            -   name: Zip build - production
-                run: mv public/build build && zip -r -y -qq build-prod.zip build && rm -rf build
+      - name: Zip build - production
+        run: mv public/build build && zip -r -y -qq build-prod.zip build && rm -rf build
 
-            -   name: Upload build  - production
-                uses: actions/upload-artifact@v4
-                with:
-                    name: build-prod.zip
-                    path: build-prod.zip
+      - name: Upload build  - production
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-prod.zip
+          path: build-prod.zip
 
-            -   name: Upload zip on the release - production
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: build-prod.zip
-                    asset_name: build-prod.zip
-                    tag: ${{ github.ref }}
+      - name: Upload zip on the release - production
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
+          file: build-prod.zip
+          asset_name: build-prod.zip
+          tag: ${{ github.ref }}
 
-            -   name: Build js - rec
-                run: yarn build:only:production
-                env:
-                    APP_CONTEXT: rec
+      - name: Build js - rec
+        run: yarn build:only:production
+        env:
+          APP_CONTEXT: rec
 
-            -   name: Zip build - rec
-                run: mv public/build build && zip -r -y -qq build-rec.zip build
+      - name: Zip build - rec
+        run: mv public/build build && zip -r -y -qq build-rec.zip build
 
-            -   name: Upload build - rec
-                uses: actions/upload-artifact@v4
-                with:
-                    name: build-rec.zip
-                    path: build-rec.zip
+      - name: Upload build - rec
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-rec.zip
+          path: build-rec.zip
 
-            -   name: Upload zip on the release - rec
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: build-rec.zip
-                    asset_name: build-rec.zip
-                    tag: ${{ github.ref }}
+      - name: Upload zip on the release - rec
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.WIISTOCK_PUSH_ACCESS_TOKEN }}
+          file: build-rec.zip
+          asset_name: build-rec.zip
+          tag: ${{ github.ref }}

@@ -31,8 +31,8 @@ function main(): void {
     $start = new DateTime();
 
     $WIISTOCK_VERSION = getenv("WIISTOCK_VERSION") ?: null;
-    $APP_ENV = getenv("APP_ENV") ?: "prod";
-    $APP_CONTEXT = getenv("APP_CONTEXT") ?: "prod";
+    $APP_ENV = getenv("APP_ENV") ?: ENV_PROD;
+    $APP_CONTEXT = getenv("APP_CONTEXT") ?: ENV_PROD;
     $APP_URL = getenv("APP_URL") ?: "http://localhost";
 
     preg_match("/https?:\/\/(.+)/", $APP_URL, $appDomainMatch);
@@ -41,10 +41,13 @@ function main(): void {
     $DATABASE_SSL_CONFIG = getenv("DATABASE_SSL_CONFIG") ?: null;
     $APP_SAML_ENABLED = !empty(getenv("APP_SAML_ENABLED") ?: false);
     $DATABASE_URL = getenv("DATABASE_URL") ?: null;
+    $GITHUB_PULL_ACCESS_TOKEN = getenv("GITHUB_PULL_ACCESS_TOKEN") ?: null;
     $mode = $argv[1] ?? $APP_ENV;
-
     $tableCount = countDatabaseTables($DATABASE_URL, $DATABASE_SSL_CONFIG);
-
+    $repoOwner = 'wiilog';
+    $repoName = 'wiistock';
+    $githubRepoApiUrl = "https://api.github.com/repos/$repoOwner/$repoName";
+    $releaseAssetsIds = [];
     echo (
         "---- Deployment information" . PHP_EOL .
         "WIISTOCK_VERSION:    " . json_encode($WIISTOCK_VERSION) . PHP_EOL .
@@ -91,11 +94,21 @@ function main(): void {
             STEP_FILTER => fn () => $mode === ENV_DEV,
         ],
         [
+            STEP_DESCRIPTION => "Fetch release assets from GitHub in order to download some of them later",
+            STEP_COMMANDS => function() use ($githubRepoApiUrl, &$releaseAssetsIds, $WIISTOCK_VERSION, $GITHUB_PULL_ACCESS_TOKEN) {
+                $releaseAssetsIds = getReleaseAssetsIds($githubRepoApiUrl, $WIISTOCK_VERSION, $GITHUB_PULL_ACCESS_TOKEN);
+            },
+            STEP_FILTER => fn () => $mode !== ENV_DEV && $WIISTOCK_VERSION ,
+        ],
+        [
             STEP_DESCRIPTION => "Download cached vendor",
-            STEP_COMMANDS => function() use ($WIISTOCK_VERSION) {
+            STEP_COMMANDS => function() use ($GITHUB_PULL_ACCESS_TOKEN, &$releaseAssetsIds, $githubRepoApiUrl) {
                 downloadZipCache(
                     "/project",
-                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/vendor.zip"
+                    "vendor.zip",
+                    $releaseAssetsIds,
+                    $githubRepoApiUrl,
+                    $GITHUB_PULL_ACCESS_TOKEN,
                 );
             },
             STEP_FILTER => fn () => $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -119,10 +132,13 @@ function main(): void {
         ],
         [
             STEP_DESCRIPTION => "Download cached build",
-            STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_CONTEXT, $APP_DOMAIN_NAME) {
+            STEP_COMMANDS => function() use ($APP_CONTEXT, $APP_DOMAIN_NAME, $GITHUB_PULL_ACCESS_TOKEN, &$releaseAssetsIds, $githubRepoApiUrl) {
                 downloadZipCache(
                     "/project/public",
-                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/build-$APP_CONTEXT.zip"
+                    "build-$APP_CONTEXT.zip",
+                    $releaseAssetsIds,
+                    $githubRepoApiUrl,
+                    $GITHUB_PULL_ACCESS_TOKEN,
                 );
                 if (file_exists("/project/public/build")) {
                     execCommand("find public/build -type f -exec sed -i \"s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g\" {} \;");
@@ -132,10 +148,13 @@ function main(): void {
         ],
         [
             STEP_DESCRIPTION => "Download cached node_modules",
-            STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_DOMAIN_NAME) {
+            STEP_COMMANDS => function() use ($GITHUB_PULL_ACCESS_TOKEN, &$releaseAssetsIds, $githubRepoApiUrl) {
                 downloadZipCache(
                     "/project",
-                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/node_modules.zip"
+                    "node_modules.zip",
+                    $releaseAssetsIds,
+                    $githubRepoApiUrl,
+                    $GITHUB_PULL_ACCESS_TOKEN,
                 );
             },
             STEP_FILTER => fn() => !file_exists("/project/public/build") && $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -244,21 +263,56 @@ function execCommand(string $command): void {
     }
 }
 
-function downloadZipCache(string $destination,
-                          string $zipUrl): void {
-    $cacheRelease = fopen($zipUrl, 'r');
+function downloadZipCache(string  $destination,
+                          string  $assetName,
+                          array   $releaseAssetsIds,
+                          string  $githubRepoApiUrl,
+                          ?string $pullAccessToken): void {
+    // Find the attachment ID based on its name
+    $assetId = $releaseAssetsIds[$assetName] ?? null;
+    if ($assetId === null) {
+        echo "Attachment not found." . PHP_EOL;
+        return;
+    }
 
-    if ($cacheRelease) {
-        echo "Download and unzip $zipUrl" . PHP_EOL;
-        $tmpPath = TMP_DIRECTORY . "/tmpcache.zip";
+    // GitHub API URL to download the attachment
+    $downloadUrl = "$githubRepoApiUrl/releases/assets/$assetId";
+    $downloadHeaders = [
+        ... (empty($pullAccessToken) ? [] : ["Authorization: Bearer $pullAccessToken"]),
+        'User-Agent: PHP',
+        'Accept: application/octet-stream',
+    ];
 
-        @file_put_contents($tmpPath, $cacheRelease);
-        fclose($cacheRelease);
+    echo "Asset name: $assetName" . PHP_EOL;
+    echo "Asset url: $downloadUrl" . PHP_EOL;
 
-        if (file_exists($tmpPath)) {
-            execCommand("unzip -q $tmpPath -d $destination");
-            unlink($tmpPath);
-        }
+    // Initialize cURL to download the attachment
+    $curlHandle = curl_init();
+    curl_setopt($curlHandle, CURLOPT_URL, $downloadUrl);
+    curl_setopt($curlHandle, CURLOPT_HTTPHEADER, $downloadHeaders);
+    curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+
+    $tmpPath = TMP_DIRECTORY . "/tmpcache.zip";
+
+    try {
+        $fileContent = curl_exec($curlHandle);
+    } catch (Exception $e) {
+        echo "Error downloading release assets: " . $e->getMessage() . PHP_EOL;
+        return;
+    }
+    curl_close($curlHandle);
+
+    if (file_exists($tmpPath)) {
+        unlink($tmpPath);
+    }
+
+    // @ is used to ignore errors. We don't care about errors because we've already deleted the file and check if it exists in the next if statement 😉
+    @file_put_contents($tmpPath, $fileContent);
+
+    if (file_exists($tmpPath)) {
+        execCommand("unzip -q $tmpPath -d $destination");
+        unlink($tmpPath);
     }
 }
 
@@ -301,7 +355,7 @@ function countDatabaseTables(string  $databaseUrl,
 function treatStep(int $index, array $step, string $logPrefix): void {
     $stepFilter = $step[STEP_FILTER] ?? null;
     if (!$stepFilter || $stepFilter()) {
-        $stepPrefix = "$logPrefix $index - ";
+        $stepPrefix = "\033[01;32m   $logPrefix $index - \033[0m ";
         if ($step[STEP_DESCRIPTION] ?? null) {
             echo $stepPrefix . $step[STEP_DESCRIPTION] . PHP_EOL;
         }
@@ -368,9 +422,47 @@ function enableSAMLConfig(): void {
     ]);
 }
 
-function getReleaseDownloadUrl(string $release): string {
-    $releaseUri = rawurlencode($release);
-    return "https://github.com/wiilog/wiistock/releases/download/$releaseUri";
-}
+/**
+ * @return array<string, string> AssetsName => AssetId
+ */
+function getReleaseAssetsIds (
+    string $githubRepoApiUrl,
+    ?string $tag,
+    ?string $pullAccessToken = null
+): array {
+    if (!$tag) {
+        return [];
+    }
+    $url = "$githubRepoApiUrl/releases/tags/$tag";
+    $headers = [
+        ... (empty($pullAccessToken) ? [] : ["Authorization: Bearer $pullAccessToken"]),
+        'Accept: application/vnd.github+json',
+        'User-Agent: PHP',
+        'X-GitHub-Api-Version: 2022-11-28',
+    ];
 
+    // Initialize cURL to list the attachments
+    $curlHandle = curl_init();
+    curl_setopt($curlHandle, CURLOPT_URL, $url);
+    curl_setopt($curlHandle, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+
+    try {
+        $response = curl_exec($curlHandle);
+        curl_close($curlHandle);
+        $data = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    } catch (JsonException $e) {
+        echo "Error decoding JSON: " . $e->getMessage() . PHP_EOL;
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage() . PHP_EOL;
+    }
+
+    $assetsIds = [];
+    foreach ($data['assets'] ?? [] as $asset) {
+        echo "Asset name: " . $asset['name'] . " / Asset id: " . $asset['id'] . PHP_EOL;
+        $assetsIds[$asset['name']] = $asset['id'];
+    }
+
+    return $assetsIds;
+}
 

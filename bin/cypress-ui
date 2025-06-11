@@ -1,9 +1,11 @@
 #!/bin/sh
 
-docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml up wiistock-php -d --build
-docker exec --user www-data wiistock-cypress_php yarn install
-docker exec --user www-data wiistock-cypress_php composer install
-docker exec --user www-data wiistock-cypress_php yarn build:only:dev
+set -e
+
+docker compose -p wiistock-cypress -f ../../docker-compose.yaml -f ../../docker-compose.cypress.yaml up wiistock-php wiistock-nginx mysql owasp-modsecurity -d --build
+docker exec --user www-data cypress_wiistock-php yarn install
+docker exec --user www-data cypress_wiistock-php composer install
+docker exec --user www-data cypress_wiistock-php yarn build:only:dev
 xhost +
-docker compose -p wiistock-cypress -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml -f ../../cypress-open.yml up cypress --exit-code-from cypress mysql wiistock-nginx owasp-modsecurity smtp4dev
+docker compose -p wiistock-cypress -f ../../docker-compose.yaml -f ../../docker-compose.cypress.yaml -f ../../cypress-open.yaml up cypress --exit-code-from cypress
 

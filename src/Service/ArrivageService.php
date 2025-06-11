@@ -833,7 +833,7 @@ class ArrivageService {
     }
 
 
-    public function generateNewForm(EntityManagerInterface $entityManager, array $fromTruckArrivalOptions = []): array
+    public function generateNewForm(EntityManagerInterface $entityManager, array $activeTypes, array $fromTruckArrivalOptions = []): array
     {
         if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -892,7 +892,6 @@ class ArrivageService {
 
             $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
                 "keptFields" => $keptFields,
-                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
                 "statuses" => $statuses,
                 "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
                 "natures" => $natures,
@@ -907,6 +906,7 @@ class ArrivageService {
                 "autoPrint" => $this->settingsService->getValue($entityManager, Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
                 'defaultType' => $typeRepository->findOneBy(['category' => $arrivalCategoryType, 'defaultType' => true]),
+                "typesArrival" => $activeTypes,
             ]);
         }
 
