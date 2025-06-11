@@ -1,45 +1,45 @@
 name: run-phpunit
 
 on:
-    pull_request:
-        branches:
-            - "*"
+  pull_request:
+    branches:
+      - "*"
 
 concurrency:
-    group: ${{ github.head_ref }}-phpunit
-    cancel-in-progress: true
+  group: ${{ github.head_ref }}-phpunit
+  cancel-in-progress: true
 
 jobs:
-    phpunit-run:
-        runs-on: ubuntu-latest
-        container:
-            image: wiilog/wiistock-builder:v1.0.10
-            credentials:
-                username: ${{ secrets.DOCKER_USER }}
-                password: ${{ secrets.DOCKER_PULL_TOKEN }}
-            env:
-                APP_ENV: test
-                APP_DEBUG: 0
-                APP_URL: http://localhost
-            options: --user root
-        steps:
-            -   name: Go to project
-                run: cd /project
+  phpunit-run:
+    runs-on: ubuntu-latest
+    container:
+      image: wiilog/wiistock-builder:v1.0.10
+      credentials:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PULL_TOKEN }}
+      env:
+        APP_ENV: test
+        APP_DEBUG: 0
+        APP_URL: http://localhost
+      options: --user root
+    steps:
+      - name: Go to project
+        run: cd /project
 
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
-                with:
-                  token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
-            -   name: Add generated.yaml to wiistock
-                run: |
-                    touch config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
+      - name: Checkout wiistock
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WIISTOCK_PULL_ACCESS_TOKEN }}
+      - name: Add generated.yaml to wiistock
+        run: |
+          touch config/generated.yaml &&
+          echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
 
-            -   name: Create phpunit.xml
-                run: cp phpunit.xml.dist phpunit.xml
+      - name: Create phpunit.xml
+        run: cp phpunit.xml.dist phpunit.xml
 
-            -   name: Install php dependencies
-                run: composer install
+      - name: Install php dependencies
+        run: composer install
 
-            -   name: Run phpunit
-                run: php bin/phpunit
+      - name: Run phpunit
+        run: php bin/phpunit
