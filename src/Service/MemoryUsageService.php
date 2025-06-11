@@ -2,11 +2,30 @@
 
 namespace App\Service;
 
-class MemoryService {
+class MemoryUsageService {
+
+    private const DEFAULT_OVERCONSUMPTION_THRESHOLD = 0.9;
+
+    /**
+     * @var int Memory limit config in php ini conf
+     */
+    private int $memoryLimit;
+
+    public function __construct() {
+        $this->memoryLimit = $this->getMemoryLimit();
+    }
+
+    /**
+     * Return true if current memory usage is near the limit with the threshold applied.
+     */
+    public function isMemoryOverconsumptionOngoing(int $threshold = self::DEFAULT_OVERCONSUMPTION_THRESHOLD): bool {
+        return ($this->memoryLimit * $threshold) < memory_get_usage(true);
+    }
+
     /**
      * @return positive-int|0 the current memory limit in bytes
      */
-    public function getMemoryLimit(): int {
+    private function getMemoryLimit(): int {
         return $this->getBytes(ini_get('memory_limit'));
     }
 
@@ -14,7 +33,7 @@ class MemoryService {
      * @param string $size Value in shorthand memory notation
      * @return positive-int|0 Value in bytes
      */
-    public function getBytes(string $size): int {
+    private function getBytes(string $size): int {
         $size = trim($size);
 
         preg_match('/([0-9]+)[\s]*([a-zA-Z]+)/', $size, $matches);

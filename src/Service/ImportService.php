@@ -275,33 +275,33 @@ class ImportService
     private array $entityCache = [];
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private LocationService $locationService,
-        private SettingsService $settingService,
-        private Twig_Environment $templating,
-        private ArticleDataService $articleDataService,
-        private RefArticleDataService $refArticleDataService,
-        private MouvementStockService $mouvementStockService,
-        private LoggerInterface $logger,
-        private ExceptionLoggerService $exceptionLoggerService,
-        private AttachmentService $attachmentService,
-        private ReceptionService $receptionService,
-        private DeliveryRequestService $demandeLivraisonService,
-        private ArticleFournisseurService $articleFournisseurService,
-        private UserService $userService,
-        private UniqueNumberService $uniqueNumberService,
-        private TranslationService $translationService,
-        private FormatService $formatService,
-        private LanguageService $languageService,
-        private ReceptionLineService $receptionLineService,
+        private EntityManagerInterface      $entityManager,
+        private LocationService             $locationService,
+        private SettingsService             $settingService,
+        private Twig_Environment            $templating,
+        private ArticleDataService          $articleDataService,
+        private RefArticleDataService       $refArticleDataService,
+        private MouvementStockService       $mouvementStockService,
+        private LoggerInterface             $logger,
+        private ExceptionLoggerService      $exceptionLoggerService,
+        private AttachmentService           $attachmentService,
+        private ReceptionService            $receptionService,
+        private DeliveryRequestService      $demandeLivraisonService,
+        private ArticleFournisseurService   $articleFournisseurService,
+        private UserService                 $userService,
+        private UniqueNumberService         $uniqueNumberService,
+        private TranslationService          $translationService,
+        private FormatService               $formatService,
+        private LanguageService             $languageService,
+        private ReceptionLineService        $receptionLineService,
         private UserPasswordHasherInterface $encoder,
-        private FTPService $FTPService,
-        private ScheduledTaskService $scheduledTaskService,
-        private ProductionRequestService $productionRequestService,
-        private DispatchService $dispatchService,
-        private FreeFieldService $freeFieldService,
-        private SettingsService $settingsService,
-        private MemoryService $memoryService,
+        private FTPService                  $FTPService,
+        private ScheduledTaskService        $scheduledTaskService,
+        private ProductionRequestService    $productionRequestService,
+        private DispatchService             $dispatchService,
+        private FreeFieldService            $freeFieldService,
+        private SettingsService             $settingsService,
+        private MemoryUsageService          $memoryUsageService,
     ){
         $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->resetCache();
@@ -394,7 +394,6 @@ class ImportService
     public function treatImport(EntityManagerInterface $entityManager,
                                 Import                 $import,
                                 int                    $mode = self::IMPORT_MODE_PLAN): int {
-        $memoryLimit = $this->memoryService->getMemoryLimit();
         $this->currentImport = $import;
         $this->entityManager = $entityManager;
         $this->resetCache();
@@ -503,7 +502,7 @@ class ImportService
                     $this->clearEntityManagerAndRetrieveImport();
                     if (!$smallFile) {
                         while (($row = fgetcsv($file, 0, ';')) !== false) {
-                            if ($memoryLimit * 0.9 < memory_get_usage(true)) {
+                            if ($this->memoryUsageService->isMemoryOverconsumptionOngoing()) {
                                 $errorMessage = "L'import comporte trop de lignes. Veuillez l'importer en plusieurs fois.";
                                 $this->currentImport->setLastErrorMessage($errorMessage);
                                 $this->attachmentService->putCSVLines($logFile, [[$errorMessage]], $this->scalarCache["logFileMapper"]);
