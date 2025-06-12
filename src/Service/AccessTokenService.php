@@ -39,10 +39,7 @@ class AccessTokenService {
                                       Utilisateur            $user): void {
         $now = new DateTime();
         $tokenRepository = $entityManager->getRepository(AccessToken::class);
-        $tokens = $tokenRepository->findBy([
-            "owner" => $user,
-            "type" => $type,
-        ]);
+        $tokens = $tokenRepository->findActiveOn($now, $type, $user);
 
         foreach ($tokens as $token) {
             $token->setExpireAt($now);

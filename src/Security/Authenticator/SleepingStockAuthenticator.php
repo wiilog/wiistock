@@ -34,8 +34,7 @@ class SleepingStockAuthenticator extends AbstractAuthenticator {
         return $request->query->has(self::ACCESS_TOKEN_PARAMETER);
     }
 
-    public function authenticate(Request $request): Passport
-    {
+    public function authenticate(Request $request): Passport {
         $accessTokenRepository = $this->entityManager->getRepository(AccessToken::class);
 
         $tokenValue = $request->query->get(self::ACCESS_TOKEN_PARAMETER);
@@ -51,17 +50,17 @@ class SleepingStockAuthenticator extends AbstractAuthenticator {
         ]);
 
         $user = $accessToken?->getOwner();
-        $userIdentifier = $user?->getEmail();
         $now = new DateTime();
 
-        // if token as empty expiresAt then it's valid
-        if (!$userIdentifier
-            || !$user->getStatus()
-            || !$user->getRole()
-            || $user->getRole()->getLabel() === Role::NO_ACCESS_USER
-            || $accessToken->getExpireAt() && $accessToken->getExpireAt() < $now) {
+        // if user not defined or hasn't rights to access to the sleeping stock page
+        // OR token is invalid (empty expiresAt or expiresAt in the future)
+        if (!($user?->hasSleepingStockRightAccess())
+            || ($accessToken->getExpireAt() && $accessToken->getExpireAt() < $now)) {
             throw new UnauthorizedSleepingStockException('Invalid access token');
         }
+
+        // $userIdentifier defined because it's checked in Utilisateur::hasSleepingStockRightAccess
+        $userIdentifier = $user->getEmail();
 
         return new SelfValidatingPassport(new UserBadge($userIdentifier));
     }
