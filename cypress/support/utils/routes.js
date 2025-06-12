@@ -18,7 +18,7 @@ export const routes = {
         alias: 'zones_api'
     },
 
-    carrier_api: {
+    truck_arrival_api: {
         method: 'GET',
         route: '/arrivage-camion/truck-arrival-lines-api*',
         alias: 'lines_api'
@@ -30,7 +30,7 @@ export const routes = {
         alias: 'ajax_select_truck_arrival_line'
     },
 
-    truck_arrival_new: {
+    truck_arrival_list: {
         method: 'POST',
         route: '/arrivage-camion/api-list',
         alias: 'truck_arrival_api_list'
