@@ -999,6 +999,15 @@ class PackService {
     }
 
     public function getCsvHeader(): array {
+        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+
+        $freeFields = Stream::from(
+            $this->cache['arrivalFreeFields'],
+            $this->cache['trackingMovementFreeFields']
+        )
+            ->toArray();
+
         $header =  [
             $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
             $this->translationService->translate('Traçabilité', 'Général', 'Nature', false),
@@ -1014,11 +1023,11 @@ class PackService {
             'Poids (kg)',
             'Volume (m3)',
         ];
-            $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-            $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
-            foreach ($freeFields as $freeField) {
-                $header[] = $freeField->getLabel();
-            }
+
+        foreach ($freeFields as $freeField) {
+            $header[] = $freeField->getLabel();
+        }
+
         return $header;
     }
 
@@ -1028,10 +1037,8 @@ class PackService {
                                            EntityManagerInterface $entityManager): callable {
         $packRepository = $entityManager->getRepository(Pack::class);
         $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
-        return function ($handle) use ($packs, $freeFields) {
+        return function ($handle) use ($packs) {
             foreach ($packs as $pack) {
                 $mvtData = $this->trackingMovementService->getFromColumnData([
                     'entity' => $pack['entity'],
@@ -1040,35 +1047,39 @@ class PackService {
                 ]);
 
                 $pack = Stream::from($mvtData, $pack)->toArray();
-                $this->putPackLine($handle, $pack, $freeFields);
+                $this->putPackLine($handle, $pack);
             }
         };
     }
 
-    public function putPackLine($handle, array $pack, array $freeFields = []): void {
-        $line = [
-            $pack['code'],
-            $pack['nature'],
-            $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
-            $pack['fromLabel'],
-            $pack['from'],
-            $pack['supplier'] ?? null,
-            $pack['carrier'] ?? null,
-            Stream::from($pack['orderNumbers'] ?? [])->join(' / ') ?: null,
-            $pack['location'],
-            $pack['groupCode'],
-            $this->formatService->bool($pack['groupIteration'] ?? false),
-            $pack['weight'],
-            $pack['volume'],
-        ];
+    public function putPackLine($handle, array $pack): void {
+        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
 
-        $freeFieldsValues = $pack['freeFieldsValues'];
-
-        foreach ($freeFields as $freeField) {
-            $value = $freeFieldsValues[$freeField->getId()] ?? '';
-
-            $line[] = $value;
-        }
+        $line = Stream::from(
+            [
+                $pack['code'],
+                $pack['nature'],
+                $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
+                $pack['fromLabel'],
+                $pack['from'],
+                $pack['supplier'] ?? null,
+                $pack['carrier'] ?? null,
+                Stream::from($pack['orderNumbers'] ?? [])->join(' / ') ?: null,
+                $pack['location'],
+                $pack['groupCode'],
+                $this->formatService->bool($pack['groupIteration'] ?? false),
+                $pack['weight'],
+                $pack['volume'],
+            ],
+            Stream::from($this->cache['arrivalFreeFields'])
+                ->map(static fn (FreeField $freeField) => $pack['arrivalFreeFieldsValues'][$freeField->getId()] ?? '')
+                ->toArray(),
+            Stream::from($this->cache['trackingMovementFreeFields'])
+                ->map(static fn (FreeField $freeField) => $pack['trackingMovementFreeFieldsValues'][$freeField->getId()] ?? '')
+                ->toArray(),
+        )
+            ->toArray();
 
         $this->CSVExportService->putLine($handle, $line);
     }
