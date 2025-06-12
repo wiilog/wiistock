@@ -317,16 +317,26 @@
                         </div>
                     </div>
                     <div class="wii-box mt-3">
-                        {% if arrival %}
-                        {% set plural = freeFields | length > 1 ? 's' : '' %}
-                        <div class="header wii-title">Champ{{ plural }} libre{{ plural }}</div>
-                        <div class="px-3">
-                            {% include 'free_field/freeFieldsShow.html.twig' with {
-                                containerClass: 'content row',
-                                values: arrival.freeFields,
-                                freeFields: freeFields,
-                            } %}
-                        </div>
+                        {% set arrivalFreeFieldsNumber = arrival and arrivalFreeFields | length > 0 %}
+                        {% set trackingMovementFreeFieldsNumber = trackingMovementFreeFields | length > 0 %}
+                        {% if arrivalFreeFieldsNumber or trackingMovementFreeFieldsNumber %}
+                            <div class="header wii-title">Champs libres</div>
+                            <div class="wii-section-title d-flex align-items-center pl-3">Arrivage</div>
+                            <div class="px-3">
+                                {% include 'free_field/freeFieldsShow.html.twig' with {
+                                    containerClass: 'content row',
+                                    values: arrival.freeFields,
+                                    freeFields: arrivalFreeFields,
+                                } %}
+                            </div>
+                            <div class="wii-section-title d-flex align-items-center pl-3">Mouvements</div>
+                            <div class="px-3">
+                                {% include 'free_field/freeFieldsShow.html.twig' with {
+                                    containerClass: 'content row',
+                                    values: logisticUnit.freeFields,
+                                    freeFields: trackingMovementFreeFields,
+                                } %}
+                            </div>
                         {% endif %}
                     </div>
                 {% endif %}

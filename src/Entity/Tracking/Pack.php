@@ -17,6 +17,7 @@ use App\Entity\ProjectHistoryRecord;
 use App\Entity\ReceiptAssociation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Repository\Tracking\PackRepository;
 use App\Service\Tracking\TrackingMovementService;
@@ -30,6 +31,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: PackRepository::class)]
 class Pack implements PairedEntity {
 
+    use FreeFieldsManagerTrait;
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
@@ -971,6 +973,16 @@ class Pack implements PairedEntity {
 
     public function setCurrentTrackingDelay(?TrackingDelay $trackingDelay): self {
         $this->currentTrackingDelay = $trackingDelay;
+        return $this;
+    }
+
+    public function updateFreeFields(?array $freeFields): self {
+        foreach ($freeFields ?? [] as $freeFieldId => $freeFieldValue) {
+            if ($freeFieldValue !== null && $freeFieldValue !== '') {
+                $this->freeFields[$freeFieldId] = $freeFieldValue;
+            }
+        }
+
         return $this;
     }
 
