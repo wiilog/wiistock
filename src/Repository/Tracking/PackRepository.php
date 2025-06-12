@@ -15,6 +15,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FieldModesService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
@@ -304,6 +305,7 @@ class PackRepository extends EntityRepository
                     "child_articles_search.barCode LIKE :value"
                 ];
 
+                // TODO WIIS-12858: à changer ?
                 foreach ($freeFields as $freeField) {
                     $freeFieldId = $freeField->getId();
                     $searchParams[] = "JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"') LIKE :value";
@@ -401,7 +403,9 @@ class PackRepository extends EntityRepository
                 //Extract id from freefield column name
                 if (preg_match('/^free_field_(\d+)$/', $column, $matches)) {
                    $freeFieldId = $matches[1];
-                    $queryBuilder->orderBy("JSON_UNQUOTE(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"'))", $order);
+                    $queryBuilder
+                        ->orderBy("JSON_UNQUOTE(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"'))", $order)
+                        ->addOrderBy("JSON_UNQUOTE(JSON_EXTRACT(pack.freeFields, '$.\"$freeFieldId\"'))", $order);
                 } else if ($column === 'ongoingLocation') {
                     $queryBuilder
                         ->leftJoin('pack.lastAction', 'order_packLocation_pack_lastAction')

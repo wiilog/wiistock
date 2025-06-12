@@ -37,8 +37,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(fields: ["uniqueIdForMobile"])]
 class TrackingMovement implements AttachmentContainer {
 
-    use FreeFieldsManagerTrait;
     use AttachmentTrait;
+    use FreeFieldsManagerTrait {
+        setFreeFields as protected setFreeFieldsParent;
+    }
 
     const DEFAULT_QUANTITY = 1;
 
@@ -610,6 +612,12 @@ class TrackingMovement implements AttachmentContainer {
     public function setNewNature(?Nature $newNature): self {
         $this->newNature = $newNature;
 
+        return $this;
+    }
+
+    public function setFreeFields(?array $freeFields): self {
+        $this->setFreeFieldsParent($freeFields);
+        $this->pack?->updateFreeFields($freeFields);
         return $this;
     }
 }

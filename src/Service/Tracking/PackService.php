@@ -34,6 +34,7 @@ use App\Service\Dashboard\DashboardService;
 use App\Service\DateTimeService;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
+use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\ProjectHistoryRecordService;
@@ -56,6 +57,8 @@ class PackService {
 
     private const PACK_DEFAULT_TRACKING_DELAY_COLOR = "#000000";
 
+    private array $cache = [];
+
     public function __construct(
         private CSVExportService            $CSVExportService,
         private RouterInterface             $router,
@@ -75,6 +78,7 @@ class PackService {
         private Twig_Environment            $templating,
         private EntityManagerInterface      $entityManager,
         private TrackingDelayService        $trackingDelayService,
+        private FreeFieldService            $freeFieldService,
     ) {}
 
     public function getDataForDatatable($params = null): array {
@@ -191,17 +195,10 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
 
-        $freeFieldsData = [];
-        foreach ($freeFields as $freeField) {
-            $id = $freeField->getId();
-            $columnKey = "free_field_$id";
-            $freeFieldsData[$columnKey] = $arrival ? $arrival->getFreeFieldValue($id) : '';
-        }
-
-        return array_merge([
+        $row = [
             'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
                 'pack' => $pack,
@@ -240,7 +237,19 @@ class PackService {
                     "from" => $this->formatService->pack($pack->getGroup()),
                 ])
                 : '',
-        ], $freeFieldsData);
+        ];
+
+        foreach ($this->cache['arrivalFreeFields'] ?? [] as $freeFieldId => $freeField) {
+            $columnKey = "free_field_$freeFieldId";
+            $row[$columnKey] = $arrival ? $arrival->getFreeFieldValue($freeFieldId) : '';
+        }
+
+        foreach ($this->cache['trackingMovementFreeFields'] ?? [] as $freeFieldId => $freeField) {
+            $columnKey = "free_field_$freeFieldId";
+            $row[$columnKey] = $pack->getFreeFieldValue($freeFieldId);
+        }
+
+        return $row;
     }
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
@@ -599,8 +608,16 @@ class PackService {
                                                    EntityManagerInterface $entityManager): array {
         $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
         $hasRightAddToCart = $this->userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART);
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+
+        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+
+        $freeFields = Stream::from(
+            $this->cache['arrivalFreeFields'],
+            $this->cache['trackingMovementFreeFields']
+        )
+            ->toArray();
+
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
