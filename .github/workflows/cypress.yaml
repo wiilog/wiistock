@@ -99,4 +99,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dev-log-symfony
-          path: ${{github.workspace}}/projects/wiistock/var/log/dev.log
+          path: ${{github.workspace}}/projects/wiistock/var/log/test.log
