@@ -24,9 +24,9 @@ abstract class Token {
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $token = null;
 
-    public function __construct(string $token) {
-        $this->plainToken = $token;
-        $this->token = hash('sha256', $token);
+    public function __construct(string $plainToken) {
+        $this->plainToken = $plainToken;
+        $this->token = hash('sha256', $plainToken);
     }
 
     private ?string $plainToken = null;

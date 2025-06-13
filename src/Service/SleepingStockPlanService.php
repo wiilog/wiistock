@@ -33,6 +33,10 @@ class SleepingStockPlanService {
         $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType($type);
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
+            if (!$manager->hasSleepingStockRightAccess()) {
+                continue;
+            }
+
             $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(
                 $manager,
                 self::MAX_REFERENCE_ARTICLES_IN_ALERT,

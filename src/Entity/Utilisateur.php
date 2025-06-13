@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Type\Type;
 use App\Repository\UtilisateurRepository;
+use App\Security\Authenticator\SleepingStockAuthenticator;
 use App\Service\FieldModesService;
 use App\Service\MailerService;
 use DateTime;
@@ -2168,5 +2169,15 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->allowedToBeRemembered = $allowedToBeRemembered;
 
         return $this;
+    }
+
+    public function hasSleepingStockRightAccess(): bool {
+        /** @see SleepingStockAuthenticator email should be set to authenticate user (email is the user identifier) */
+        return (
+            $this->getEmail()
+            && $this->getStatus()
+            && $this->getRole()
+            && $this->getRole()->getLabel() !== Role::NO_ACCESS_USER
+        );
     }
 }
