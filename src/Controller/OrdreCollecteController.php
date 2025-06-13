@@ -404,8 +404,7 @@ class OrdreCollecteController extends AbstractController
                                           ArticleDataService        $articleDataService,
                                           Request                   $request,
                                           EntityManagerInterface    $entityManager,
-                                          PDFGeneratorService       $PDFGeneratorService): PdfResponse | Response
-    {
+                                          PDFGeneratorService       $PDFGeneratorService): PdfResponse | Response {
         $forceTagEmpty = $request->query->get('forceTagEmpty', false);
         $tag = $forceTagEmpty
             ? null
@@ -424,9 +423,10 @@ class OrdreCollecteController extends AbstractController
             ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article))
             ->toArray();
 
-        $barCodesReferences = array_map(function (OrdreCollecteReference $ordreCollecteReference) use ($refArticleDataService) {
+        $barCodesReferences = array_map(function (OrdreCollecteReference $ordreCollecteReference) use ($tag, $refArticleDataService) {
             $referenceArticle = $ordreCollecteReference->getReferenceArticle();
-            return $referenceArticle
+            $referenceArticleTags = $referenceArticle->getType()->getTags()->toArray();
+            return $referenceArticle && ((!$tag && empty($referenceArticleTags)) || ($tag && in_array($tag, $referenceArticleTags)))
                 ? $refArticleDataService->getBarcodeConfig($referenceArticle)
                 : null;
         }, $ordreCollecteReferences);
