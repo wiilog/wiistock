@@ -1,6 +1,6 @@
 import {defaultTypeSpeed} from '../utils/cypressConfigConstants';
 
-Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true) => {
+Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true, dropdownClick = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
     const selectorPrefix = modalName !== '' ? `#${modalName} ` : '';
@@ -20,17 +20,24 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestA
                     .wait(`@${requestAlias}Request`, {timeout: 20000})
                     .its('response.statusCode').should('eq', 200)
             }
+            if(!dropdownClick) {
+                cy.get(inputSearchSelector).then(() => {
+                    cy.get(getName).find('option:selected').should('have.length', 1);
+                });
+            }
         })
 
-    cy.get(inputSearchSelector)
-        .closest('.select2-dropdown')
-        .should('be.visible', {timeout: 6000})
-        .contains(value)
-        .should('be.visible')
-        .click({waitForAnimations: false, force: true})
-        .then(() => {
-            cy.get(getName).find('option:selected').should('have.length', 1);
-        });
+    if(dropdownClick){
+        cy.get(inputSearchSelector)
+            .closest('.select2-dropdown')
+            .should('be.visible', {timeout: 6000})
+            .contains(value)
+            .should('be.visible')
+            .click({waitForAnimations: false, force: true})
+            .then(() => {
+                cy.get(getName).find('option:selected').should('have.length', 1);
+            });
+    }
 })
 
 Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') => {
@@ -118,6 +125,31 @@ Cypress.Commands.add('clearSelect2', (selectName, modalId = null) => {
         }
     })
 });
+
+
+Cypress.Commands.add('select2NewComponentAjax', (selectName, element, modalName = '', nbInSelect = 1) => {
+
+    let getName;
+    if (modalName !== '') {
+        getName = `#${modalName} [name=${selectName}]`;
+    } else {
+        getName = `[name=${selectName}]`
+    }
+
+    cy.get(`[name=${selectName}]`)
+        .siblings('.select2')
+        .click()
+        .wait(200)
+        .type(element).then(() => {
+        cy.get('.create-new-container')
+            .should('be.visible', {timeout: 6000})
+            .click({waitForAnimations: false, force: true})
+            .then(() => {
+                cy.get(getName).find('option:selected').should('have.length', nbInSelect);
+            });
+    });
+});
+
 
 /**
  * @description: This command removes previous select2 ajax values from a dropdown based on the specified name.

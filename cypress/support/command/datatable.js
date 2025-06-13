@@ -180,3 +180,69 @@ Cypress.Commands.add('checkElementsInSelectInFiltersField', (nameOfSelect, nameO
         cy.get(nameInput).click();
     });
 });
+
+Cypress.Commands.add('checkAllorOneRowInSettingFixedFiled', (id, all = true, rowNames = []) => {
+
+    const columnsToCheck = [];
+    const rowIndex = []
+    const columnsToCheckName = ["Afficher","Obligatoire"];
+    const ULFixedFieldsLines = 'table[data-table-processing=fixedFields] tbody tr';
+
+    // get the index of the columns with her name
+    cy.get(`[id^=${id}] thead:first tr th`).then(($ths) => {
+        $ths.each((index, th) => {
+            if (columnsToCheckName.includes(th.textContent)) {
+                // get the index of the columns to check in the datatable
+                // -4 because the first 4 columns come from ??
+                columnsToCheck.push(index - 4);
+            }
+        });
+
+        if(all) {
+            cy.get(`[data-menu=champs_fixes] input[type=checkbox]`)
+                .uncheck({force: true});
+
+            cy.get(ULFixedFieldsLines).each((tr) => {
+                columnsToCheck.forEach((columnIndex) => {
+                    cy.wrap(tr)
+                        .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                        .check({force: true});
+                });
+            });
+        }else {
+
+            let columnNumber = 0
+            let cpt = 1;
+            cy.get(`tbody>tr:eq(3)`).should("be.visible", {timeout: 8000}).then(() => {
+                // get the index of the row with her name
+                cy.get(`[id^=${id}] tbody tr:eq(3) td`).then((tds) => {
+                    columnNumber = Array.from(tds).length;
+                    cy.get(`[id^=${id}] tbody tr td`).each((td) => {
+                        if (rowNames.includes(td.text().trim())) {
+                            rowIndex.push(Math.trunc(cpt / (columnNumber)) + 2 );
+                        }
+                        cpt = cpt + 1;
+                    }).then(() => {
+                        rowIndex.forEach((index) => {
+                            console.log(index)
+                            columnsToCheck.forEach((columnIndex) => {
+                                cy.get(`tbody>tr:eq(${index})`)
+                                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                                    .uncheck({force: true});
+                            });
+
+                            columnsToCheck.forEach((columnIndex) => {
+                                cy.get(`tbody>tr:eq(${index})`)
+                                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                                    .check({force: true});
+                            });
+                        });
+                    });
+                });
+
+            });
+        }
+    });
+});
+
+
