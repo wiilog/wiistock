@@ -1,5 +1,5 @@
 const {defineConfig} = require("cypress");
-
+const path = require('path');
 
 module.exports = defineConfig({
     video: true,
@@ -14,6 +14,12 @@ module.exports = defineConfig({
             require('cypress-failed-log/on')(on)
         },
     },
+    /*resolve: {
+        alias: {
+            '@support': path.resolve(__dirname, '/cypress/support'),
+            '@command': path.resolve(__dirname, '/command'),
+        },
+    },*/
     user: {
         email: 'admin@wiilog.fr',
         password: 'Admin1234!',
