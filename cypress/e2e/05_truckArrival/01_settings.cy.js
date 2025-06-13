@@ -1,6 +1,6 @@
-import routes, {interceptRoute} from "/cypress/support/utils/routes";
+import routes, {interceptRoute} from "cypress/support/utils/routes";
 const user= Cypress.config('user');
-import {uncaughtException} from "/cypress/support/utils";
+import {uncaughtException} from "cypress/support/utils";
 
 describe('Setup settings', () => {
     beforeEach(() => {
@@ -15,21 +15,19 @@ describe('Setup settings', () => {
     it('should have all fixed fields truck arrivals checked', () => {
         cy.openSettingsItem('arrivages_camion');
         cy.get(`[data-menu=champs_fixes]`)
-            .eq(0)
             .first()
             .click();
 
-        cy.checkAllorOneRowInSettingFixedFiled("table-truck-arrival-fixed-fields", true);
+        cy.checkDatatableCheckboxes("table-truck-arrival-fixed-fields", true);
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
-    })
+    });
 
     it('should setup UL arrivals settings with truck arrival', () => {
 
         cy.openSettingsItem('arrivages');
         cy.get(`[data-menu=configurations]`)
-            .eq(0)
             .first()
             .click();
 
@@ -41,13 +39,12 @@ describe('Setup settings', () => {
 
         //
         cy.get(`[data-menu=champs_fixes]`)
-            .eq(0)
             .first()
             .click();
 
-        cy.checkAllorOneRowInSettingFixedFiled("table-arrival-fixed-fields", false, ["Numéro tracking transporteur"]);
+        cy.checkDatatableCheckboxes("table-arrival-fixed-fields", false, ["Numéro tracking transporteur"]);
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
-    })
+    });
 });
