@@ -1,9 +1,9 @@
 <?php
 namespace App\Entity\IOT;
 
-enum LoRaWANServer: string
-{
+enum IotServer: string {
     case Orange = "ORANGE";
     case ChirpStack = "CHIRPSTACK";
     case NodeRed = "NODERED";
+    case Ruptela = "RUPTELA";
 }
