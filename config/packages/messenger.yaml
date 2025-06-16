@@ -21,6 +21,11 @@ framework:
         retry_strategy:
           max_retries: 0
 
+      sync_tracking_delay:
+        dsn: "sync://"
+        retry_strategy:
+          max_retries: 0
+
       async_waiting:
         dsn: "%env(MESSENGER_DSN)%"
         options:
@@ -50,7 +55,8 @@ framework:
       App\Messenger\Message\DeduplicatedMessage\FeedDashboardComponentMessage: async_dashboard_feeding
       App\Messenger\Message\DeduplicatedMessage\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
       App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessageWrapper: async_waiting
-      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage: async_tracking_delay
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage: async_tracking_delay
+      App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage: sync_tracking_delay
 
 # when@test:
 #    framework:

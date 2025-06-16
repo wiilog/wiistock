@@ -2,7 +2,8 @@
 
 namespace App\Messenger\Handler;
 
-use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage;
 use App\Messenger\Message\MessageInterface;
 use App\Service\ExceptionLoggerService;
 use App\Service\Tracking\PackService;
@@ -17,9 +18,11 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * We can't calculate tracking delay on same time for the same logistic unit.
  *
  * @see WaitingDeduplicatedHandler
- * @see CalculateTrackingDelayMessage
+ * @see AsyncCalculateTrackingDelayMessage
+ * @see SyncCalculateTrackingDelayMessage
  */
 #[AsMessageHandler(fromTransport: "async_tracking_delay")]
+#[AsMessageHandler(fromTransport: "sync_tracking_delay")]
 class CalculateTrackingDelayHandler extends WaitingDeduplicatedHandler {
 
     public function __construct(
@@ -32,12 +35,12 @@ class CalculateTrackingDelayHandler extends WaitingDeduplicatedHandler {
         parent::__construct($loggerService, $messageBus, $lockFactory);
     }
 
-    public function __invoke(CalculateTrackingDelayMessage $message): void {
+    public function __invoke(AsyncCalculateTrackingDelayMessage | SyncCalculateTrackingDelayMessage $message): void {
         $this->handle($message);
     }
 
     /**
-     * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
+     * @param AsyncCalculateTrackingDelayMessage|SyncCalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
      */
     protected function processWithLock(MessageInterface $message): void {
         $success = $this->packService->updateTrackingDelayWithPackCode($this->entityManager, $message->getPackCode());

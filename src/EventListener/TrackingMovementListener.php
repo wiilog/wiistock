@@ -10,7 +10,8 @@ use App\Entity\LocationClusterRecord;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type\Type;
-use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\Tracking\TrackingDelayService;
@@ -37,6 +38,8 @@ class TrackingMovementListener implements EventSubscriber
 
     private ?Type $trackingMovementType = null;
 
+    public static bool $needSyncTrackingDelayProcessing = false;
+
     public function __construct(
         private MessageBusInterface     $messageBus,
         private MailerService           $mailerService,
@@ -57,8 +60,7 @@ class TrackingMovementListener implements EventSubscriber
 
     #[AsEventListener(event: 'preRemove')]
     public function preRemove(TrackingMovement   $movementToDelete,
-                              PreRemoveEventArgs $lifecycleEventArgs): void
-    {
+                              PreRemoveEventArgs $lifecycleEventArgs): void {
         $entityManager = $lifecycleEventArgs->getObjectManager();
 
         $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
@@ -157,8 +159,14 @@ class TrackingMovementListener implements EventSubscriber
         }
 
         $packCodesToRecalculateTrackingDelay = array_keys($this->packCodesToRecalculateTrackingDelay);
+        $needSyncProcess = $this::$needSyncTrackingDelayProcessing && count($this->packCodesToRecalculateTrackingDelay) <= 5;
         foreach ($packCodesToRecalculateTrackingDelay as $code) {
-            $this->messageBus->dispatch(new CalculateTrackingDelayMessage($code));
+
+            $calculateTrackingDelayMessageClass = $needSyncProcess
+                ? SyncCalculateTrackingDelayMessage::class
+                : AsyncCalculateTrackingDelayMessage::class;
+
+            $this->messageBus->dispatch(new $calculateTrackingDelayMessageClass($code));
         }
     }
 

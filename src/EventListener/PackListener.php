@@ -5,7 +5,8 @@ namespace App\EventListener;
 
 use App\Entity\Nature;
 use App\Entity\Tracking\Pack;
-use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -19,6 +20,8 @@ class PackListener implements EventSubscriber {
      * @var Pack[]
      */
     private array $insertedPacks = [];
+
+    public static bool $needSyncTrackingDelayProcessing = false;
 
     public function __construct(private MessageBusInterface $messageBus) {}
 
@@ -36,7 +39,7 @@ class PackListener implements EventSubscriber {
             $newNatureTrackingDelay = $newNature?->getTrackingDelay();
 
             if ($oldNatureTrackingDelay !== $newNatureTrackingDelay) {
-                $this->messageBus->dispatch(new CalculateTrackingDelayMessage($pack->getCode()));
+                $this->messageBus->dispatch(new AsyncCalculateTrackingDelayMessage($pack->getCode()));
             }
         }
     }
@@ -49,9 +52,14 @@ class PackListener implements EventSubscriber {
 
     #[AsEventListener(event: "postFlush")]
     public function postFlush(): void {
+        $needSyncProcess = $this::$needSyncTrackingDelayProcessing && count($this->insertedPacks) <= 5;
         foreach ($this->insertedPacks as $pack) {
             if ($pack?->shouldHaveTrackingDelay()) {
-                $this->messageBus->dispatch(new CalculateTrackingDelayMessage($pack->getCode()));
+                $calculateTrackingDelayMessageClass = $needSyncProcess
+                    ? SyncCalculateTrackingDelayMessage::class
+                    : AsyncCalculateTrackingDelayMessage::class;
+
+                $this->messageBus->dispatch(new $calculateTrackingDelayMessageClass($pack->getCode()));
             }
         }
         $this->insertedPacks = [];
