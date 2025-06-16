@@ -29,6 +29,8 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
+use App\EventListener\PackListener;
+use App\EventListener\TrackingMovementListener;
 use App\Exceptions\FormException;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -203,6 +205,9 @@ class ArrivageController extends AbstractController {
             ?: UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG ;
 
         $arrivalNumber = $uniqueNumberService->create($entityManager, null, Arrivage::class, $numberFormat);
+        $needSyncTrackingDelayProcessing = ($data["printPacks"] ?? false) === "true" && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
+
+        PackListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -418,6 +423,7 @@ class ArrivageController extends AbstractController {
             'arrivalId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
+            'needSyncTrackingDelayProcessing' => $needSyncTrackingDelayProcessing,
             ...!$redirectToArrival
                 ? [
                     "new_form" => $arrivalService->generateNewForm($entityManager, $types),
@@ -517,13 +523,18 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    #[Route("/{arrival}/tracking-movements", name: "post_arrival_tracking_movements", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{arrival}/tracking-movements", name: "post_arrival_tracking_movements", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function postArrivalTrackingMovements(
         #[MapEntity(expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
         Arrivage                $arrival,
         TrackingMovementService $trackingMovementService,
-        EntityManagerInterface  $entityManager): Response
-    {
+        EntityManagerInterface  $entityManager,
+        Request                 $request,
+        SettingsService         $settingsService): Response {
+
+        $needSyncTrackingDelayProcessing = $request->query->getBoolean('needSyncTrackingDelayProcessing');
+        TrackingMovementListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
+
         $location = $arrival->getDropLocation();
         if (isset($location)) {
             /** @var Utilisateur $user */
@@ -536,7 +547,7 @@ class ArrivageController extends AbstractController {
                     $location,
                     $user,
                     $now,
-                    $arrival
+                    $arrival,
                 );
             }
 

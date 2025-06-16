@@ -25,7 +25,7 @@ use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type\CategoryType;
 use App\Entity\Type\Type;
-use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
@@ -488,7 +488,7 @@ class PackController extends AbstractController {
     #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
     public function postTrackingDelay(MessageBusInterface $messageBus,
                                       Pack                $logisticUnit): JsonResponse {
-        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()));
+        $messageBus->dispatch(new AsyncCalculateTrackingDelayMessage($logisticUnit->getCode()));
 
         return $this->json([
             "success" => true,

@@ -41,10 +41,10 @@ export function arrivalCallback(isCreation, {success, alertConfigs = [], ...resp
                 loadSpinner($alertModal.find('.spinner'));
             }
 
-            const {arrivalId} = response;
+            const {arrivalId, needSyncTrackingDelayProcessing} = response;
 
             if (isCreation) {
-                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivalId}))
+                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivalId, needSyncTrackingDelayProcessing: needSyncTrackingDelayProcessing}))
                     .then(() => {
                         displayCurrentModal();
 

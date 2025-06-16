@@ -2,12 +2,11 @@
 
 namespace App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage;
 
-class CalculateTrackingDelayMessage extends WaitingDeduplicatedMessage {
+class AsyncCalculateTrackingDelayMessage extends WaitingDeduplicatedMessage {
 
     public function __construct(
-        private string $packCode,
-    ) {
-    }
+        private readonly string $packCode,
+    ) {}
 
     public function getPackCode(): string {
         return $this->packCode;
