@@ -508,6 +508,7 @@ class TrackingMovementController extends AbstractController {
             $isGroup = $pack->isGroup();
             $res['isGroup'] = $isGroup;
             $res['isPack'] = !$isGroup;
+            $res['packCanBeGroup'] = !$pack->getArrivage() && empty($pack->getDispatchPacks()->toArray());
 
             if ($includeTrackingDelayData) {
                 $trackingDelayData = $packService->formatTrackingDelayData($pack);
