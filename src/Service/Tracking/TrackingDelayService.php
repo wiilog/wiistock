@@ -153,12 +153,16 @@ class TrackingDelayService {
         $calculationDate = new DateTime();
         $calculationDateInit = clone $calculationDate;
 
+        // begin limitTreatmentDate on date which start the timer
+        // we will increment it with all worked intervals found (nature tracking delay as max)
         $natureTrackingDelay = $pack->getNature()?->getTrackingDelay();
         $remainingNatureDelay = $natureTrackingDelay;
 
         // set first limit treatment date to t0 + nature tracking delay
         $natureTrackingDelayInterval = $this->dateTimeService->secondsToDateInterval($natureTrackingDelay);
-        $limitTreatmentDate = $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $timerStartedAt, $natureTrackingDelayInterval);
+        $limitTreatmentDate = $natureTrackingDelayInterval
+            ? $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $timerStartedAt, $natureTrackingDelayInterval)
+            : (clone $timerStartedAt);
 
         $segments = $this->iteratePackTrackingDelaySegmentsBetween(
             $entityManager,
