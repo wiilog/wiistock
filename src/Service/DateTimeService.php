@@ -192,13 +192,13 @@ class DateTimeService
                 if (isset($workedDays[$dayLabel])
                     && !$this->workPeriodService->isWorkFreeDay($entityManager, $day)) {
 
-                    foreach ($workedDays[$dayLabel] as $period) {
-                        [$startTimePeriod, $endTimePeriod] = $period;
-                        [$startHour, $startMinute] = explode(':', $startTimePeriod);
-                        [$endHour, $endMinute] = explode(':', $endTimePeriod);
+                    foreach ($workedDays[$dayLabel] as $dayWorkSchedule) {
+                        [$workScheduleStart, $workScheduleEnd] = $dayWorkSchedule;
+                        [$workScheduleStartHour, $workScheduleStartMinute] = explode(':', $workScheduleStart);
+                        [$workScheduleEndHour, $workScheduleEndMinute] = explode(':', $workScheduleEnd);
 
-                        $startPeriod = (clone $day)->setTime($startHour, $startMinute);
-                        $endPeriod = (clone $day)->setTime($endHour, $endMinute);
+                        $startPeriod = (clone $day)->setTime($workScheduleStartHour, $workScheduleStartMinute);
+                        $endPeriod = (clone $day)->setTime($workScheduleEndHour, $workScheduleEndMinute);
 
                         if ($start >= $endPeriod
                             || $end <= $startPeriod) {

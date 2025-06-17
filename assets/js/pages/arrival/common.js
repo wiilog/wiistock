@@ -115,7 +115,7 @@ export function checkPossibleCustoms($modal) {
                 $('<div/>', {
                     class: 'text-center',
                     html: `Attention, ce fournisseur livre habituellement des unités logistiques sous douanes.`
-                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique' sous douanes ?`
+                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique sous douanes ?`
                 }),
                 [
                     {
