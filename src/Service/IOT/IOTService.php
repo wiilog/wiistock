@@ -384,7 +384,7 @@ class IOTService {
 
         $deviceCode = match ($server) {
             IotServer::ChirpStack => $message['deviceName'] ?? null,
-            IotServer::NodeRed => str_replace('-', '', $message['data']['eui'] ?? null),
+            IotServer::NodeRed => str_replace('-', '', $message['data']['eui'] ?? '') ?: null,
             IotServer::Ruptela => $message['imei'] ?? null,
             default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
         };
