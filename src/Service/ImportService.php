@@ -275,40 +275,39 @@ class ImportService
     private array $entityCache = [];
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private LocationService $locationService,
-        private SettingsService $settingService,
-        private Twig_Environment $templating,
-        private ArticleDataService $articleDataService,
-        private RefArticleDataService $refArticleDataService,
-        private MouvementStockService $mouvementStockService,
-        private LoggerInterface $logger,
-        private ExceptionLoggerService $exceptionLoggerService,
-        private AttachmentService $attachmentService,
-        private ReceptionService $receptionService,
-        private DeliveryRequestService $demandeLivraisonService,
-        private ArticleFournisseurService $articleFournisseurService,
-        private UserService $userService,
-        private UniqueNumberService $uniqueNumberService,
-        private TranslationService $translationService,
-        private FormatService $formatService,
-        private LanguageService $languageService,
-        private ReceptionLineService $receptionLineService,
+        private EntityManagerInterface      $entityManager,
+        private LocationService             $locationService,
+        private SettingsService             $settingService,
+        private Twig_Environment            $templating,
+        private ArticleDataService          $articleDataService,
+        private RefArticleDataService       $refArticleDataService,
+        private MouvementStockService       $mouvementStockService,
+        private LoggerInterface             $logger,
+        private ExceptionLoggerService      $exceptionLoggerService,
+        private AttachmentService           $attachmentService,
+        private ReceptionService            $receptionService,
+        private DeliveryRequestService      $demandeLivraisonService,
+        private ArticleFournisseurService   $articleFournisseurService,
+        private UserService                 $userService,
+        private UniqueNumberService         $uniqueNumberService,
+        private TranslationService          $translationService,
+        private FormatService               $formatService,
+        private LanguageService             $languageService,
+        private ReceptionLineService        $receptionLineService,
         private UserPasswordHasherInterface $encoder,
-        private FTPService $FTPService,
-        private ScheduledTaskService $scheduledTaskService,
-        private ProductionRequestService $productionRequestService,
-        private DispatchService $dispatchService,
-        private FreeFieldService $freeFieldService,
-        private SettingsService $settingsService
-    )
-    {
+        private FTPService                  $FTPService,
+        private ScheduledTaskService        $scheduledTaskService,
+        private ProductionRequestService    $productionRequestService,
+        private DispatchService             $dispatchService,
+        private FreeFieldService            $freeFieldService,
+        private SettingsService             $settingsService,
+        private MemoryUsageService          $memoryUsageService,
+    ){
         $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->resetCache();
     }
 
-    public function getDataForDatatable(Utilisateur $user, $params = null): array
-    {
+    public function getDataForDatatable(Utilisateur $user, $params = null): array {
         $importRepository = $this->entityManager->getRepository(Import::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
@@ -330,8 +329,7 @@ class ImportService
         ];
     }
 
-    public function dataRowImport(Import $import): array
-    {
+    public function dataRowImport(Import $import): array {
         if ($import->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
             && $import->getStatus()?->getCode() === Import::STATUS_UPCOMING) {
             $information = htmlspecialchars(
@@ -395,8 +393,7 @@ class ImportService
 
     public function treatImport(EntityManagerInterface $entityManager,
                                 Import                 $import,
-                                int                    $mode = self::IMPORT_MODE_PLAN): int
-    {
+                                int                    $mode = self::IMPORT_MODE_PLAN): int {
         $this->currentImport = $import;
         $this->entityManager = $entityManager;
         $this->resetCache();
@@ -505,6 +502,11 @@ class ImportService
                     $this->clearEntityManagerAndRetrieveImport();
                     if (!$smallFile) {
                         while (($row = fgetcsv($file, 0, ';')) !== false) {
+                            if ($this->memoryUsageService->isMemoryOverconsumptionOngoing()) {
+                                $errorMessage = "L'import comporte trop de lignes. Veuillez l'importer en plusieurs fois.";
+                                $this->currentImport->setLastErrorMessage($errorMessage);
+                                break;
+                            }
                             $logRow = $this->treatImportRow(
                                 $row,
                                 $headersLog,
@@ -555,8 +557,7 @@ class ImportService
                                     array &$refToUpdate,
                                     bool  $needsUnitClear,
                                     int   $rowIndex,
-                                    int   $retry = 0): array
-    {
+                                    int   $retry = 0): array {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
             if ($emptyCells !== count($row)) {
@@ -682,8 +683,7 @@ class ImportService
         return $resRow;
     }
 
-    private function getDataToCheck(string $entity, array $corresp): array
-    {
+    private function getDataToCheck(string $entity, array $corresp): array {
         return Stream::from(ImportService::FIELDS_TO_ASSOCIATE[$entity])
             ->keymap(fn(string $field) => [
                 $field,
@@ -695,8 +695,7 @@ class ImportService
             ->toArray();
     }
 
-    private function fopenLogFile()
-    {
+    private function fopenLogFile() {
         $fileName = uniqid() . '.csv';
         $completeFileName = $this->attachmentService->getAttachmentDirectory() . '/' . $fileName;
         return [
@@ -705,8 +704,7 @@ class ImportService
         ];
     }
 
-    private function persistLogAttachment(string $createdLogFile): Attachment
-    {
+    private function persistLogAttachment(string $createdLogFile): Attachment {
         $pieceJointeForLogFile = new Attachment();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)
@@ -717,8 +715,7 @@ class ImportService
         return $pieceJointeForLogFile;
     }
 
-    private function checkFieldsAndFillArrayBeforeImporting(string $entity, array $originalDatasToCheck, array $row, array $headers): array
-    {
+    private function checkFieldsAndFillArrayBeforeImporting(string $entity, array $originalDatasToCheck, array $row, array $headers): array {
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
             $fieldName = Import::FIELDS_ENTITY[$entity][$column]
@@ -742,8 +739,7 @@ class ImportService
         return $data;
     }
 
-    private function importFournisseurEntity(array $data, ?bool &$isCreation): void
-    {
+    private function importFournisseurEntity(array $data, ?bool &$isCreation): void {
         if (!isset($data['codeReference'])) {
             throw new ImportException("Le code fournisseur est obligatoire");
         }
@@ -793,8 +789,7 @@ class ImportService
         $isCreation = !$supplier->getId();
     }
 
-    private function importArticleFournisseurEntity(array $data, ?bool &$isCreation): void
-    {
+    private function importArticleFournisseurEntity(array $data, ?bool &$isCreation): void {
         $newEntity = false;
 
         if (empty($data['reference'])) {
@@ -854,8 +849,7 @@ class ImportService
 
     private function importReceptionEntity(array        $data,
                                            ?Utilisateur $user,
-                                           ?bool        &$isCreation): void
-    {
+                                           ?bool        &$isCreation): void {
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
@@ -972,8 +966,7 @@ class ImportService
                                            array $colChampsLibres,
                                            array $row,
                                            array $dataToCheck,
-                                           ?bool &$isCreation)
-    {
+                                           ?bool &$isCreation) {
         $isNewEntity = false;
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
@@ -1284,8 +1277,7 @@ class ImportService
                                          array $colChampsLibres,
                                          array $row,
                                          int   $rowIndex,
-                                         ?bool &$isCreation): ReferenceArticle
-    {
+                                         ?bool &$isCreation): ReferenceArticle {
         if (!empty($data['barCode'])) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
             $article = $articleRepository->findOneBy(['barCode' => $data['barCode']]);
@@ -1416,8 +1408,7 @@ class ImportService
         return $refArticle;
     }
 
-    private function importUserEntity(array $data, ?bool &$isCreation): void
-    {
+    private function importUserEntity(array $data, ?bool &$isCreation): void {
 
         $userAlreadyExists = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['email' => $data['email']]);
         $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
@@ -1634,8 +1625,7 @@ class ImportService
         $isCreation = !$user->getId();
     }
 
-    private function importCustomerEntity(array $data, ?bool &$isCreation)
-    {
+    private function importCustomerEntity(array $data, ?bool &$isCreation) {
 
         $customerAlreadyExists = $this->entityManager->getRepository(Customer::class)->findOneBy(['name' => $data['name']]);
         $customer = $customerAlreadyExists ?? new Customer();
@@ -1683,8 +1673,7 @@ class ImportService
                                           array       &$refsToUpdate,
                                           array       $colChampsLibres,
                                                       $row,
-                                          ?bool       &$isCreation): ?Demande
-    {
+                                          ?bool       &$isCreation): ?Demande {
         $users = $this->entityManager->getRepository(Utilisateur::class);
         $locations = $this->entityManager->getRepository(Emplacement::class);
         $types = $this->entityManager->getRepository(Type::class);
@@ -2015,8 +2004,7 @@ class ImportService
         return $location;
     }
 
-    private function importProjectEntity(array $data, ?bool &$isCreation): void
-    {
+    private function importProjectEntity(array $data, ?bool &$isCreation): void {
         $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
         $project = $projectAlreadyExists ?? new Project();
 
@@ -2056,8 +2044,7 @@ class ImportService
         $isCreation = !$projectAlreadyExists;
     }
 
-    private function importRefLocationEntity(array $data, ?bool &$isCreation): void
-    {
+    private function importRefLocationEntity(array $data, ?bool &$isCreation): void {
         $refLocationAlreadyExists = $this->entityManager->getRepository(StorageRule::class)->findOneByReferenceAndLocation($data['reference'], $data['location']);
         $refLocation = $refLocationAlreadyExists ?? new StorageRule();
 
@@ -2100,8 +2087,7 @@ class ImportService
         $isCreation = !$refLocationAlreadyExists;
     }
 
-    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
-    {
+    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity) {
         $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
 
         $mvtIn = $isNewEntity ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
@@ -2116,8 +2102,7 @@ class ImportService
         }
     }
 
-    private function checkAndCreateProvider(string $code, string $name = null)
-    {
+    private function checkAndCreateProvider(string $code, string $name = null) {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $provider = $fournisseurRepository->findOneBy(['codeReference' => $code]);
 
@@ -2132,14 +2117,12 @@ class ImportService
         return $provider;
     }
 
-    private function fieldIsNeeded(string $field, string $entity): bool
-    {
+    private function fieldIsNeeded(string $field, string $entity): bool {
         return in_array($field, Import::FIELDS_NEEDED[$entity]);
     }
 
     private function checkAndCreateEmplacement(array $data,
-                                                     $articleOrRef): void
-    {
+                                                     $articleOrRef): void {
         if (empty($data['emplacement'])) {
             $message = 'La valeur saisie pour l\'emplacement ne peut être vide.';
             throw new ImportException($message);
@@ -2169,8 +2152,7 @@ class ImportService
 
     private function checkAndCreateArticleFournisseur(?string           $articleFournisseurReference,
                                                       ?string           $fournisseurReference,
-                                                      ?ReferenceArticle $referenceArticle): ?ArticleFournisseur
-    {
+                                                      ?ReferenceArticle $referenceArticle): ?ArticleFournisseur {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         // liaison article fournisseur
         if (!empty($articleFournisseurReference)) {
@@ -2238,15 +2220,13 @@ class ImportService
         return $articleFournisseur;
     }
 
-    private function clearEntityManagerAndRetrieveImport()
-    {
+    private function clearEntityManagerAndRetrieveImport() {
         $this->entityManager->clear();
         $this->entityCache = [];
         $this->currentImport = $this->entityManager->find(Import::class, $this->currentImport->getId());
     }
 
-    public function createPreselection(array $headers, array $fieldsToCheck, ?array $sourceColumnToField)
-    {
+    public function createPreselection(array $headers, array $fieldsToCheck, ?array $sourceColumnToField) {
         $preselection = [];
         foreach ($headers as $headerIndex => $header) {
             $closestIndex = null;
@@ -2283,8 +2263,7 @@ class ImportService
     }
 
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
-                                         string                 $entityCode): array
-    {
+                                         string                 $entityCode): array {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -2365,8 +2344,7 @@ class ImportService
         ];
     }
 
-    private function treatLocationZone(array $data, Emplacement $location): void
-    {
+    private function treatLocationZone(array $data, Emplacement $location): void {
         $zoneRepository = $this->entityManager->getRepository(Zone::class);
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
@@ -2391,8 +2369,7 @@ class ImportService
         }
     }
 
-    private function eraseGlobalDataBefore(): void
-    {
+    private function eraseGlobalDataBefore(): void {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_REF_LOCATION:
@@ -2405,8 +2382,7 @@ class ImportService
         }
     }
 
-    private function eraseGlobalDataAfter(): void
-    {
+    private function eraseGlobalDataAfter(): void {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_ART_FOU:
@@ -2427,8 +2403,7 @@ class ImportService
 
     public function getImportSecondModalConfig(EntityManagerInterface $entityManager,
                                                ParameterBag           $post,
-                                               Import                 $import): array
-    {
+                                               Import                 $import): array {
 
         $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $importRepository = $entityManager->getRepository(Import::class);
@@ -2491,8 +2466,7 @@ class ImportService
         return $this->currentImport;
     }
 
-    public function getFileImportConfig(Attachment $attachment): ?array
-    {
+    public function getFileImportConfig(Attachment $attachment): ?array {
         $path = $this->attachmentService->getServerPath($attachment);
 
         $file = fopen($path, "r");
@@ -2521,7 +2495,6 @@ class ImportService
     ])]
     public function validateImportAttachment(Attachment $attachment,
                                              bool $isUnique): array {
-
         $fileConfig = $this->getFileImportConfig($attachment);
         if (!$fileConfig) {
             $success = false;
@@ -2651,5 +2624,4 @@ class ImportService
             "headersLog" => $headersLog,
         ];
     }
-
 }
