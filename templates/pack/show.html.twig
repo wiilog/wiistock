@@ -39,7 +39,7 @@
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 {% set trackingDelayDelay = currentTrackingDelay["delayHTMLRaw"] ?? null %}
-
+                                {% set trackingDelayDate = currentTrackingDelay["dateHTML"] ?? null %}
                                 {% if trackingDelayDelay %}
                                     <div class="wii-field-name">
                                         <div class="d-flex flex-column align-items-end">
@@ -48,6 +48,9 @@
                                             }) }}
                                             <span class="h5">
                                                 {{ trackingDelayDelay|raw }}
+                                            </span>
+                                            <span class="wii-body-text">
+                                                {{ trackingDelayDate|raw }}
                                             </span>
                                         </div>
                                     </div>

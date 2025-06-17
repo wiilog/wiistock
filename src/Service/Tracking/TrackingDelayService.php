@@ -157,7 +157,12 @@ class TrackingDelayService {
         // we will increment it with all worked intervals found (nature tracking delay as max)
         $natureTrackingDelay = $pack->getNature()?->getTrackingDelay();
         $remainingNatureDelay = $natureTrackingDelay;
-        $limitTreatmentDate = clone $timerStartedAt;
+
+        // set first limit treatment date to t0 + nature tracking delay
+        $natureTrackingDelayInterval = $this->dateTimeService->secondsToDateInterval($natureTrackingDelay);
+        $limitTreatmentDate = $natureTrackingDelayInterval
+            ? $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $timerStartedAt, $natureTrackingDelayInterval)
+            : (clone $timerStartedAt);
 
         $segments = $this->iteratePackTrackingDelaySegmentsBetween(
             $entityManager,
@@ -201,7 +206,7 @@ class TrackingDelayService {
 
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
-                // increment limit treatment date with pause interval
+                // shift limit treatment date with pause interval
                 $pauseInterval = $previousSegmentEnd
                     ? $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $previousSegmentEnd->getDate(), $segmentStart->getDate())
                     : null;
@@ -216,11 +221,8 @@ class TrackingDelayService {
 
                 if ($remainingNatureDelay > $elapsedSeconds) {
                     $remainingNatureDelay -= $elapsedSeconds;
-                    $limitTreatmentDate->add($workedInterval);
                 }
                 else {
-                    $remainingDelay = $this->dateTimeService->secondsToDateInterval($remainingNatureDelay);
-                    $limitTreatmentDate = $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $limitTreatmentDate, $remainingDelay);
                     $remainingNatureDelay = 0;
                 }
             }
@@ -228,18 +230,7 @@ class TrackingDelayService {
             $previousSegmentEnd = $segmentEnd;
         }
 
-        // If the pack tracking delay is positive, then the limit treatment date is in the future
-        // We calculate it now
-        // Else the limit treatment date is already the final one
-        [
-            "delay"        => $remainingNatureDelay,
-            "intervalTime" => $calculatedElapsedTime,
-        ] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
-
-        if ($remainingNatureDelay > 0) {
-            $remainingNatureDelayInterval = $this->dateTimeService->secondsToDateInterval($remainingNatureDelay);
-            $limitTreatmentDate = $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $limitTreatmentDate, $remainingNatureDelayInterval);
-        }
+        ["intervalTime" => $calculatedElapsedTime] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
         return [
             "elapsedTime" => $calculatedElapsedTime ?? null,
