@@ -837,6 +837,7 @@ class IOTService {
                     return self::ACS_EVENT;
                 }
                 break;
+            case IOTService::RUPTELA_TRACE5:
             case IOTService::SKIPLY_SMILIO:
                 return self::ACS_EVENT;
         }
