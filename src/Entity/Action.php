@@ -223,6 +223,7 @@ class Action {
 
     // menu nomade
     const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
+    const MODULE_ACCESS_PICK_AND_DROP = 'Accès Prise et dépose';
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
