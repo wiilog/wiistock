@@ -9,7 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\IOT\LoRaWANServer;
+use App\Entity\IOT\IotServer;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -61,6 +61,7 @@ class IOTService {
     const MULTITECH_GATEWAY = 'gateway_multitech';
     const ENGINKO_LW22CCM = 'enginko-lw22ccm';
     const SKIPLY_SMILIO = 'skily-smilio';
+    const RUPTELA_TRACE5 = 'ruptela-trace5';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 8,
@@ -78,7 +79,8 @@ class IOTService {
         self::YOKOGAWA_XS550_XS110A => 8,
         self::MULTITECH_GATEWAY => 0,
         self::ENGINKO_LW22CCM => 8,
-        self::SKIPLY_SMILIO => 8
+        self::SKIPLY_SMILIO => 8,
+        self::RUPTELA_TRACE5 => 8,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -100,6 +102,7 @@ class IOTService {
         self::MULTITECH_GATEWAY => Sensor::GATEWAY,
         self::ENGINKO_LW22CCM => Sensor::TEMPERATURE_HYGROMETRY,
         self::SKIPLY_SMILIO => Sensor::ACTION,
+        self::RUPTELA_TRACE5 => Sensor::GPS,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -119,6 +122,7 @@ class IOTService {
         self::MULTITECH_GATEWAY =>'x minutes',
         self::ENGINKO_LW22CCM => 'x minutes',
         self::SKIPLY_SMILIO => 'à l\'action',
+        self::RUPTELA_TRACE5 => 'à l\'action',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -165,11 +169,12 @@ class IOTService {
         private RequestTemplateService  $requestTemplateService
     ) {}
 
-    public function onMessageReceived(array $frame,
+    public function onMessageReceived(array                  $frame,
                                       EntityManagerInterface $entityManager,
-                                      LoRaWANServer $loRaWANServer,
-                                      bool $local = false): void {
-        $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
+                                      IotServer              $server,
+                                      bool                   $local = false): void {
+        $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $server);
+
         foreach ($messages as $message) {
             if($message){
                 $this->linkWithSubEntities($entityManager, $message);
@@ -371,15 +376,16 @@ class IOTService {
         }
     }
 
-    private function parseAndCreateMessage(array $message,
+    private function parseAndCreateMessage(array                  $message,
                                            EntityManagerInterface $entityManager,
-                                           bool $local,
-                                           LoRaWANServer $loRaWANServer): array {
+                                           bool                   $local,
+                                           IotServer              $server): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $deviceCode = match ($loRaWANServer) {
-            LoRaWANServer::ChirpStack => $message['deviceName'] ?? null,
-            LoRaWANServer::NodeRed => str_replace('-', '', $message['data']['eui']),
+        $deviceCode = match ($server) {
+            IotServer::ChirpStack => $message['deviceName'] ?? null,
+            IotServer::NodeRed => str_replace('-', '', $message['data']['eui'] ?? '') ?: null,
+            IotServer::Ruptela => $message['imei'] ?? null,
             default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
         };
 
@@ -405,9 +411,10 @@ class IOTService {
 
         $profile = $device->getProfile()->getName();
 
-        $payload = match ($loRaWANServer) {
-            LoRaWANServer::ChirpStack => json_decode($message['objectJSON'] ?? "{}", true)['payload'] ?? null,
-            LoRaWANServer::NodeRed => Stream::from($message["data"]["payload"])->map(static fn(int $num) => dechex($num))->map(static fn(string $ex) => strlen($ex) === 1 ? ("0" . $ex) : $ex)->join(''),
+        $payload = match ($server) {
+            IotServer::ChirpStack => json_decode($message['objectJSON'] ?? "{}", true)['payload'] ?? null,
+            IotServer::NodeRed => Stream::from($message["data"]["payload"])->map(static fn(int $num) => dechex($num))->map(static fn(string $ex) => strlen($ex) === 1 ? ("0" . $ex) : $ex)->join(''),
+            IotServer::Ruptela => null, // null because we don't have the payload everything is in the message
             default => $message['value']['payload'] ?? null,
         };
 
@@ -451,11 +458,17 @@ class IOTService {
                 'timestamp' => $message['timestamp'] ?? 'now',
                 'extenderPayload' => $message
             ];
-            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange);
+            $this->onMessageReceived($fakeFrame, $entityManager, IotServer::Orange);
             return [];
         }
 
-        $messageDate = new DateTime($message['timestamp'] ?? $message['publishedAt'] ?? 'now', $local ? null : new DateTimeZone("UTC"));
+
+        $messageDate = match (true) {
+            isset($message['timestamp']) =>  new DateTime($message['timestamp']),
+            isset($message['publishedAt']) => new DateTime($message['publishedAt']),
+            isset($message['tm']) => (new DateTime())->setTimestamp($message['tm']),
+            true => new DateTime("now"),
+        };
         if (!$local) {
             $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
         }
@@ -479,8 +492,8 @@ class IOTService {
             }
         }
 
-        foreach ($messages as $message) {
-            $entityManager->persist($message);
+        foreach ($messages as $sensorMessage) {
+            $entityManager->persist($sensorMessage);
         }
 
         return $messages;
@@ -758,7 +771,11 @@ class IOTService {
                 }
 
                 return [self::DATA_TYPE_ACTION => $actions];
-
+            case IOTService::RUPTELA_TRACE5:
+                $lat = $config['lat'] ?? '-1';
+                $lon = $config['lng'] ?? '-1';
+                $data = "$lat,$lon";
+                return [self::DATA_TYPE_GPS => $data];
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -820,6 +837,7 @@ class IOTService {
                     return self::ACS_EVENT;
                 }
                 break;
+            case IOTService::RUPTELA_TRACE5:
             case IOTService::SKIPLY_SMILIO:
                 return self::ACS_EVENT;
         }
@@ -1014,7 +1032,7 @@ class IOTService {
                                 'event' => IOTService::ACS_PRESENCE,
                             ];
 
-                            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange, true);
+                            $this->onMessageReceived($fakeFrame, $entityManager, IotServer::Orange, true);
                         }
                     }
                 }
