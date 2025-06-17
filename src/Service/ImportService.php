@@ -505,7 +505,6 @@ class ImportService
                             if ($this->memoryUsageService->isMemoryOverconsumptionOngoing()) {
                                 $errorMessage = "L'import comporte trop de lignes. Veuillez l'importer en plusieurs fois.";
                                 $this->currentImport->setLastErrorMessage($errorMessage);
-                                $this->attachmentService->putCSVLines($logFile, [[$errorMessage]], $this->scalarCache["logFileMapper"]);
                                 break;
                             }
                             $logRow = $this->treatImportRow(
