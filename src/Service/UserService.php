@@ -208,6 +208,7 @@ class UserService {
             'notifications' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
             'track' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_TRACK, $user),
             'group' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
+            'pickAndDrop' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_PICK_AND_DROP, $user),
             'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'truckArrival' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRUCK_ARRIVALS, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),

@@ -5,6 +5,7 @@ namespace App\Controller\Api\Mobile;
 use App\Annotation as Wii;
 use App\Controller\AbstractController;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
@@ -805,4 +806,96 @@ class TrackingMovementController extends AbstractController {
         ], Response::HTTP_OK);
     }
 
+    #[Route("/pick-and-drop-tracking-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function postPickAndDropTrackingMovements(Request                 $request,
+                                                     EntityManagerInterface  $entityManager,
+                                                     TrackingMovementService $trackingMovementService,
+                                                     AttachmentService       $attachmentService,
+                                                     FreeFieldService        $freeFieldService) {
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $data = $request->request;
+        $movementsToCreate = json_decode($data->get('mouvements'), true);
+
+        $pickLocationId = $data->getInt('pickLocation');
+        $pickLocation = $locationRepository->find($pickLocationId);
+
+        $dropLocationId = $data->getInt('dropLocation');
+        $dropLocation = $locationRepository->find($dropLocationId);
+
+        $nomadUser = $this->getUser();
+
+        $attachments = $attachmentService->createAttachmentsDeprecated($request->files);
+
+        foreach ($movementsToCreate ?? [] as $index => $movementToCreate) {
+            $options = [
+                'uniqueIdForMobile' => $movementToCreate['date'],
+                'entityManager' => $entityManager,
+                'attachments' => Stream::from($attachments)
+                    ->filter(fn(Attachment $attachment) => in_array($attachment->getOriginalName(), ["signature_$index.jpeg", "photo_$index.jpeg"]))
+                    ->toArray(),
+            ];
+
+            $dateArray = explode('_', $movementToCreate['date']);
+
+            $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
+
+            $options['natureId'] = $movementToCreate['nature_id'] ?? null;
+            $options['quantity'] = $movementToCreate['quantity'] ?? null;
+
+            $options['manualDelayStart'] = isset($movementToCreate['manualDelayStart'])
+                ? $this->formatService->parseDatetime($movementToCreate['manualDelayStart'])
+                : null;
+
+            $createdPickMvt = $trackingMovementService->createTrackingMovement(
+                $movementToCreate['ref_article'],
+                $pickLocation,
+                $nomadUser,
+                $date,
+                true,
+                true,
+                TrackingMovement::TYPE_PRISE,
+                $options,
+            );
+            $entityManager->persist($createdPickMvt);
+            $trackingMovementService->persistSubEntities($entityManager, $createdPickMvt);
+
+            $createdDropMvt = $trackingMovementService->createTrackingMovement(
+                $movementToCreate['ref_article'],
+                $dropLocation,
+                $nomadUser,
+                $date,
+                true,
+                $movementToCreate['finished'],
+                TrackingMovement::TYPE_DEPOSE,
+                $options,
+            );
+            $entityManager->persist($createdDropMvt);
+            $trackingMovementService->persistSubEntities($entityManager, $createdDropMvt);
+
+            if (isset($movementToCreate['freeFields'])) {
+                $givenFreeFields = json_decode($movementToCreate['freeFields'], true);
+                $smartFreeFields = array_reduce(
+                    array_keys($givenFreeFields),
+                    function (array $acc, $id) use ($givenFreeFields) {
+                        if (gettype($id) === 'integer' || ctype_digit($id)) {
+                            $acc[(int)$id] = $givenFreeFields[$id];
+                        }
+                        return $acc;
+                    },
+                    []
+                );
+                if (!empty($smartFreeFields)) {
+                    $freeFieldService->manageFreeFields($createdPickMvt, $smartFreeFields, $entityManager);
+                    $freeFieldService->manageFreeFields($createdDropMvt, $smartFreeFields, $entityManager);
+                }
+            }
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+    }
 }
