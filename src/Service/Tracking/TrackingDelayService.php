@@ -147,16 +147,6 @@ class TrackingDelayService {
             return null;
         }
 
-
-        dump([
-            "code"=> $pack->getCode(),
-            "nature"=> $pack->getNature()?->getCode(),
-            "natureTrackinggDelay"=> $pack->getNature()?->getTrackingDelay(),
-            "timerStartedAt" => $timerStartedAt,
-            "timerStoppedAt" => $timerStoppedAt,
-            "timerStartedBy" => $timerStartedBy,
-        ]);
-
         $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
 
         // date for calculate sum of all found worked intervals
@@ -194,10 +184,6 @@ class TrackingDelayService {
                 "start" => $segmentStart,
                 "end" => $segmentEnd,
             ] = $segment;
-            dump([
-                "start" => $segmentStart,
-                "end" => $segmentEnd,
-            ]);
 
             $lastTrackingEvent = $segmentEnd->getTrackingEvent();
 
