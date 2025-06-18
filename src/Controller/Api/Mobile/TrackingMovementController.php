@@ -842,6 +842,7 @@ class TrackingMovementController extends AbstractController {
 
             $options['natureId'] = $movementToCreate['nature_id'] ?? null;
             $options['quantity'] = $movementToCreate['quantity'] ?? null;
+            $options['commentaire'] = $movementToCreate['comment'] ?? null;
 
             $options['manualDelayStart'] = isset($movementToCreate['manualDelayStart'])
                 ? $this->formatService->parseDatetime($movementToCreate['manualDelayStart'])
