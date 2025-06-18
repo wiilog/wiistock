@@ -296,7 +296,9 @@ class TrackingMovementService {
         /** @var Pack $parentPack */
         $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
-        if (!$parentPack->isGroup() && !$parentPack->isGroupCandidate()) {
+        if ($parentPack
+            && !$parentPack->isGroup()
+            && !$parentPack->isGroupCandidate()) {
             return [
                 'success' => false,
                 'msg' => 'Le contenant choisie est une unité logistique, veuillez choisir un groupage valide.',
