@@ -187,9 +187,10 @@ class EmergencyService
                 : FixedFieldStandard::ENTITY_CODE_TRACKING_EMERGENCY,
             true);
 
+        $now = new DateTime();
         $emergency
             ->setType($type)
-            ->setCreatedAt(new DateTime());
+            ->setCreatedAt($now);
 
         if ($request->request->getBoolean("isAttachmentForm")) {
             $this->attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $emergency]);
@@ -233,10 +234,14 @@ class EmergencyService
 
         if($emergency instanceof TrackingEmergency) {
             $this->updateTrackingEmergency($entityManager, $emergency, $data);
+
+            if($now > $emergency->getDateEnd()) {
+                $this->closeEmergency($entityManager, $emergency);
+            }
         } else if ($emergency instanceof StockEmergency) {
             $this->updateStockEmergency($entityManager, $emergency, $data);
 
-            if(($emergency->getExpectedQuantity() - $emergency->getAlreadyReceivedQuantity()) <= 0) {
+            if($emergency->getEndEmergencyCriteria() === EndEmergencyCriteriaEnum::REMAINING_QUANTITY && ($emergency->getExpectedQuantity() - $emergency->getAlreadyReceivedQuantity()) <= 0) {
                 $this->closeEmergency($entityManager, $emergency);
             }
         }

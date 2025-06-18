@@ -118,7 +118,13 @@ function initializeModals(tableEmergencies) {
             Modal.load('emergency_edit_api', {emergency: emergencyId}, $modalEditEmergency, $modalEditEmergency.find('.modal-body'), {
                 onOpen: () => {
                     onEmergencyTypeChange($modalEditEmergency, 'edit');
-                    onEmergencyTriggerChange($modalEditEmergency);
+                    const emergencyCategoryType = $modalEditEmergency
+                        .find('[name="type"]')
+                        .find('option:selected')
+                        .data('category-type');
+                    if(emergencyCategoryType === STOCK_EMERGENCY) {
+                        onEmergencyTriggerChange($modalEditEmergency);
+                    }
                 }
             });
         })

@@ -3,7 +3,6 @@
 namespace App\Repository\Emergency;
 
 
-use App\Command\Users\DeactivateUserCommand;
 use App\Entity\Arrivage;
 use App\Entity\Emergency\EmergencyTriggerEnum;
 use App\Entity\Emergency\EndEmergencyCriteriaEnum;
