@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Controller\Settings\StatusController;
 use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Language;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
@@ -27,15 +28,17 @@ class PlanningService {
         private WorkPeriodService $workPeriodService,
         private FormatService     $formatService,
         private StatusService     $statusService,
+        private FreeFieldService  $freeFieldService,
     ) {}
 
     public function createCardConfig(array $displayedFieldsConfig, mixed $entity, array $fieldModes, Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
         $cardContent = $displayedFieldsConfig;
         $formatService = $this->formatService;
 
+        /** @var FreeFieldManagementRule $freeFieldManagementRule */
         foreach ($entity->getType()->getFreeFieldManagementRules() as $freeFieldManagementRule) {
             $freeField = $freeFieldManagementRule->getFreeField();
-            $fieldName = "free_field_" . $freeField->getId();
+            $fieldName = $this->freeFieldService->getFreeFieldName($freeField->getId());
             $fieldDisplayConfig = $this->getFieldDisplayConfig($fieldName, $fieldModes);
             if ($fieldDisplayConfig) {
                 $cardContent[$fieldDisplayConfig]["rows"][] = [

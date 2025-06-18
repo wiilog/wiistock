@@ -240,12 +240,12 @@ class PackService {
         ];
 
         foreach ($this->cache['arrivalFreeFields'] ?? [] as $freeFieldId => $freeField) {
-            $columnKey = "free_field_$freeFieldId";
+            $columnKey = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $row[$columnKey] = $arrival ? $arrival->getFreeFieldValue($freeFieldId) : '';
         }
 
         foreach ($this->cache['trackingMovementFreeFields'] ?? [] as $freeFieldId => $freeField) {
-            $columnKey = "free_field_$freeFieldId";
+            $columnKey = $this->freeFieldService->getFreeFieldName($freeFieldId);;
             $row[$columnKey] = $pack->getFreeFieldValue($freeFieldId);
         }
 

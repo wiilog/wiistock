@@ -157,7 +157,7 @@ class ArrivageService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->userService->getUser());
         }
@@ -722,7 +722,7 @@ class ArrivageService {
                 $natureId = $matches[1];
                 $line[] = $packs[$arrival->getId()][$natureId] ?? 0 ?: '';
             }
-            else if (preg_match('/free_field_(\d+)/', $column, $matches)) {
+            else if (preg_match(FreeFieldService::FREE_FIELD_NAME_REGEX, $column, $matches)) {
                 $freeFieldId = $matches[1];
                 $freeField = $this->exportCache['freeFields'][$freeFieldId] ?? null;
                 $value = $arrival->getFreeFieldValue($freeFieldId) ?: '';
@@ -813,7 +813,7 @@ class ArrivageService {
                 ]),
             Stream::from($freeFields)
                 ->map(fn(FreeField $field) => [
-                    "code" => "free_field_{$field->getId()}",
+                    "code" => $this->freeFieldService->getFreeFieldName($field->getId()),
                     "label" => $field->getLabelIn($userLanguage, $defaultLanguage)
                         ?: $field->getLabel(),
                 ])

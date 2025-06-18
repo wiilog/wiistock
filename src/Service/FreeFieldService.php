@@ -18,22 +18,20 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class FreeFieldService {
 
-    #[Required]
-    public TranslationService $translationService;
+    public const FREE_FIELD_NAME_PREFIX = 'free_field_';
+    public const FREE_FIELD_NAME_REGEX = "/^" . self::FREE_FIELD_NAME_PREFIX . "_(\d+)$/";
 
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public UserService $userService;
+    public function __construct(
+        private TranslationService $translationService,
+        private LanguageService    $languageService,
+        private FormatService      $formatService,
+        private UserService        $userService,
+    ) {
+    }
 
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels,
@@ -336,5 +334,9 @@ class FreeFieldService {
 
     private function getUser(?Utilisateur $user = null): ?Utilisateur {
         return $user ?? $this->userService->getUser();
+    }
+
+    public function getFreeFieldName(int|string $id): string {
+        return self::FREE_FIELD_NAME_PREFIX . $id;
     }
 }

@@ -14,6 +14,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
@@ -239,7 +240,7 @@ class EmergencyRepository extends EntityRepository {
             }
 
             if ($order && $columnToOrder === $columnName) {
-                if (str_starts_with($columnToOrder, FieldModesService::FREE_FIELD_NAME_PREFIX)) {
+                if (str_starts_with($columnToOrder, FreeFieldService::FREE_FIELD_NAME_REGEX)) {
                     $freeFieldId = FieldModesService::extractFreeFieldId($columnToOrder);
                     if(is_numeric($freeFieldId)) {
                         $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);

@@ -130,12 +130,10 @@ class HandlingService {
             ]),
         ];
 
-        if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_HANDLING, CategoryType::DEMANDE_HANDLING);
-        }
+        $freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_HANDLING, CategoryType::DEMANDE_HANDLING);
 
-        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+        foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $user);
         }

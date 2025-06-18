@@ -289,7 +289,7 @@ class ProductionRequestService
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $productionRequest->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }

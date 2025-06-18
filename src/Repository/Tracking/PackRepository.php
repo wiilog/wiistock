@@ -16,6 +16,7 @@ use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
+use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
@@ -402,7 +403,7 @@ class PackRepository extends EntityRepository
             if (!empty($order)) {
                 $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                 //Extract id from freefield column name
-                if (preg_match('/^free_field_(\d+)$/', $column, $matches)) {
+                if (preg_match(FreeFieldService::FREE_FIELD_NAME_REGEX, $column, $matches)) {
                    $freeFieldId = $matches[1];
                     $queryBuilder
                         ->orderBy("JSON_UNQUOTE(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"'))", $order)

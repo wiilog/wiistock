@@ -182,7 +182,7 @@ class DispatchService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -1108,7 +1108,7 @@ class DispatchService {
 
         $line = [];
         foreach ($columnToExport as $column) {
-            if (preg_match('/free_field_(\d+)/', $column, $matches)) {
+            if (preg_match(FreeFieldService::FREE_FIELD_NAME_REGEX, $column, $matches)) {
                 $freeFieldId = $matches[1];
                 $freeField = $freeFieldsConfig['freeFields'][$freeFieldId] ?? null;
                 $value = $freeFieldValues[$freeFieldId] ?? null;
@@ -2144,7 +2144,7 @@ class DispatchService {
                 ]),
             Stream::from($freeFields)
                 ->map(fn(FreeField $field) => [
-                    "code" => "free_field_{$field->getId()}",
+                    "code" => $this->freeFieldService->getFreeFieldName($field->getId()),
                     "label" => $field->getLabelIn($userLanguage, $defaultLanguage)
                         ?: $field->getLabel(),
                 ])
