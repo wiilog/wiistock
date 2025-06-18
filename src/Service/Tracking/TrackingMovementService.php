@@ -297,7 +297,7 @@ class TrackingMovementService {
         $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
 
-        $packCanBeGroup = $parentPack && !$parentPack->getArrivage() && empty($parentPack->getDispatchPacks()->toArray()) && empty($parentPack->getChildArticles()->toArray());
+        $packCanBeGroup = $parentPack && $parentPack->doesPackCanBeGroup();
 
         if (!$parentPack->isGroup() && !$packCanBeGroup) {
             return [
