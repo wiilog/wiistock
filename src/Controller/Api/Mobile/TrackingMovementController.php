@@ -875,16 +875,14 @@ class TrackingMovementController extends AbstractController {
 
             if (isset($movementToCreate['freeFields'])) {
                 $givenFreeFields = json_decode($movementToCreate['freeFields'], true);
-                $smartFreeFields = array_reduce(
-                    array_keys($givenFreeFields),
-                    function (array $acc, $id) use ($givenFreeFields) {
+                $smartFreeFields = Stream::from(array_keys($givenFreeFields))
+                    ->reduce(function (array $acc, $id) use ($givenFreeFields) {
                         if (gettype($id) === 'integer' || ctype_digit($id)) {
                             $acc[(int)$id] = $givenFreeFields[$id];
                         }
                         return $acc;
-                    },
-                    []
-                );
+                    })
+                    ->toArray();
                 if (!empty($smartFreeFields)) {
                     $freeFieldService->manageFreeFields($createdPickMvt, $smartFreeFields, $entityManager);
                     $freeFieldService->manageFreeFields($createdDropMvt, $smartFreeFields, $entityManager);
