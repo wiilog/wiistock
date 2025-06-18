@@ -1072,7 +1072,7 @@ class PackService {
                 ->map(static fn (FreeField $freeField) => $pack['arrivalFreeFieldsValues'][$freeField->getId()] ?? '')
                 ->toArray(),
             Stream::from($this->cache['trackingMovementFreeFields'])
-                ->map(static fn (FreeField $freeField) => $pack['trackingMovementFreeFieldsValues'][$freeField->getId()] ?? '')
+                ->map(static fn (FreeField $freeField) => $pack['packFreeFieldsValues'][$freeField->getId()] ?? '')
                 ->toArray(),
         )
             ->toArray();

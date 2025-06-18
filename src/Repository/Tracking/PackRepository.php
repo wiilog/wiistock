@@ -15,7 +15,6 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
-use App\Service\FieldModesService;
 use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeInterface;
@@ -102,7 +101,7 @@ class PackRepository extends EntityRepository
             ->addSelect('join_supplier.nom AS supplier')
             ->addSelect('join_carrier.label AS carrier')
             ->addSelect('join_arrival.numeroCommandeList AS orderNumbers')
-            ->addSelect('pack.freeFields AS trackingMovementFreeFieldsValues')
+            ->addSelect('pack.freeFields AS packFreeFieldsValues')
             ->addSelect('join_arrival.freeFields AS arrivalFreeFieldsValues')
             ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
             ->leftJoin('pack.lastAction', 'join_last_action')
