@@ -862,7 +862,7 @@ class TrackingMovementController extends AbstractController {
             $trackingMovementService->persistSubEntities($entityManager, $createdPickMvt);
 
             $createdDropMvt = $trackingMovementService->createTrackingMovement(
-                $movementToCreate['ref_article'],
+                $createdPickMvt->getPack(),
                 $dropLocation,
                 $nomadUser,
                 $date,
