@@ -974,7 +974,13 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function doesPackCanBeGroup(): bool {
-        return !$this->getArrivage() && empty($this->getDispatchPacks()->toArray()) && empty($this->getChildArticles()->toArray()) && !$this->getGroup();
+    public function isGroupCandidate(): bool {
+        return (
+            !$this->getGroup()
+            && ($this->isBasicUnit() || $this->isGroup())
+            && !$this->getArrivage()
+            && empty($this->getDispatchPacks()->toArray())
+            && empty($this->getChildArticles()->toArray())
+        );
     }
 }
