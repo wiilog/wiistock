@@ -286,10 +286,10 @@ class TrackingMovementService {
         return $row;
     }
 
-    public function handleGroups(array $data,
+    public function handleGroups(array                  $data,
                                  EntityManagerInterface $entityManager,
-                                 Utilisateur $operator,
-                                 DateTime $date): array {
+                                 Utilisateur            $operator,
+                                 DateTime               $date): array {
         $packRepository = $entityManager->getRepository(Pack::class);
         $parentCode = $data['parent'];
 
@@ -297,9 +297,7 @@ class TrackingMovementService {
         $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
 
-        $packCanBeGroup = $parentPack && $parentPack->doesPackCanBeGroup();
-
-        if (!$parentPack->isGroup() && !$packCanBeGroup) {
+        if (!$parentPack->isGroup() && !$parentPack->isGroupCandidate()) {
             return [
                 'success' => false,
                 'msg' => 'Le contenant choisie est une unité logistique, veuillez choisir un groupage valide.',
