@@ -875,11 +875,10 @@ class TrackingMovementController extends AbstractController {
             $trackingMovementService->persistSubEntities($entityManager, $createdDropMvt);
 
             if (isset($movementToCreate['freeFields'])) {
-                $givenFreeFields = json_decode($movementToCreate['freeFields'], true);
-                $smartFreeFields = Stream::from(array_keys($givenFreeFields))
-                    ->keymap(function (array $acc, $id) use ($givenFreeFields) {
+                $smartFreeFields = Stream::from(json_decode($movementToCreate['freeFields'], true))
+                    ->keymap(function (array $acc, $freeField, int $id) {
                         return gettype($id) === 'integer' || ctype_digit($id)
-                            ? [(int)$id => $givenFreeFields[$id]]
+                            ? [$id => $freeField]
                             : null;
                     })
                     ->toArray();
