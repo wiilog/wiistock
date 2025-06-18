@@ -296,7 +296,6 @@ class TrackingMovementService {
         /** @var Pack $parentPack */
         $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
-
         if (!$parentPack->isGroup() && !$parentPack->isGroupCandidate()) {
             return [
                 'success' => false,
