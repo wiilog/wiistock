@@ -319,24 +319,28 @@
                     <div class="wii-box mt-3">
                         {% set arrivalFreeFieldsNumber = arrival and arrivalFreeFields | length > 0 %}
                         {% set trackingMovementFreeFieldsNumber = trackingMovementFreeFields | length > 0 %}
-                        {% if arrivalFreeFieldsNumber and trackingMovementFreeFieldsNumber %}
+                        {% if arrivalFreeFieldsNumber or trackingMovementFreeFieldsNumber %}
                             <div class="header wii-title">Champs libres</div>
-                            <div class="wii-section-title d-flex align-items-center pl-3">Arrivage</div>
-                            <div class="px-3">
-                                {% include 'free_field/freeFieldsShow.html.twig' with {
-                                    containerClass: 'content row',
-                                    values: arrival.freeFields,
-                                    freeFields: arrivalFreeFields,
-                                } %}
-                            </div>
-                            <div class="wii-section-title d-flex align-items-center pl-3">Mouvements</div>
-                            <div class="px-3">
-                                {% include 'free_field/freeFieldsShow.html.twig' with {
-                                    containerClass: 'content row',
-                                    values: logisticUnit.freeFields,
-                                    freeFields: trackingMovementFreeFields,
-                                } %}
-                            </div>
+                            {% if arrivalFreeFieldsNumber %}
+                                <div class="wii-section-title d-flex align-items-center pl-3">Arrivage</div>
+                                <div class="px-3">
+                                    {% include 'free_field/freeFieldsShow.html.twig' with {
+                                        containerClass: 'content row',
+                                        values: arrival.freeFields,
+                                        freeFields: arrivalFreeFields,
+                                    } %}
+                                </div>
+                            {% endif %}
+                            {% if trackingMovementFreeFieldsNumber %}
+                                <div class="wii-section-title d-flex align-items-center pl-3">Mouvements</div>
+                                <div class="px-3">
+                                    {% include 'free_field/freeFieldsShow.html.twig' with {
+                                        containerClass: 'content row',
+                                        values: logisticUnit.freeFields,
+                                        freeFields: trackingMovementFreeFields,
+                                    } %}
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </div>
                 {% endif %}
