@@ -195,8 +195,7 @@ class PackService {
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
-        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
-        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        $this->loadCache();
 
         $row = [
             'actions' => $this->getActionButtons($pack, $hasPairing),
@@ -609,8 +608,7 @@ class PackService {
         $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
         $hasRightAddToCart = $this->userService->hasRightFunction(Menu::GENERAL, Action::SHOW_CART);
 
-        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
-        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        $this->loadCache();
 
         $freeFields = Stream::from(
             $this->cache['arrivalFreeFields'],
@@ -999,8 +997,7 @@ class PackService {
     }
 
     public function getCsvHeader(): array {
-        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
-        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        $this->loadCache();
 
         $freeFields = Stream::from(
             $this->cache['arrivalFreeFields'],
@@ -1053,8 +1050,7 @@ class PackService {
     }
 
     public function putPackLine($handle, array $pack): void {
-        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
-        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        $this->loadCache();
 
         $line = Stream::from(
             [
@@ -1188,5 +1184,10 @@ class PackService {
 
         $entityManager->flush();
         return true;
+    }
+
+    private function loadCache(): void {
+        $this->cache['arrivalFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
+        $this->cache['trackingMovementFreeFields'] ??= $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
     }
 }
