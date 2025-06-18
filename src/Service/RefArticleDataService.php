@@ -625,7 +625,7 @@ class RefArticleDataService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }

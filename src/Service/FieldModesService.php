@@ -9,26 +9,20 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class FieldModesService {
-    public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
     public const FIELD_MODE_VISIBLE = 'fieldVisible';
     public const FIELD_MODE_VISIBLE_IN_DROPDOWN = 'fieldVisibleInDropdown';
 
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public LanguageService $languageService;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private UserService            $userService,
+        private LanguageService        $languageService,
+        private FreeFieldService       $freeFieldService,
+    ) {
+    }
 
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
@@ -66,7 +60,7 @@ class FieldModesService {
                 }),
             Stream::from($freeFields)
                 ->map(function (FreeField $freeField) use ($fieldsModes, $userLanguage, $defaultLanguage, $forExport) {
-                    $freeFieldName = $this->getFreeFieldName($freeField->getId());
+                    $freeFieldName = $this->freeFieldService->getFreeFieldName($freeField->getId());
                     $alwaysVisible = $column['alwaysVisible'] ?? null;
                     $visible = $forExport || ($alwaysVisible || in_array(self::FIELD_MODE_VISIBLE, $fieldsModes[$freeFieldName] ?? []));
                     $dirtyLabel = $freeField->getLabelIn($userLanguage, $defaultLanguage) ?: $freeField->getLabel();
@@ -85,16 +79,12 @@ class FieldModesService {
         )->toArray();
     }
 
-    public function getFreeFieldName($id): string {
-        return self::FREE_FIELD_NAME_PREFIX . '_' . $id;
-    }
-
     public static function extractFreeFieldId(?string $freeFieldName): ?int {
         if($freeFieldName === null) {
             return null;
         }
 
-        preg_match("/" . FieldModesService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
+        preg_match(FreeFieldService::FREE_FIELD_NAME_REGEX, $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;
     }
@@ -112,8 +102,8 @@ class FieldModesService {
         $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
 
         foreach($user->getFieldModes($entity) as $column => $modes) {
-            if(str_starts_with($column, "free_field_") && in_array(self::FIELD_MODE_VISIBLE, $modes)) {
-                $id = str_replace("free_field_", "", $column);
+            if(str_starts_with($column, FreeFieldService::FREE_FIELD_NAME_PREFIX) && in_array(self::FIELD_MODE_VISIBLE, $modes)) {
+                $id = str_replace(FreeFieldService::FREE_FIELD_NAME_PREFIX, "", $column);
                 $freeField = $freeFieldRepository->find($id);
                 if ($freeField?->getTypage() === FreeField::TYPE_BOOL) {
                     $lowerSearchValue = strtolower($search);

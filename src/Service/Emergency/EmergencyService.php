@@ -536,7 +536,7 @@ class EmergencyService
                     : null;
 
                 foreach ($freeFieldsConfig as $freeFieldId => $freeField) {
-                    $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
+                    $freeFieldName = $this->freeFieldService->getFreeFieldName($freeFieldId);
                     $freeFieldValue = $data["freeFields"][$freeFieldId] ?? "";
                     $data[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
                 }
