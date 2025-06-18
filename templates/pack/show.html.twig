@@ -319,7 +319,7 @@
                     <div class="wii-box mt-3">
                         {% set arrivalFreeFieldsNumber = arrival and arrivalFreeFields | length > 0 %}
                         {% set trackingMovementFreeFieldsNumber = trackingMovementFreeFields | length > 0 %}
-                        {% if arrivalFreeFieldsNumber or trackingMovementFreeFieldsNumber %}
+                        {% if arrivalFreeFieldsNumber and trackingMovementFreeFieldsNumber %}
                             <div class="header wii-title">Champs libres</div>
                             <div class="wii-section-title d-flex align-items-center pl-3">Arrivage</div>
                             <div class="px-3">
