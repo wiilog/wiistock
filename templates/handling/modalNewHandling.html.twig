@@ -43,10 +43,9 @@
                                 text: trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false),
                                 value: ''
                             },
+                            sibling: form.hidden('defaultStatuses', defaultStatuses|json_encode )
                         }) }}
                         {% endif %}
-                        <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
-                        {{ form.hidden('defaultStatuses', defaultStatuses|json_encode ) }}
                         <div class="error-empty-status d-none">
                             {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],

@@ -40,6 +40,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\ConnectException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -318,7 +319,16 @@ class HandlingController extends AbstractController {
                          AttachmentService      $attachmentService,
                          FixedFieldService      $fixedFieldService): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $data = $fixedFieldService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_HANDLING, false);
+        $data = $fixedFieldService->checkForErrors(
+            $entityManager,
+            $request->request,
+            FixedFieldStandard::ENTITY_CODE_HANDLING,
+            false,
+            new ParameterBag([
+                FixedFieldEnum::status->name => true,
+                FixedFieldEnum::type->name => true,
+            ]),
+        );
         $containsHours = $data->get(FixedFieldEnum::expectedAt->name) && str_contains($data->get(FixedFieldEnum::expectedAt->name), ':');
 
         $user = $this->getUser();
