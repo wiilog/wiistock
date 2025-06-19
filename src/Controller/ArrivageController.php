@@ -32,8 +32,11 @@ use App\Entity\Utilisateur;
 use App\EventListener\PackListener;
 use App\EventListener\TrackingMovementListener;
 use App\Exceptions\FormException;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
+use App\Service\Cache\CacheNamespaceEnum;
+use App\Service\Cache\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
@@ -46,6 +49,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\Tracking\PackService;
+use App\Service\Tracking\TrackingDelayService;
 use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\TruckArrivalLineService;
@@ -183,6 +187,7 @@ class ArrivageController extends AbstractController {
                         KeptFieldService        $keptFieldService,
                         TruckArrivalLineService $truckArrivalLineService,
                         UniqueNumberService     $uniqueNumberService,
+                        CacheService            $cacheService,
                         TranslationService      $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -205,9 +210,6 @@ class ArrivageController extends AbstractController {
             ?: UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG ;
 
         $arrivalNumber = $uniqueNumberService->create($entityManager, null, Arrivage::class, $numberFormat);
-        $needSyncTrackingDelayProcessing = ($data["printPacks"] ?? false) === "true" && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
-
-        PackListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -382,6 +384,22 @@ class ArrivageController extends AbstractController {
             $project
         );
         $entityManager->persist($arrivage);
+
+        $printPacks = $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrivalNumber, fn () => ($data["printPacks"] ?? false) === "true");
+
+        /**
+         *  Check if at leastSyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES pack has a tracking delay
+         *  This is to avoid performance issue
+         *  To count the number of pack with a tracking delay, we use the same condition as in the @see PackListener::postFlush
+         *
+         *  This boolean is usefull only when printPacks is true, to avoid performance issue we process it only when printPacks is true
+         */
+        $moreThanLimitPacksShouldHaveTrackingDelay = $printPacks && !Stream::from($arrivage->getPacks())
+
+            ->hasAtLeast(fn(Pack $pack) => $pack->shouldHaveTrackingDelay(), SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1);
+        $needSyncTrackingDelayProcessing = $printPacks && $moreThanLimitPacksShouldHaveTrackingDelay && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
+        PackListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
+
         try {
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
@@ -423,7 +441,6 @@ class ArrivageController extends AbstractController {
             'arrivalId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
-            'needSyncTrackingDelayProcessing' => $needSyncTrackingDelayProcessing,
             ...!$redirectToArrival
                 ? [
                     "new_form" => $arrivalService->generateNewForm($entityManager, $types),
@@ -529,19 +546,17 @@ class ArrivageController extends AbstractController {
         Arrivage                $arrival,
         TrackingMovementService $trackingMovementService,
         EntityManagerInterface  $entityManager,
-        Request                 $request,
+        CacheService            $cacheService,
+        TrackingDelayService    $trackingDelayService,
         SettingsService         $settingsService): Response {
-
-        $needSyncTrackingDelayProcessing = $request->query->getBoolean('needSyncTrackingDelayProcessing');
-        TrackingMovementListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
-
         $location = $arrival->getDropLocation();
         if (isset($location)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
             $now = new DateTime('now');
+            $createdTrackingMovements = [];
             foreach ($arrival->getPacks() as $pack) {
-                $trackingMovementService->persistTrackingForArrivalPack(
+                $createdTrackingMovements[] = $trackingMovementService->persistTrackingForArrivalPack(
                     $entityManager,
                     $pack,
                     $location,
@@ -551,8 +566,26 @@ class ArrivageController extends AbstractController {
                 );
             }
 
+            $printPacks = $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrival->getNumeroArrivage(), fn () => false);
+
+            /**
+             *  Check if at leastSyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES pack has a tracking delay
+             *  This is to avoid performance issue
+             *  To count the number of pack with a tracking delay, we use the same condition as in the @see TrackingMovementListener::onFlush
+             *
+             *  This boolean is usefull only when printPacks is true, to avoid performance issue we process it only when printPacks is true
+             */
+            $moreThanLimitPacksShouldHaveTrackingDelay = $printPacks && !Stream::from($createdTrackingMovements)
+                ->hasAtLeast(
+                    fn(TrackingMovement $trackingMovement) => $trackingDelayService->getPackThatRequireTrackingDelay($trackingMovement),
+                    SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1
+                );
+
+            $needSyncTrackingDelayProcessing = $printPacks && $moreThanLimitPacksShouldHaveTrackingDelay && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
+            TrackingMovementListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
             $entityManager->flush();
         }
+
         return new JsonResponse(['success' => true]);
     }
 

@@ -52,8 +52,11 @@ class PackListener implements EventSubscriber {
 
     #[AsEventListener(event: "postFlush")]
     public function postFlush(): void {
-        $needSyncProcess = $this::$needSyncTrackingDelayProcessing && count($this->insertedPacks) <= 5;
+        $needSyncProcess = self::$needSyncTrackingDelayProcessing;
         foreach ($this->insertedPacks as $pack) {
+            /**
+             * Same condition is used in @see ArrivageController::postArrivalTrackingMovements please keep it in sync!
+             */
             if ($pack?->shouldHaveTrackingDelay()) {
                 $calculateTrackingDelayMessageClass = $needSyncProcess
                     ? SyncCalculateTrackingDelayMessage::class

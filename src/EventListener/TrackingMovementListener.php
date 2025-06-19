@@ -101,6 +101,9 @@ class TrackingMovementListener implements EventSubscriber
             if ($entity instanceof TrackingMovement) {
                 $this->flushedTrackingMovementsInserted[] = $entity;
 
+                /**
+                 * Same condition is used in @see ArrivageController::new please keep it in sync!
+                 */
                 $packWeShouldCalculateTrackingDelay = $this->trackingDelayService->getPackThatRequireTrackingDelay($entity);
 
                 if ($packWeShouldCalculateTrackingDelay) {
@@ -159,9 +162,8 @@ class TrackingMovementListener implements EventSubscriber
         }
 
         $packCodesToRecalculateTrackingDelay = array_keys($this->packCodesToRecalculateTrackingDelay);
-        $needSyncProcess = $this::$needSyncTrackingDelayProcessing && count($this->packCodesToRecalculateTrackingDelay) <= 5;
+        $needSyncProcess = self::$needSyncTrackingDelayProcessing;
         foreach ($packCodesToRecalculateTrackingDelay as $code) {
-
             $calculateTrackingDelayMessageClass = $needSyncProcess
                 ? SyncCalculateTrackingDelayMessage::class
                 : AsyncCalculateTrackingDelayMessage::class;
