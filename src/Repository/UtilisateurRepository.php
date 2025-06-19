@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Dispute;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Type\Type;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -282,14 +283,22 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      * @return array<int, Utilisateur>
      */
     public function findWithSleepingReferenceArticlesByType(Type $type): array {
-        $queryBuilder = $this->createQueryBuilder('user')
+        $queryBuilder = $this->createQueryBuilder('user');
+        $exprBuilder = $queryBuilder->expr();
+        $queryBuilder
             ->distinct()
             ->innerJoin(ReferenceArticle::class, "reference_article", Join::WITH, "user MEMBER OF reference_article.managers")
             ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
             ->leftJoin("articles_fournisseur.articles", "article")
 
             // only managed articles or ref articles with a last movement NOT NULL
-            ->innerJoin(MouvementStock::class, 'last_movement', Join::WITH, 'last_movement = reference_article.lastMovement OR last_movement = article.lastMovement');
+            ->innerJoin(MouvementStock::class, 'last_movement', Join::WITH, 'last_movement = reference_article.lastMovement OR last_movement = article.lastMovement')
+            ->innerJoin("user.role", "role")
+            ->andWhere("user.status = true")
+            ->andWhere($exprBuilder->not($exprBuilder->eq("role.label", ":no_access_user")))
+            ->setParameters([
+                "no_access_user" => Role::NO_ACCESS_USER
+            ]);
 
         MouvementStockRepository::filterSleepingStock(
             $queryBuilder,
