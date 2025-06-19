@@ -99,6 +99,8 @@ class Import extends ScheduledTask {
         ],
         self::ENTITY_LOCATION => [
             FixedFieldEnum::name->name,
+            FixedFieldEnum::description->name,
+            FixedFieldEnum::zone->name,
         ],
         self::ENTITY_CUSTOMER => [
             FixedFieldEnum::name->name,

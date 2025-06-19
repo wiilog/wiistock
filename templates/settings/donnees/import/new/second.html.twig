@@ -18,7 +18,7 @@
                     <td>
                         {{ form.select(i, null, false, {
                             items: fields|map((fieldName, fieldValue) => {
-                                label: fieldName|capitalize ~ (fieldValue in fieldsNeeded ? '*' : '') ~ (fieldValue == fieldPK ? ' [clé unique]'),
+                                label: fieldName|capitalize ~ (fieldValue == fieldPK ? ' [clé unique]'),
                                 value: fieldValue,
                                 selected: (
                                     preselection[data.headers[i]] is defined
