@@ -277,10 +277,16 @@ parameters:
     - label: 'Documentation'
       icon: 'documentation'
       url: 'https://wiilog.gitbook.io/docs/'
+      rights:
+        menu: App\Entity\Menu::GENERAL
+        action: App\Entity\Action::SHOW_DOCUMENTATION
 
     - label: 'Support'
       icon: 'phone'
       url: 'https://wiilog.freshdesk.com/support/home'
+      rights:
+        menu: App\Entity\Menu::GENERAL
+        action: App\Entity\Action::SHOW_SUPPORT
 
     - label: 'Déconnexion'
       icon: 'deco'

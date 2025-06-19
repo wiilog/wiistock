@@ -64,10 +64,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
 
     public const MENUS = [
         Menu::GENERAL => [
-          Action::SHOW_NOTIFICATIONS,
-          Action::SHOW_CART,
-          Action::SHOW_LANGUAGES,
-          Action::RECEIVE_EMAIL_ON_NEW_USER,
+            Action::SHOW_NOTIFICATIONS,
+            Action::SHOW_CART,
+            Action::SHOW_LANGUAGES,
+            Action::RECEIVE_EMAIL_ON_NEW_USER,
+            Action::SHOW_DOCUMENTATION,
+            Action::SHOW_SUPPORT,
         ],
         Menu::TRACA => [
             self::SUB_MENU_GENERAL => [
