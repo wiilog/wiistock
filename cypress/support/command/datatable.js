@@ -47,11 +47,11 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
                     newTd.find('td')
                         .eq(columnIndexes[objectProperty])
                         .contains(object[objectProperty]?.toString());
-                })
+                });
             });
         });
     });
-})
+});
 
 /**
  * @description: This command allow to click on a row in a datatable by its label
@@ -60,7 +60,7 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
  */
 Cypress.Commands.add('clickOnRowInDatatable', (tableId, label) => {
     cy.get(`#${tableId} tbody td`).contains(label).click();
-})
+});
 
 /**
  * @description: This command allow to check all the columns in the column management modal
@@ -85,7 +85,7 @@ Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelec
     // submit the modal & close it
     cy.get(`${modalSelector} button[type='submit']`).click();
     cy.get(modalSelector).should('not.be.visible');
-})
+});
 
 /**
  * Allows us to search in a datatable.
@@ -101,7 +101,7 @@ Cypress.Commands.add('searchInDatatable', (selector, value) => {
             .type(`${value}{enter}`)
             .wait(1000);
     });
-})
+});
 
 /**
  * Allows us to check if the datatable is empty.
@@ -112,7 +112,7 @@ Cypress.Commands.add('checkDatatableIsEmpty', (selector) => {
         .get(selector)
         .find('.dataTables_empty')
         .should("be.visible");
-})
+});
 
 /**
  * Allows us to fill the select fields in the filters field.
@@ -180,3 +180,63 @@ Cypress.Commands.add('checkElementsInSelectInFiltersField', (nameOfSelect, nameO
         cy.get(nameInput).click();
     });
 });
+
+Cypress.Commands.add('checkDatatableCheckboxes', (id, all = true, rowNames = []) => {
+
+    const columnsToCheck = [];
+    const rowIndex = []
+    const columnsToCheckName = ["Afficher","Obligatoire"];
+
+    const checkboxNameToCheck = ["requiredCreate", "displayCreate", "requiredEdit", "displayEdit"];
+
+    // get the index of the columns with her name
+    cy.get(`[id^=${id}] thead:first tr th`).then(($ths) => {
+        $ths.each((index, th) => {
+            if (columnsToCheckName.includes(th.textContent)) {
+                // get the index of the columns to check in the datatable
+                // -4 because the first 4 columns come from ??
+                columnsToCheck.push(index - 4);
+            }
+        });
+
+        if (all) {
+           for (const checkboxName in checkboxNameToCheck) {
+                cy.get(`[data-menu=champs_fixes] td[data-name=${checkboxName}] input[type=checkbox]:not(:disabled)`)
+                    .uncheck({force: true});
+                cy.get(`[data-menu=champs_fixes] td[data-name=${checkboxName}] input[type=checkbox]:not(:disabled)`)
+                    .check({force: true});
+           }
+        } else {
+            let columnNumber = 0
+            let cpt = 1;
+            cy.get(`tbody>tr:eq(3)`).should("be.visible", {timeout: 8000}).then(() => {
+                // get the index of the row with her name
+                cy.get(`[id^=${id}] tbody tr:eq(3) td`).then((tds) => {
+                    columnNumber = Array.from(tds).length;
+                    cy.get(`[id^=${id}] tbody tr td`).each((td) => {
+                        if (rowNames.includes(td.text().trim())) {
+                            rowIndex.push(Math.trunc(cpt / (columnNumber)) + 2 );
+                        }
+                        cpt = cpt + 1;
+                    }).then(() => {
+                        rowIndex.forEach((index) => {
+                            columnsToCheck.forEach((columnIndex) => {
+                                cy.get(`tbody>tr:eq(${index})`)
+                                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                                    .uncheck({force: true});
+                            });
+
+                            columnsToCheck.forEach((columnIndex) => {
+                                cy.get(`tbody>tr:eq(${index})`)
+                                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                                    .check({force: true});
+                            });
+                        });
+                    });
+                });
+            });
+        }
+    });
+});
+
+
