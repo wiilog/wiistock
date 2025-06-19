@@ -385,20 +385,24 @@ class ArrivageController extends AbstractController {
         );
         $entityManager->persist($arrivage);
 
-        $printPacks = $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrivalNumber, fn () => ($data["printPacks"] ?? false) === "true");
-
         /**
-         *  Check if at leastSyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES pack has a tracking delay
-         *  This is to avoid performance issue
-         *  To count the number of pack with a tracking delay, we use the same condition as in the @see PackListener::postFlush
+         * To avoid performance issue, sync tracking delay processing is done :
+         *   * IF barcode pack printing is requested in the form
+         *   * AND IF the setting which add limit treatment date on barcode is set
+         *   * AND IF at the most SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES packs has a tracking delay to be processed
+         * ELSE we calculate tracking delay asynchronously.
          *
-         *  This boolean is usefull only when printPacks is true, to avoid performance issue we process it only when printPacks is true
+         * To count the number of pack with a tracking delay, we use the same condition as in the @see TrackingMovementListener::onFlush
          */
-        $moreThanLimitPacksShouldHaveTrackingDelay = $printPacks && !Stream::from($arrivage->getPacks())
-
-            ->hasAtLeast(fn(Pack $pack) => $pack->shouldHaveTrackingDelay(), SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1);
-        $needSyncTrackingDelayProcessing = $printPacks && $moreThanLimitPacksShouldHaveTrackingDelay && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
-        PackListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
+        TrackingMovementListener::$needSyncTrackingDelayProcessing = (
+            $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrivalNumber, fn () => ($data["printPacks"] ?? false) === "true")
+            && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE)
+            && !Stream::from($arrivage->getPacks())
+                ->hasAtLeast(
+                    static fn(Pack $pack) => $pack->shouldHaveTrackingDelay(),
+                    SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1
+                )
+        );
 
         try {
             $entityManager->flush();
@@ -566,23 +570,25 @@ class ArrivageController extends AbstractController {
                 );
             }
 
-            $printPacks = $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrival->getNumeroArrivage(), fn () => false);
-
             /**
-             *  Check if at leastSyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES pack has a tracking delay
-             *  This is to avoid performance issue
-             *  To count the number of pack with a tracking delay, we use the same condition as in the @see TrackingMovementListener::onFlush
+             * To avoid performance issue, sync tracking delay processing is done :
+             *   * IF barcode pack printing is requested in the form
+             *   * AND IF the setting which add limit treatment date on barcode is set
+             *   * AND IF at the most SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES packs has a tracking delay to be processed
+             * ELSE we calculate tracking delay asynchronously.
              *
-             *  This boolean is usefull only when printPacks is true, to avoid performance issue we process it only when printPacks is true
+             * To count the number of pack with a tracking delay, we use the same condition as in the @see TrackingMovementListener::onFlush
              */
-            $moreThanLimitPacksShouldHaveTrackingDelay = $printPacks && !Stream::from($createdTrackingMovements)
-                ->hasAtLeast(
-                    fn(TrackingMovement $trackingMovement) => $trackingDelayService->getPackThatRequireTrackingDelay($trackingMovement),
-                    SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1
-                );
+            TrackingMovementListener::$needSyncTrackingDelayProcessing = (
+                $cacheService->get(CacheNamespaceEnum::ARRIVAL_PRINT_PACK, $arrival->getNumeroArrivage(), fn () => false)
+                && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE)
+                && !Stream::from($createdTrackingMovements)
+                    ->hasAtLeast(
+                        fn(TrackingMovement $trackingMovement) => $trackingDelayService->getPackThatRequireTrackingDelay($trackingMovement),
+                        SyncCalculateTrackingDelayMessage::MAX_SYNC_MESSAGES + 1
+                    )
+            );
 
-            $needSyncTrackingDelayProcessing = $printPacks && $moreThanLimitPacksShouldHaveTrackingDelay && $settingsService->getValue($entityManager, Setting::INCLUDE_LIMIT_TREATMENT_DATE);
-            TrackingMovementListener::$needSyncTrackingDelayProcessing = $needSyncTrackingDelayProcessing;
             $entityManager->flush();
         }
 
