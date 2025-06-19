@@ -250,6 +250,8 @@ class Action {
     const SHOW_NOTIFICATIONS = 'Afficher les notifications';
     const SHOW_CART = 'Afficher le panier';
     const SHOW_LANGUAGES = 'Choisir la langue';
+    const SHOW_DOCUMENTATION = "Afficher la documentation";
+    const SHOW_SUPPORT = "Afficher le support";
     const RECEIVE_EMAIL_ON_NEW_USER = 'Réception email création nouveau compte';
 
     #[ORM\Id]
