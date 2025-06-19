@@ -26,7 +26,7 @@
                         {% if fieldsParam|isFieldRequired(field.name, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(field.name, 'requiredCreate') %}
                         {% set right = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING')) %}
-                        {{ form.select(field.name, trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false), required, {
+                        {{ form.select(field.name, trans('Demande', 'Services', 'Modale et détails', 'Statut'), required, {
                             items: handlingStatus
                                 | filter((status) =>
                                     (status.state == constant('App\\Entity\\Statut::TREATED') and right)
