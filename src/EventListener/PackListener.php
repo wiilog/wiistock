@@ -58,11 +58,12 @@ class PackListener implements EventSubscriber {
              * Same condition is used in @see ArrivageController::postArrivalTrackingMovements please keep it in sync!
              */
             if ($pack?->shouldHaveTrackingDelay()) {
-                $calculateTrackingDelayMessageClass = $needSyncProcess
-                    ? SyncCalculateTrackingDelayMessage::class
-                    : AsyncCalculateTrackingDelayMessage::class;
+                $message = match($needSyncProcess) {
+                    true => new SyncCalculateTrackingDelayMessage($pack->getCode()),
+                    default => new AsyncCalculateTrackingDelayMessage($pack->getCode()),
+                };
 
-                $this->messageBus->dispatch(new $calculateTrackingDelayMessageClass($pack->getCode()));
+                $this->messageBus->dispatch($message);
             }
         }
         $this->insertedPacks = [];
