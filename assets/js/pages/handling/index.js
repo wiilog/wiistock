@@ -132,6 +132,7 @@ function initModals(tableHandling) {
     Form.create($modalNewHandling).submitTo(POST,'handling_new', {
         tables: [tableHandling],
         keepModal: $modalNewHandling.is(`.keep-handling-modal-open`),
+        clearFields: $modalNewHandling.is(`.keep-handling-modal-open`),
         success: () => $modalNewHandling.find(`.free-fields-container [data-type]`).addClass(`d-none`),
     })
 
