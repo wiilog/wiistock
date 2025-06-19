@@ -61,7 +61,7 @@ $(function () {
         );
 
     Form
-        .create($('#modalDuplicateMission'), { resetView: ['open', 'close'] })
+        .create($('#modalDuplicateMission'), { resetView: [] })
         .submitTo(
             AJAX.POST,
             'mission_new',
