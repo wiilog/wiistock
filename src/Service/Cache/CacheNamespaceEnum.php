@@ -15,5 +15,6 @@ enum CacheNamespaceEnum: string {
     case WORK_PERIOD = "work-period";
     case ENTITIES_DICTIONARY = "entities";
     case SLEEPING_STOCK_PLANS = "sleeping-stock-plans";
+    case ARRIVAL_PRINT_PACK = "arrival-print-pack";
 
 }

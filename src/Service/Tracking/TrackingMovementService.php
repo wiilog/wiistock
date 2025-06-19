@@ -981,8 +981,7 @@ class TrackingMovementService {
                                                   ?Emplacement $location,
                                                   Utilisateur $user,
                                                   DateTime $date,
-                                                  Arrivage $arrivage) {
-
+                                                  Arrivage $arrivage): TrackingMovement {
         $mouvementDepose = $this->createTrackingMovement(
             $pack,
             $location,
@@ -997,6 +996,8 @@ class TrackingMovementService {
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
+
+        return $mouvementDepose;
     }
 
     public function putMovementLine($handle,

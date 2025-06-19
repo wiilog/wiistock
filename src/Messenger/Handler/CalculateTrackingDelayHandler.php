@@ -3,6 +3,7 @@
 namespace App\Messenger\Handler;
 
 use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage;
+use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\CalculateTrackingDelayMessage;
 use App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage;
 use App\Messenger\Message\MessageInterface;
 use App\Service\ExceptionLoggerService;
@@ -35,12 +36,12 @@ class CalculateTrackingDelayHandler extends WaitingDeduplicatedHandler {
         parent::__construct($loggerService, $messageBus, $lockFactory);
     }
 
-    public function __invoke(AsyncCalculateTrackingDelayMessage | SyncCalculateTrackingDelayMessage $message): void {
+    public function __invoke(CalculateTrackingDelayMessage $message): void {
         $this->handle($message);
     }
 
     /**
-     * @param AsyncCalculateTrackingDelayMessage|SyncCalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
+     * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
      */
     protected function processWithLock(MessageInterface $message): void {
         $success = $this->packService->updateTrackingDelayWithPackCode($this->entityManager, $message->getPackCode());
