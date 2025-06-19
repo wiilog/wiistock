@@ -867,6 +867,7 @@ class DispatchService {
                                data-include-params='[name=pack]'
                                data-include-params-group
                                data-auto-select
+                               data-ajax-method='POST'
                                class='w-300px'
                                $searchPrefix
                                $autofocus></select>",

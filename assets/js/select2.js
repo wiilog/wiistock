@@ -118,7 +118,20 @@ export default class Select2 {
                     data: params => Select2.includeParams($element, params),
                     processResults: (data) => {
                         return processResult($element, data);
-                    }
+                    },
+                    transport: function (params, success, failure) {
+                        const customMethod = $element.data('ajax-method');
+
+                        const $request = $.ajax({
+                            ...params,
+                            ...(customMethod ? {method: customMethod} : {}),
+                        });
+
+                        $request.then(success);
+                        $request.fail(failure);
+
+                        return $request;
+                    },
                 };
 
                 if ($element.is(`[data-min-length]`) || !INSTANT_SELECT_TYPES[type]) {

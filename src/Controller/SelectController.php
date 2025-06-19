@@ -470,7 +470,10 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route("/select/keyboard/pack", name: "ajax_select_keyboard_pack", options: ["expose" => true])]
+    /**
+     * Post request to fix nginx error Request too large if pack parameter contains large amount of pack code
+     */
+    #[Route("/select/keyboard/pack", name: "ajax_select_keyboard_pack", options: ["expose" => true],  methods: [self::POST])]
     public function keyboardPack(Request                $request,
                                  EntityManagerInterface $manager,
                                  PackService            $packService,
@@ -478,9 +481,9 @@ class SelectController extends AbstractController {
         $packRepository = $manager->getRepository(Pack::class);
         $packMustBeNew = $settingsService->getValue($manager, Setting::PACK_MUST_BE_NEW);
 
-        $packCode = $request->query->get("term");
-        if($request->query->has("searchPrefix")) {
-            $packCode = $request->query->get("searchPrefix") . $packCode;
+        $packCode = $request->request->get("term");
+        if($request->request->has("searchPrefix")) {
+            $packCode = $request->request->get("searchPrefix") . $packCode;
         }
 
         if($packMustBeNew) {
@@ -492,11 +495,11 @@ class SelectController extends AbstractController {
                 $results = new EmptyIterator();
             }
         } else {
-            $limit = $request->query->get('limit') ?: 1000;
+            $limit = $request->request->get('limit') ?: 1000;
             $results = $packRepository->iterateForSelect(
                 $packCode,
                 [
-                    'exclude'=> $request->query->all("pack"),
+                    'exclude'=> $request->request->all("pack"),
                     'limit' => $limit,
                 ]
             );
