@@ -278,7 +278,7 @@ parameters:
       icon: 'documentation'
       url: 'https://wiilog.gitbook.io/docs/'
 
-    - label: 'Support'
+    - label: 'Support Logiciel'
       icon: 'phone'
       url: 'https://wiilog.freshdesk.com/support/home'
 
