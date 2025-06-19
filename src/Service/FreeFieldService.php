@@ -23,7 +23,7 @@ use WiiCommon\Helper\Stream;
 class FreeFieldService {
 
     public const FREE_FIELD_NAME_PREFIX = 'free_field_';
-    public const FREE_FIELD_NAME_REGEX = "/^" . self::FREE_FIELD_NAME_PREFIX . "_(\d+)$/";
+    public const FREE_FIELD_NAME_REGEX = "/^" . self::FREE_FIELD_NAME_PREFIX . "(\d+)$/";
 
     public function __construct(
         private TranslationService $translationService,
