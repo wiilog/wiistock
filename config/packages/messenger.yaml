@@ -58,10 +58,13 @@ framework:
       App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\AsyncCalculateTrackingDelayMessage: async_tracking_delay
       App\Messenger\Message\DeduplicatedMessage\WaitingDeduplicatedMessage\SyncCalculateTrackingDelayMessage: sync_tracking_delay
 
-# when@test:
-#    framework:
-#        messenger:
-#            transports:
-#                # replace with your transport name here (e.g., my_transport: 'in-memory://')
-#                # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
-#                async: 'in-memory://'
+when@test:
+  framework:
+    messenger:
+      transports:
+        async_tracking_delay:
+          dsn: "in-memory://"
+        async_waiting:
+          dsn: "in-memory://"
+        async_dashboard_feeding:
+          dsn: "in-memory://"

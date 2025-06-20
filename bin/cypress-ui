@@ -2,10 +2,10 @@
 
 set -e
 
-docker compose -p wiistock-cypress -f ../../docker-compose.yaml -f ../../docker-compose.cypress.yaml up wiistock-php wiistock-nginx mysql owasp-modsecurity -d --build
+docker compose -f ../../docker-compose.cypress.yaml up wiistock-php wiistock-nginx mysql owasp-modsecurity -d --build
 docker exec --user www-data cypress_wiistock-php yarn install
 docker exec --user www-data cypress_wiistock-php composer install
 docker exec --user www-data cypress_wiistock-php yarn build:only:dev
 xhost +
-docker compose -p wiistock-cypress -f ../../docker-compose.yaml -f ../../docker-compose.cypress.yaml -f ../../cypress-open.yaml up cypress --exit-code-from cypress
+docker compose -f ../../docker-compose.cypress.yaml -f ../../cypress-open.yaml up cypress --exit-code-from cypress
 

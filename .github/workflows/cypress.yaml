@@ -24,7 +24,7 @@ jobs:
         with:
           repository: wiilog/wiistock-docker
           token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-          ref: main
+          ref: WIIS-12608 # for testing purposes only TODO: not kept in like that
 
       - name: Checkout wiistock
         uses: actions/checkout@v4
@@ -99,4 +99,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dev-log-symfony
-          path: ${{github.workspace}}/projects/wiistock/var/log/dev.log
+          path: ${{github.workspace}}/projects/wiistock/var/log/test.log
