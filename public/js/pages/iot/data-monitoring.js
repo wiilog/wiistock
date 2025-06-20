@@ -89,7 +89,7 @@ function filter() {
 }
 
 function unpair(pairing) {
-    $.post(Routing.generate(`unpair`, {pairing}), function (response) {
+    $.post(Routing.generate(`pairing_unpair`, {pairing}), function (response) {
         if (response.success) {
             window.location.href = Routing.generate(`pairing_index`);
         }
