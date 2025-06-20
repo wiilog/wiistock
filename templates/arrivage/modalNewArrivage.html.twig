@@ -4,7 +4,7 @@
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_PETIT_SALE'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CHOU_FARCI')) %}
 {% set modalId = 'modalNewArrivage' %}
-<div class="modal fade" id="{{  modalId }}" role="dialog" aria-hidden="true">
+<div class="modal fade" id="{{ modalId }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {

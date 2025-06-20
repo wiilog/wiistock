@@ -1,5 +1,6 @@
 <div class="modal fade" id="newTruckArrivalModal" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    {% set modalId = 'modalNewTruckArrival' %}
+    <div id="{{ modalId }}" class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: 'Nouvel arrivage camion',
@@ -13,7 +14,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'},
+                    {classes: 'btn btn-success data', name: 'saveWithoutRedirection', text: 'Enregistrer', type: 'submit'},
                     {classes: 'btn btn-success data go-to-arrival', name: 'goToArrivalButton', value: false, text: 'Aller vers Arrivage UL', type: 'submit'}
                 ],
             } %}
