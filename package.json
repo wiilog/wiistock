@@ -22,7 +22,7 @@
         "@popperjs/core": "^2.11.8",
         "@types/jslib-html5-camera-photo": "^3.1.5",
         "arrive": "^2.4.1",
-        "bootstrap": "^5.3.6",
+        "bootstrap": "^5.3.7",
         "chart.js": "^2.9.4",
         "copy-webpack-plugin": "^12.0.2",
         "datatables.net": "^1.11.4",
